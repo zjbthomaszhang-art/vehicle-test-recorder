@@ -37,21 +37,22 @@ jobs:
             /usr/bin/npm install
             /usr/bin/npm run build
             
-            # 2. Recreate .env from GitHub Secrets
+            # 2. Recreate .env with IPv4 for stability
             echo "PORT=3001" > .env
             echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
             echo "DB_USER=${{ secrets.DB_USER }}" >> .env
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
             echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
             echo "NODE_ENV=production" >> .env
-            
-            # 3. Secure the .env file
             chmod 600 .env
             
-            # 4. Restart PM2 with absolute path and CWD
+            # 3. Stop and Start PM2 with absolute paths
             /usr/bin/pm2 delete vehicle-recorder || true
             /usr/bin/pm2 start server/index.cjs --name "vehicle-recorder" --cwd /home/admin/vehicle-test-recorder
             
-            # 5. Verify status
-            sleep 2
+            # 4. CRITICAL: Wait and Capture Real Runtime Logs
+            echo "Waiting for app to initialize..."
+            sleep 10
             /usr/bin/pm2 status
+            echo "--- Latest 50 lines of App Logs (Error Diagnosis) ---"
+            /usr/bin/pm2 logs "vehicle-recorder" --lines 50 --no-daemon & sleep 5 && kill $! || true
