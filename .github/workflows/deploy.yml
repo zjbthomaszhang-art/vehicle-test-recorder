@@ -18,36 +18,40 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          # Only copy the necessary application folders/files to avoid .git permissions issues
           source: "server/,src/,public/,package.json,package-lock.json,vite.config.js,index.html,ecosystem.config.cjs,.github/workflows/deploy.yml"
           target: "~/vehicle-test-recorder"
           strip_components: 0
           overwrite: true
 
-      - name: Build, Diagnose and Restart
+      - name: Build, Restore Env and Restart
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            set -x
+            set -e
             cd ~/vehicle-test-recorder
             
-            # 1. Install dependencies and build
+            # 1. Install and Build
             /usr/bin/npm install
             /usr/bin/npm run build
             
-            # 2. Database sanity check
-            echo "--- Checking Environment ---"
-            ls -al .env || echo "MISSING: .env file! Database connection might fail."
+            # 2. Recreate .env from GitHub Secrets
+            echo "PORT=3001" > .env
+            echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+            echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+            echo "NODE_ENV=production" >> .env
             
-            # 3. Clean and Restart PM2 with absolute paths
+            # 3. Secure the .env file
+            chmod 600 .env
+            
+            # 4. Restart PM2 with absolute path and CWD
             /usr/bin/pm2 delete vehicle-recorder || true
             /usr/bin/pm2 start server/index.cjs --name "vehicle-recorder" --cwd /home/admin/vehicle-test-recorder
             
-            # 4. Final health check
-            sleep 5
+            # 5. Verify status
+            sleep 2
             /usr/bin/pm2 status
-            echo "--- Latest Server Logs ---"
-            /usr/bin/pm2 logs "vehicle-recorder" --lines 30 --no-colors | head -n 30
