@@ -21,16 +21,33 @@ jobs:
           source: "./*"
           target: "~/vehicle-test-recorder"
           strip_components: 0
+          overwrite: true
 
-      - name: Build and Restart on Server
+      - name: Build, Fix and Restart on Server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            set -e
+            set -x
             cd ~/vehicle-test-recorder
+            
+            # Ensure dependencies are installed
             /usr/bin/npm install
             /usr/bin/npm run build
-            /usr/bin/pm2 restart all || /usr/bin/pm2 start ecosystem.config.cjs
+            
+            # Check for database connection issues
+            if [ ! -f "server/db.sqlite" ] && [ ! -f ".env" ]; then
+              echo "WARNING: Neither db.sqlite nor .env found. DB might be disconnected!"
+            fi
+            
+            # Restart PM2 with explicit path to avoid working directory issues
+            /usr/bin/pm2 stop all || true
+            /usr/bin/pm2 delete all || true
+            /usr/bin/pm2 start server/index.cjs --name "vehicle-recorder" --cwd /home/admin/vehicle-test-recorder
+            
+            # Wait a moment and check status/logs
+            sleep 3
+            /usr/bin/pm2 status
+            /usr/bin/pm2 logs "vehicle-recorder" --lines 20 --no-colors | head -n 20
