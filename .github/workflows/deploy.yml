@@ -18,12 +18,13 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "./*"
+          # Only copy the necessary application folders/files to avoid .git permissions issues
+          source: "server/,src/,public/,package.json,package-lock.json,vite.config.js,index.html,ecosystem.config.cjs,.github/workflows/deploy.yml"
           target: "~/vehicle-test-recorder"
           strip_components: 0
           overwrite: true
 
-      - name: Build, Fix and Restart on Server
+      - name: Build, Diagnose and Restart
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.REMOTE_HOST }}
@@ -33,21 +34,20 @@ jobs:
             set -x
             cd ~/vehicle-test-recorder
             
-            # Ensure dependencies are installed
+            # 1. Install dependencies and build
             /usr/bin/npm install
             /usr/bin/npm run build
             
-            # Check for database connection issues
-            if [ ! -f "server/db.sqlite" ] && [ ! -f ".env" ]; then
-              echo "WARNING: Neither db.sqlite nor .env found. DB might be disconnected!"
-            fi
+            # 2. Database sanity check
+            echo "--- Checking Environment ---"
+            ls -al .env || echo "MISSING: .env file! Database connection might fail."
             
-            # Restart PM2 with explicit path to avoid working directory issues
-            /usr/bin/pm2 stop all || true
-            /usr/bin/pm2 delete all || true
+            # 3. Clean and Restart PM2 with absolute paths
+            /usr/bin/pm2 delete vehicle-recorder || true
             /usr/bin/pm2 start server/index.cjs --name "vehicle-recorder" --cwd /home/admin/vehicle-test-recorder
             
-            # Wait a moment and check status/logs
-            sleep 3
+            # 4. Final health check
+            sleep 5
             /usr/bin/pm2 status
-            /usr/bin/pm2 logs "vehicle-recorder" --lines 20 --no-colors | head -n 20
+            echo "--- Latest Server Logs ---"
+            /usr/bin/pm2 logs "vehicle-recorder" --lines 30 --no-colors | head -n 30
