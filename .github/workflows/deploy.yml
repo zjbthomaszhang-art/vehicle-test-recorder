@@ -9,7 +9,20 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy via SSH
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy files via SSH (SCP)
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "./*"
+          target: "~/vehicle-test-recorder"
+          strip_components: 0
+
+      - name: Build and Restart on Server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.REMOTE_HOST }}
@@ -17,18 +30,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-            set -x
-            echo "Current user: $(whoami)"
-            echo "Target Directory: ~/vehicle-test-recorder"
-            
-            if [ ! -d ~/vehicle-test-recorder ]; then
-              echo "Error: Directory ~/vehicle-test-recorder not found. Checking current location..."
-              ls -la ~
-            fi
-
             cd ~/vehicle-test-recorder
-            git pull origin main
-            
             /usr/bin/npm install
             /usr/bin/npm run build
             /usr/bin/pm2 restart all || /usr/bin/pm2 start ecosystem.config.cjs
