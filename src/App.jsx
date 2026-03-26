@@ -179,6 +179,12 @@ export default function NDLBRecorder() {
     }
   };
 
+  const prevCase = () => {
+    if (currentCaseIndex > 0) {
+      setCurrentCaseIndex(prev => prev - 1);
+    }
+  };
+
   const saveTemporarily = () => {
     saveSession()
       .then(() => setToast({ message: 'Progress saved temporarily.', type: 'success' }))
@@ -263,7 +269,7 @@ export default function NDLBRecorder() {
     vehicleModel, modelYear, vin,
     updateCurrentResult, handleTimeClick,
     handleAddMedia, convertToBug,
-    nextCase, saveTemporarily,
+    nextCase, prevCase, saveTemporarily,
     setConfirmDialog, setView, resetAllFields, setToast,
   };
 
