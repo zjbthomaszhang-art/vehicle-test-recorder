@@ -23,7 +23,7 @@ jobs:
           strip_components: 0
           overwrite: true
 
-      - name: Build, Restore Env and Force Restart
+      - name: NUCLEAR RESTART - RESTORING SYSTEM
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.REMOTE_HOST }}
@@ -46,16 +46,21 @@ jobs:
             echo "NODE_ENV=production" >> .env
             chmod 600 .env
             
-            # 3. CRITICAL: Force kill any process holding port 3001
-            echo "Cleaning up port 3001..."
+            # 3. ABSOLUTE RESET: Clean PM2 and Ports
+            echo "Executing Absolute System Reset..."
+            /usr/bin/pm2 kill || true
             sudo fuser -k 3001/tcp || true
-            /usr/bin/pm2 delete vehicle-recorder || true
+            (sudo lsof -t -i:3001 | xargs sudo kill -9) || true
+            pkill -u admin node || true
             
-            # 4. Start fresh
+            echo "Waiting for OS to release the port (15s)..."
+            sleep 15
+            
+            # 4. Fresh Start
             /usr/bin/pm2 start server/index.cjs --name "vehicle-recorder" --cwd /home/admin/vehicle-test-recorder
             
-            # 5. Verify status and logs
-            sleep 5
+            # 5. Final Health Check
+            sleep 10
             /usr/bin/pm2 status
             echo "--- Final Server Health Check ---"
-            /usr/bin/pm2 logs "vehicle-recorder" --lines 30 --no-daemon & sleep 5 && kill $! || true
+            /usr/bin/pm2 logs "vehicle-recorder" --lines 100 --no-daemon & sleep 10 && kill $! || true
