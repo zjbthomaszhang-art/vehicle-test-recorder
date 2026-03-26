@@ -16,7 +16,7 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /root/vehicle-test-recorder
+            cd ~/vehicle-test-recorder
             git pull origin main
             npm install
             npm run build
