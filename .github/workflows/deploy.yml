@@ -57,14 +57,14 @@ jobs:
             sudo systemctl restart nginx
             
             # 4. ABSOLUTE RESET: Clean PM2 and Ports for Backend
-            echo "Executing Backend Reset..."
+            echo "Executing Aggressive Backend Reset..."
             /usr/bin/pm2 kill || true
             sudo fuser -k 3001/tcp || true
-            (sudo lsof -t -i:3001 | xargs sudo kill -9) || true
-            pkill -u admin node || true
+            sudo lsof -t -i:3001 | xargs sudo kill -9 || true
+            sudo killall -9 node || true
             
-            echo "Waiting for OS (10s)..."
-            sleep 10
+            echo "Waiting for Socket Release (15s)..."
+            sleep 15
             
             # 5. Fresh Start (Backend now hidden behind Nginx)
             /usr/bin/pm2 delete "vehicle-recorder" || true
