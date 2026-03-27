@@ -67,7 +67,8 @@ jobs:
             sleep 10
             
             # 5. Fresh Start (Backend now hidden behind Nginx)
-            /usr/bin/pm2 start server/index.cjs --name "vehicle-recorder" --cwd /home/admin/vehicle-test-recorder
+            /usr/bin/pm2 delete "vehicle-recorder" || true
+            /usr/bin/pm2 start /home/admin/vehicle-test-recorder/server/index.cjs --name "vehicle-recorder" --cwd /home/admin/vehicle-test-recorder
             
             # 6. Final Health Check
             sleep 5
