@@ -18,12 +18,12 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "server/,src/,public/,package.json,package-lock.json,vite.config.js,index.html,ecosystem.config.cjs,.github/workflows/deploy.yml"
+          source: "server/,src/,public/,package.json,package-lock.json,vite.config.js,index.html,ecosystem.config.cjs,.github/workflows/deploy.yml,nginx/vehicle-recorder.conf"
           target: "~/vehicle-test-recorder"
           strip_components: 0
           overwrite: true
 
-      - name: NUCLEAR RESTART - RESTORING SYSTEM
+      - name: NUCLEAR RESTART - RESTORING SYSTEM & NGINX
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.REMOTE_HOST }}
@@ -33,7 +33,7 @@ jobs:
             set -e
             cd ~/vehicle-test-recorder
             
-            # 1. Install and Build
+            # 1. Install Dependencies
             /usr/bin/npm install
             /usr/bin/npm run build
             
@@ -46,21 +46,31 @@ jobs:
             echo "NODE_ENV=production" >> .env
             chmod 600 .env
             
-            # 3. ABSOLUTE RESET: Clean PM2 and Ports
-            echo "Executing Absolute System Reset..."
+            # 3. NGINX SETUP: Install and Link Config
+            echo "Configuring Nginx..."
+            sudo apt-get update
+            sudo apt-get install -y nginx
+            sudo rm -f /etc/nginx/sites-enabled/default
+            sudo cp nginx/vehicle-recorder.conf /etc/nginx/sites-available/vehicle-recorder.conf
+            sudo ln -sf /etc/nginx/sites-available/vehicle-recorder.conf /etc/nginx/sites-enabled/vehicle-recorder.conf
+            sudo nginx -t
+            sudo systemctl restart nginx
+            
+            # 4. ABSOLUTE RESET: Clean PM2 and Ports for Backend
+            echo "Executing Backend Reset..."
             /usr/bin/pm2 kill || true
             sudo fuser -k 3001/tcp || true
             (sudo lsof -t -i:3001 | xargs sudo kill -9) || true
             pkill -u admin node || true
             
-            echo "Waiting for OS to release the port (15s)..."
-            sleep 15
+            echo "Waiting for OS (10s)..."
+            sleep 10
             
-            # 4. Fresh Start
+            # 5. Fresh Start (Backend now hidden behind Nginx)
             /usr/bin/pm2 start server/index.cjs --name "vehicle-recorder" --cwd /home/admin/vehicle-test-recorder
             
-            # 5. Final Health Check
-            sleep 10
+            # 6. Final Health Check
+            sleep 5
             /usr/bin/pm2 status
-            echo "--- Final Server Health Check ---"
-            /usr/bin/pm2 logs "vehicle-recorder" --lines 100 --no-daemon & sleep 10 && kill $! || true
+            echo "--- Final Server Health Check (Port 3001) ---"
+            /usr/bin/pm2 logs "vehicle-recorder" --lines 30 --no-daemon & sleep 5 && kill $! || true
