@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { INITIAL_CASES, API_BASE } from './constants.js';
 import { createEmptyResult, compressImage } from './utils/formatters.js';
+import { syncManager } from './utils/syncManager.js';
 
 // Views
 import HomeView from './views/HomeView.jsx';
@@ -60,6 +61,57 @@ export default function NDLBRecorder() {
   const [toast, setToast] = useState(null);
   const [editingSession, setEditingSession] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [pendingSyncCount, setPendingSyncCount] = useState(0);
+
+  // --- Network Status & Sync Logic ---
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      performFullSync();
+    };
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    // Initial check for pending items
+    updatePendingCount();
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  const updatePendingCount = async () => {
+    const pending = await syncManager.getPending();
+    setPendingSyncCount(pending.length);
+  };
+
+  const performFullSync = async () => {
+    const pending = await syncManager.getPending();
+    if (pending.length === 0) return;
+
+    setToast({ message: `📡 Network restored. Syncing ${pending.length} items...`, type: 'success' });
+    
+    for (const item of pending) {
+      try {
+        const url = `${API_BASE}/test-sessions`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(item.data)
+        });
+        if (res.ok) {
+          await syncManager.remove(item.localId);
+        }
+      } catch (err) {
+        console.error('Individual sync failed:', err);
+      }
+    }
+    updatePendingCount();
+  };
 
   // Reset scroll to top when view changes
   useEffect(() => {
@@ -140,10 +192,20 @@ export default function NDLBRecorder() {
     }))
   });
 
-  const saveSession = (opts = {}) => {
+  const saveSession = async (opts = {}) => {
+    const sessionData = buildSessionData();
+    
+    // Always add to local sync queue first for safety
+    const localId = await syncManager.addToQueue(sessionData);
+    updatePendingCount();
+
+    if (!isOnline) {
+      setToast({ message: '💾 Saved locally. Will sync when network is restored.', type: 'info' });
+      return Promise.resolve({ sessionId: 'offline-' + localId });
+    }
+
     setIsSaving(true);
     return new Promise((resolve, reject) => {
-      // Small delay to allow 'isSaving' state to render the UI overlay
       setTimeout(() => {
         const url = currentSessionId ? `${API_BASE}/test-sessions/${currentSessionId}` : `${API_BASE}/test-sessions`;
         const method = currentSessionId ? 'PUT' : 'POST';
@@ -151,17 +213,25 @@ export default function NDLBRecorder() {
         fetch(url, {
           method,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(buildSessionData())
+          body: JSON.stringify(sessionData)
         })
           .then(res => res.json())
-          .then(data => {
+          .then(async data => {
             if (data.sessionId && !currentSessionId) setCurrentSessionId(data.sessionId);
+            
+            // Success: remove from local sync queue
+            await syncManager.remove(localId);
+            updatePendingCount();
+            
             setIsSaving(false);
             resolve(data);
           })
           .catch(err => {
+            console.error('Sync failed, keeping locally:', err);
             setIsSaving(false);
-            reject(err);
+            // Don't reject, we saved locally already
+            setToast({ message: '📡 Sync failed. Data is safe locally.', type: 'info' });
+            resolve({ sessionId: 'offline-' + localId });
           });
       }, 50);
     });
@@ -271,6 +341,7 @@ export default function NDLBRecorder() {
     handleAddMedia, convertToBug,
     nextCase, prevCase, saveTemporarily,
     setConfirmDialog, setView, resetAllFields, setToast,
+    isOnline, pendingSyncCount
   };
 
   return (

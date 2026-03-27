@@ -13,7 +13,7 @@ export default function TestView({
   handleAddMedia, convertToBug,
   nextCase, prevCase, saveTemporarily,
   setConfirmDialog, setView, resetAllFields,
-  setToast,
+  setToast, isOnline, pendingSyncCount,
 }) {
   const activeCase = cases[currentCaseIndex];
   const currentData = caseResults[currentCaseIndex];
@@ -66,21 +66,34 @@ export default function TestView({
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans overflow-hidden">
       {/* Header */}
       <header className="px-5 py-4 sm:px-8 sm:py-6 bg-slate-900/60 backdrop-blur-3xl border-b border-slate-800 flex justify-between items-center sticky top-0 z-30">
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-1.5">
           <h1 className="font-black text-2xl italic tracking-tighter uppercase leading-none">
             VEHICLE<span className="text-blue-500">LAB</span>
           </h1>
-          <div className="flex items-center gap-4 mt-2.5">
-            <div className="bg-[#1e293b]/50 border border-blue-500/10 px-3 py-1 rounded-full flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Vehicle Info */}
+            <div className="bg-[#1e293b]/50 border border-blue-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
               <span className="text-[10px] font-black text-blue-400 uppercase tracking-tighter">
                 MY{modelYear || '25'} {vehicleModel || '557'}
               </span>
             </div>
-            <div className="bg-[#1e293b]/50 border border-blue-500/10 px-3 py-1 rounded-full flex items-center gap-1.5">
-              <span className="text-[10px] font-black text-blue-400 uppercase tracking-tighter">
-                {vin || 'LSGUN8P51SA100841'}
+            
+            {/* Sync / Network Status */}
+            <div className={`bg-[#1e293b]/50 border px-2.5 py-1 rounded-full flex items-center gap-1.5 transition-all ${isOnline ? 'border-emerald-500/10 bg-emerald-500/5' : 'border-amber-500/30'}`}>
+              <div className={`w-1.5 h-1.5 rounded-full animate-pulse outline outline-1 outline-offset-1 ${isOnline ? 'bg-emerald-500 outline-emerald-500/50' : 'bg-amber-500 outline-amber-500/50'}`} />
+              <span className={`text-[10px] font-black uppercase tracking-tighter ${isOnline ? 'text-emerald-400' : 'text-amber-400'}`}>
+                {isOnline ? 'Sync Active' : 'Offline Mode'}
               </span>
             </div>
+
+            {pendingSyncCount > 0 && (
+              <div className="bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 animate-bounce">
+                <Database size={10} className="text-amber-500" />
+                <span className="text-[10px] font-black text-amber-500 uppercase tracking-tighter">
+                  {pendingSyncCount} Pending
+                </span>
+              </div>
+            )}
           </div>
         </div>
         <button onClick={() => setIsMenuOpen(true)} className="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-blue-400 hover:text-blue-300 active:scale-90 transition-all">
