@@ -56,7 +56,14 @@ jobs:
             sudo nginx -t
             sudo systemctl restart nginx
             
-            # 4. ABSOLUTE RESET: Clean PM2 and Ports for Backend
+            # 4. STATIC FILE DEPLOYMENT: Move dist to /var/www for Nginx permissions
+            echo "Deploying Static Assets to /var/www/..."
+            sudo mkdir -p /var/www/vehicle-test-recorder
+            sudo rm -rf /var/www/vehicle-test-recorder/dist
+            sudo cp -r dist /var/www/vehicle-test-recorder/
+            sudo chown -R www-data:www-data /var/www/vehicle-test-recorder
+            
+            # 5. ABSOLUTE RESET: Clean PM2 and Ports for Backend
             echo "Executing Aggressive Backend Reset..."
             /usr/bin/pm2 kill || true
             sudo fuser -k 3001/tcp || true
@@ -70,8 +77,12 @@ jobs:
             /usr/bin/pm2 delete "vehicle-recorder" || true
             /usr/bin/pm2 start /home/admin/vehicle-test-recorder/server/index.cjs --name "vehicle-recorder" --cwd /home/admin/vehicle-test-recorder
             
-            # 6. Final Health Check
+            # 7. Final Health Check
             sleep 5
             /usr/bin/pm2 status
             echo "--- Final Server Health Check (Port 3001) ---"
             /usr/bin/pm2 logs "vehicle-recorder" --lines 30 --no-daemon & sleep 5 && kill $! || true
+            
+            # 8. Check Nginx Access log for 500s
+            echo "Checking Nginx Status..."
+            sudo systemctl status nginx --no-pager
