@@ -78,28 +78,26 @@ export default function TestView({
               </span>
             </div>
             
-            {/* Sync / Network Status */}
-            <div className={`bg-[#1e293b]/50 border px-2.5 py-1 rounded-full flex items-center gap-1.5 transition-all ${isOnline ? 'border-emerald-500/10 bg-emerald-500/5' : 'border-amber-500/30'}`}>
-              <div className={`w-1.5 h-1.5 rounded-full animate-pulse outline outline-1 outline-offset-1 ${isOnline ? 'bg-emerald-500 outline-emerald-500/50' : 'bg-amber-500 outline-amber-500/50'}`} />
-              <span className={`text-[10px] font-black uppercase tracking-tighter ${isOnline ? 'text-emerald-400' : 'text-amber-400'}`}>
-                {isOnline ? 'Sync Active' : 'Offline Mode'}
-              </span>
-            </div>
-
-            {pendingSyncCount > 0 && (
-              <div className="bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 animate-bounce">
-                <Database size={10} className="text-amber-500" />
-                <span className="text-[10px] font-black text-amber-500 uppercase tracking-tighter">
-                  {pendingSyncCount} Pending
-                </span>
-              </div>
-            )}
+            {/* Status indicators moved to floating bar for cleaner header */}
           </div>
         </div>
-        <button onClick={() => setIsMenuOpen(true)} className="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-blue-400 hover:text-blue-300 active:scale-90 transition-all">
+        <button onClick={() => setIsMenuOpen(true)} className="p-2 sm:p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-blue-400 hover:text-blue-300 active:scale-90 transition-all">
           <Menu size={20} />
         </button>
       </header>
+
+      {/* Floating Sync Engine Status (New) */}
+      <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-20 transition-all duration-500 transform ${pendingSyncCount > 0 || !isOnline ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0 pointer-events-none'}`}>
+        <div className={`px-4 py-2 rounded-full border backdrop-blur-xl flex items-center gap-3 shadow-2xl ${isOnline ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-amber-500/10 border-amber-500/30 text-amber-400'}`}>
+           <div className="relative">
+             <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500 animate-pulse'}`} />
+             {isOnline && <div className="absolute inset-0 bg-emerald-500 rounded-full animate-ping opacity-25" />}
+           </div>
+           <span className="text-[10px] font-black uppercase tracking-[0.15em] italic">
+             {isOnline ? (pendingSyncCount > 0 ? `Syncing ${pendingSyncCount} Assets...` : 'Telemetry Synchronized') : 'Offline Storage Mode Active'}
+           </span>
+        </div>
+      </div>
 
       {/* Progress HUD */}
       <div className="mx-4 mt-6 sm:mx-8 automotive-card p-5 sm:p-8 animate-in fade-in slide-in-from-top-4 duration-500">

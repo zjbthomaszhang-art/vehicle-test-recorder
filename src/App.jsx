@@ -97,9 +97,12 @@ export default function NDLBRecorder() {
     
     for (const item of pending) {
       try {
-        const url = `${API_BASE}/test-sessions`;
+        const isUpdate = !!item.data.sessionId;
+        const url = isUpdate ? `${API_BASE}/test-sessions/${item.data.sessionId}` : `${API_BASE}/test-sessions`;
+        const method = isUpdate ? 'PUT' : 'POST';
+
         const res = await fetch(url, {
-          method: 'POST',
+          method,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(item.data)
         });
@@ -179,7 +182,8 @@ export default function NDLBRecorder() {
     if (type === 'app') updateCurrentResult({ appFeedbackTime: now });
   };
 
-  const buildSessionData = () => ({
+  const buildSessionData = (sessionId = null) => ({
+    sessionId: sessionId || currentSessionId,
     vehicle: { vehicleModel, model_year: modelYear, vin, address, architecture, iviModule, commModule, packagePhoto, envPhoto, tester, mileage },
     results: caseResults.map((res, idx) => ({
       case_id: cases[idx].id,
@@ -192,7 +196,7 @@ export default function NDLBRecorder() {
     }))
   });
 
-  const saveSession = async (opts = {}) => {
+  const saveSession = async () => {
     const sessionData = buildSessionData();
     
     // Always add to local sync queue first for safety
