@@ -102,4 +102,22 @@ router.get('/:id/history', async (req, res) => {
     }
 });
 
+// Fetch top failed cases from test_results
+router.get('/top-fails', async (req, res) => {
+    try {
+        const query = `
+            SELECT case_id, COUNT(*) as fail_count
+            FROM test_results 
+            WHERE result = 'Fail'
+            GROUP BY case_id
+            ORDER BY fail_count DESC
+            LIMIT 5
+        `;
+        const [rows] = await db.query(query);
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

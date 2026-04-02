@@ -82,6 +82,23 @@ async function initializeDatabase() {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         `);
 
+        // PDCA Columns Auto-migration
+        try {
+            const [cols] = await db.query("SHOW COLUMNS FROM bugs LIKE 'status'");
+            if (cols.length === 0) {
+                await db.query(`
+                    ALTER TABLE bugs 
+                    ADD COLUMN status VARCHAR(50) DEFAULT 'Plan',
+                    ADD COLUMN assignee VARCHAR(100),
+                    ADD COLUMN root_cause TEXT,
+                    ADD COLUMN action_notes TEXT
+                `);
+                console.log('✅ Successfully added PDCA tracking columns to bugs table');
+            }
+        } catch (err) {
+            console.error('⚠️ DB Migration missing for bugs:', err);
+        }
+
         // Seed Initial Cases if empty
         const [rows] = await db.query("SELECT COUNT(*) as count FROM cases");
         if (rows[0].count === 0) {

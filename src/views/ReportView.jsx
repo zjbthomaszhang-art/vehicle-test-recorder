@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChevronLeft, Download, Bug, CheckCircle2, XCircle, AlertCircle, RefreshCw, X, User, Database, ShieldCheck, Clock } from 'lucide-react';
 import { formatDateTime } from '../utils/formatters.js';
 import { exportExcelReport } from '../utils/exportExcel.js';
+import { FIELD_LABELS } from '../constants/labels.js';
 
 export default function ReportView({
   cases, caseResults, bugs,
@@ -123,11 +124,11 @@ export default function ReportView({
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-slate-900/40 border border-slate-800 p-4 rounded-xl text-center">
             <div className="text-lg font-black text-emerald-500 font-mono">{stats.pass}</div>
-            <div className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Pass</div>
+            <div className="text-[10px] font-black text-slate-700 uppercase tracking-widest">{FIELD_LABELS.pass}</div>
           </div>
           <div className="bg-slate-900/40 border border-slate-800 p-4 rounded-xl text-center">
             <div className="text-lg font-black text-red-500 font-mono">{stats.fail}</div>
-            <div className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Fail</div>
+            <div className="text-[10px] font-black text-slate-700 uppercase tracking-widest">{FIELD_LABELS.fail}</div>
           </div>
           <div className="bg-slate-900/40 border border-slate-800 p-4 rounded-xl text-center">
             <div className="text-lg font-black text-slate-500 font-mono">{stats.na}</div>
@@ -137,7 +138,7 @@ export default function ReportView({
 
         {/* Detailed Findings */}
         <section className="space-y-4">
-          <h3 className="text-subheader px-2">Issue List</h3>
+          <h3 className="text-subheader px-2">{FIELD_LABELS.issueList}</h3>
           <div className="space-y-4">
             {reportIssues.length === 0 ? (
               <div className="automotive-card py-20 text-center border-dashed border-2">

@@ -4,6 +4,7 @@ import {
   Pencil, X, RefreshCw
 } from 'lucide-react';
 import { CATEGORIES, FUNCTION_CATEGORIES, CASE_TYPES, API_BASE } from '../constants.js';
+import { FIELD_LABELS } from '../constants/labels.js';
 
 /**
  * Admin view — case management (add/edit, filter, paginated list, Excel import).
@@ -146,7 +147,7 @@ export default function AdminView({
         {/* Add/Edit Form */}
         <div className="bg-slate-800 p-6 rounded-[2rem] border border-slate-700 mb-8">
           <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">
-            {editingId ? 'Edit Case' : 'Add New Case'}
+            {editingId ? FIELD_LABELS.pencil || '编辑 / Edit' : '新增案例 / Add New Case'}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input
@@ -219,11 +220,11 @@ export default function AdminView({
               onClick={addCase}
               className={`flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-colors ${editingId ? 'bg-orange-600 hover:bg-orange-500' : 'bg-blue-600 hover:bg-blue-500'}`}
             >
-              {editingId ? 'Update Case' : 'Add Case'}
+              {editingId ? '更新 / Update' : '添加 / Add'}
             </button>
             {editingId && (
               <button onClick={cancelEdit} className="flex-1 py-4 bg-slate-700 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-600 transition-colors">
-                Cancel
+                取消 / Cancel
               </button>
             )}
           </div>
@@ -239,22 +240,22 @@ export default function AdminView({
                 onClick={() => fileInputRef.current?.click()}
                 className="px-4 py-2 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600/40 rounded-xl text-xs font-bold transition-colors flex items-center gap-2"
               >
-                <FileText size={14} /> Import Cases (Excel)
+                <FileText size={14} /> 导入用例 (Excel) / Import Cases (Excel)
               </button>
             </div>
           </div>
 
           {/* Search Bar */}
           <div className="bg-slate-800/80 p-5 rounded-3xl border border-slate-700 mb-6">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Filter Cases</h3>
+            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">{FIELD_LABELS.filterCases}</h3>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <select className="bg-slate-900/50 border border-slate-700 p-3 rounded-xl text-xs outline-none focus:border-blue-500 text-white" value={searchQuery.category} onChange={e => setSearchQuery({ ...searchQuery, category: e.target.value })}>
-                <option value="">All Categories</option>
+                <option value="">所有分类 / All Categories</option>
                 <option value="车辆服务">Vehicle Service</option>
                 <option value="手机应用">Mobile App</option>
               </select>
               <select className="bg-slate-900/50 border border-slate-700 p-3 rounded-xl text-xs outline-none focus:border-blue-500 text-white" value={searchQuery.functionCategory} onChange={e => setSearchQuery({ ...searchQuery, functionCategory: e.target.value })}>
-                <option value="">All Function Categories</option>
+                <option value="">所有功能分类 / All Functions</option>
                 <option value="蓝键功能">Blue Key</option>
                 <option value="白键功能">White Key</option>
                 <option value="红键功能">Red Key</option>
@@ -264,10 +265,10 @@ export default function AdminView({
                 <option value="手机APP-iOS">App-iOS</option>
                 <option value="手机APP-Android">App-Android</option>
               </select>
-              <input placeholder="Function name..." className="bg-slate-900/50 border border-slate-700 p-3 rounded-xl text-xs outline-none focus:border-blue-500 text-white" value={searchQuery.function} onChange={e => setSearchQuery({ ...searchQuery, function: e.target.value })} />
-              <input placeholder="Test content..." className="bg-slate-900/50 border border-slate-700 p-3 rounded-xl text-xs outline-none focus:border-blue-500 text-white" value={searchQuery.content} onChange={e => setSearchQuery({ ...searchQuery, content: e.target.value })} />
+              <input placeholder="功能名称 / Function name..." className="bg-slate-900/50 border border-slate-700 p-3 rounded-xl text-xs outline-none focus:border-blue-500 text-white" value={searchQuery.function} onChange={e => setSearchQuery({ ...searchQuery, function: e.target.value })} />
+              <input placeholder="测试内容 / Test content..." className="bg-slate-900/50 border border-slate-700 p-3 rounded-xl text-xs outline-none focus:border-blue-500 text-white" value={searchQuery.content} onChange={e => setSearchQuery({ ...searchQuery, content: e.target.value })} />
               <select className="bg-slate-900/50 border border-slate-700 p-3 rounded-xl text-xs outline-none focus:border-blue-500 text-white" value={searchQuery.type} onChange={e => setSearchQuery({ ...searchQuery, type: e.target.value })}>
-                <option value="">All Types</option>
+                <option value="">所有类型 / All Types</option>
                 <option value="simple">Simple Check</option>
                 <option value="timing">Timing / Control</option>
                 <option value="query">Query / Feedback</option>
@@ -287,7 +288,7 @@ export default function AdminView({
                 </div>
                 <div className="text-sm font-black">{c.function}</div>
                 <div className="text-[10px] text-slate-500 mt-1">
-                  {c.content} | {c.type === 'timing' ? 'Timing' : c.type === 'query' ? 'Query' : 'Simple'}
+                  {c.content} | {c.type === 'timing' ? FIELD_LABELS.timingCapture.split(' / ')[0] : c.type === 'query' ? '查询 / Query' : '简单 / Simple'}
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -301,7 +302,7 @@ export default function AdminView({
           {totalPages > 1 && (
             <div className="flex justify-between items-center mt-6 bg-slate-800/50 p-4 rounded-2xl border border-slate-700 overflow-x-auto">
               <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={safeCurrentPage === 1} className="px-3 py-2 text-slate-400 hover:text-white disabled:opacity-30 flex items-center gap-1 text-xs font-bold transition-colors whitespace-nowrap">
-                <ChevronLeft size={16} /> Prev
+                <ChevronLeft size={16} /> 上一页 / Prev
               </button>
               <div className="flex gap-1 mx-4">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNumber => {
@@ -314,7 +315,7 @@ export default function AdminView({
                 })}
               </div>
               <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={safeCurrentPage === totalPages} className="px-3 py-2 text-slate-400 hover:text-white disabled:opacity-30 flex items-center gap-1 text-xs font-bold transition-colors whitespace-nowrap">
-                Next <ChevronRight size={16} />
+                下一页 / Next <ChevronRight size={16} />
               </button>
             </div>
           )}

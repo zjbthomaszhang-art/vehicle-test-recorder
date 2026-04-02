@@ -4,6 +4,7 @@ import {
   AlertCircle, Menu, X, MinusCircle, Info, Layers, Database
 } from 'lucide-react';
 import { formatTime } from '../utils/formatters.js';
+import { FIELD_LABELS } from '../constants/labels.js';
 
 export default function TestView({
   cases, caseResults, bugs,
@@ -59,7 +60,7 @@ export default function TestView({
   };
 
   if (!activeCase || !currentData) {
-    return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-500 font-bold uppercase tracking-widest">Initialising Telemetry...</div>;
+    return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-500 font-bold uppercase tracking-widest">{FIELD_LABELS.processingTelemetry}</div>;
   }
 
   return (
@@ -102,8 +103,8 @@ export default function TestView({
       {/* Progress HUD */}
       <div className="mx-4 mt-6 sm:mx-8 automotive-card p-5 sm:p-8 animate-in fade-in slide-in-from-top-4 duration-500">
         <div className="flex justify-between items-center mb-4 border-b border-white/5 pb-2">
-          <span className="text-[10px] font-black bg-blue-600 px-2.5 py-1 rounded-lg text-white uppercase tracking-widest">Case {activeCase.id}</span>
-          <span className="text-[10px] font-mono font-black text-slate-500 uppercase">{currentCaseIndex + 1} / {cases.length} Completed</span>
+          <span className="text-[10px] font-black bg-blue-600 px-2.5 py-1 rounded-lg text-white uppercase tracking-widest">{FIELD_LABELS.caseId} {activeCase.id}</span>
+          <span className="text-[10px] font-mono font-black text-slate-500 uppercase">{currentCaseIndex + 1} / {cases.length} {FIELD_LABELS.completed}</span>
         </div>
         <div className="flex gap-2 mb-3">
           {(activeCase.function_category || activeCase.functionCategory) && (
@@ -116,7 +117,7 @@ export default function TestView({
         {activeCase.content && <p className="text-xs sm:text-sm text-slate-400 font-bold leading-relaxed mb-4 border-l-2 border-blue-500/30 pl-3 italic">"{activeCase.content}"</p>}
         <div className="bg-slate-950/60 p-4 rounded-xl border border-white/5 flex gap-3 items-start">
           <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />
-          <p className="text-[10px] sm:text-xs font-bold text-slate-300 leading-snug tracking-tight">{activeCase.expected || 'No expected criteria specified'}</p>
+          <p className="text-[10px] sm:text-xs font-bold text-slate-300 leading-snug tracking-tight">{activeCase.expected || FIELD_LABELS.noExpectedCriteria}</p>
         </div>
       </div>
 
@@ -129,7 +130,7 @@ export default function TestView({
       >
         {/* Timing Section */}
         <section className="space-y-3">
-          <h3 className="text-subheader"><Clock size={12} className="inline mr-2" /> Timing Capture</h3>
+          <h3 className="text-subheader"><Clock size={12} className="inline mr-2" /> {FIELD_LABELS.timingCapture}</h3>
           <div className="grid grid-cols-1 gap-3">
             <button
               onClick={() => handleTimeClick('start')}
@@ -137,7 +138,7 @@ export default function TestView({
             >
               <div className="flex items-center gap-4">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs border ${currentData.startTime ? 'bg-blue-600 border-blue-500 text-white' : 'bg-slate-950 border-slate-800 text-slate-600'}`}>01</div>
-                <span className="font-bold text-xs uppercase tracking-widest">Record Start Execution Time</span>
+                <span className="font-bold text-xs uppercase tracking-widest">{FIELD_LABELS.recordStart}</span>
               </div>
               <span className="font-mono text-sm font-black text-blue-400">{formatTime(currentData.startTime)}</span>
             </button>
@@ -149,7 +150,7 @@ export default function TestView({
               >
                 <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs border ${currentData.carExecTime ? 'bg-amber-600 border-amber-500 text-white' : 'bg-slate-950 border-slate-800 text-slate-600'}`}>02</div>
-                  <span className="font-bold text-xs uppercase tracking-widest">Vehicle Execution Success Time</span>
+                  <span className="font-bold text-xs uppercase tracking-widest">{FIELD_LABELS.vehicleExecSuccess}</span>
                 </div>
                 <span className="font-mono text-sm font-black text-amber-500">{formatTime(currentData.carExecTime)}</span>
               </button>
@@ -164,7 +165,7 @@ export default function TestView({
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs border ${currentData.appFeedbackTime ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-slate-950 border-slate-800 text-slate-600'}`}>
                     {(activeCase.hideCarExec || activeCase.type === 'query') ? '02' : '03'}
                   </div>
-                  <span className="font-bold text-xs uppercase tracking-widest">APP Feedback Success Time</span>
+                  <span className="font-bold text-xs uppercase tracking-widest">{FIELD_LABELS.appFeedbackSuccess}</span>
                 </div>
                 <span className="font-mono text-sm font-black text-emerald-400">{formatTime(currentData.appFeedbackTime)}</span>
               </button>
@@ -191,16 +192,16 @@ export default function TestView({
 
         {/* Verdict Selection */}
         <section className="space-y-3">
-          <h3 className="text-subheader"><Layers size={12} className="inline mr-2" /> Final Verdict</h3>
+          <h3 className="text-subheader"><Layers size={12} className="inline mr-2" /> {FIELD_LABELS.finalVerdict}</h3>
           <div className="grid grid-cols-3 gap-3">
             <button onClick={() => updateCurrentResult({ result: 'Pass' })} className={`py-3 sm:py-4 rounded-xl sm:rounded-[1.5rem] border-2 font-black transition-all active:scale-95 flex flex-col items-center gap-1 ${currentData.result === 'Pass' ? 'bg-blue-600 border-blue-400 text-white' : 'bg-slate-950 border-slate-800 text-slate-800'}`}>
-              <CheckCircle2 size={18} className="sm:size-6" /> <span className="text-[9px] sm:text-[10px] uppercase tracking-widest">Pass</span>
+              <CheckCircle2 size={18} className="sm:size-6" /> <span className="text-[9px] sm:text-[10px] uppercase tracking-widest">{FIELD_LABELS.pass}</span>
             </button>
             <button onClick={() => updateCurrentResult({ result: 'Fail' })} className={`py-3 sm:py-4 rounded-xl sm:rounded-[1.5rem] border-2 font-black transition-all active:scale-95 flex flex-col items-center gap-1 ${currentData.result === 'Fail' ? 'bg-red-600 border-red-400 text-white' : 'bg-slate-950 border-slate-800 text-slate-800'}`}>
-              <XCircle size={18} className="sm:size-6" /> <span className="text-[9px] sm:text-[10px] uppercase tracking-widest">Fail</span>
+              <XCircle size={18} className="sm:size-6" /> <span className="text-[9px] sm:text-[10px] uppercase tracking-widest">{FIELD_LABELS.fail}</span>
             </button>
             <button onClick={() => updateCurrentResult({ result: 'N/A' })} className={`py-3 sm:py-4 rounded-xl sm:rounded-[1.5rem] border-2 border-slate-800 transition-all active:scale-95 flex flex-col items-center gap-1 ${currentData.result === 'N/A' ? 'bg-slate-800 text-white' : 'bg-slate-950 text-slate-800'}`}>
-              <MinusCircle size={18} className="sm:size-6" /> <span className="text-[9px] sm:text-[10px] uppercase tracking-widest">N/A</span>
+              <MinusCircle size={18} className="sm:size-6" /> <span className="text-[9px] sm:text-[10px] uppercase tracking-widest">{FIELD_LABELS.NA}</span>
             </button>
           </div>
         </section>
@@ -208,7 +209,7 @@ export default function TestView({
         {/* Evidence & Notes */}
         <section className="space-y-4 pt-4">
           <div className="flex justify-between items-center group">
-            <h3 className="text-subheader">Capture Evidence</h3>
+            <h3 className="text-subheader">{FIELD_LABELS.captureEvidence}</h3>
             <button onClick={() => handleAddMedia()} className="p-3 bg-slate-900 border border-slate-800 rounded-2xl text-slate-400 active:scale-90 transition-all group-hover:border-blue-500">
               <Camera size={18} />
             </button>
@@ -221,11 +222,11 @@ export default function TestView({
               </div>
             ))}
             {currentData.media.length === 0 && (
-              <div className="w-full py-8 border-2 border-dashed border-slate-800 rounded-[2rem] flex items-center justify-center text-slate-700 text-[10px] font-black uppercase tracking-widest">No Visual Assets Captured</div>
+              <div className="w-full py-8 border-2 border-dashed border-slate-800 rounded-[2rem] flex items-center justify-center text-slate-700 text-[10px] font-black uppercase tracking-widest">{FIELD_LABELS.noVisualAssets}</div>
             )}
           </div>
           <textarea
-            placeholder="Record testing notes, detailed bugdescriptions, or environmental anomalies..."
+            placeholder={FIELD_LABELS.notesPlaceholder}
             value={currentData.notes}
             onChange={(e) => updateCurrentResult({ notes: e.target.value })}
             className="w-full bg-slate-900 border border-slate-800 rounded-[2rem] p-6 text-sm text-slate-300 focus:outline-none focus:border-blue-500 transition-all min-h-[120px] shadow-inner placeholder:text-slate-700"
@@ -237,8 +238,8 @@ export default function TestView({
       <footer className="fixed bottom-0 inset-x-0 p-3 sm:p-6 bg-slate-950 border-t border-slate-800 flex gap-3 z-40">
         <button
           onClick={() => setConfirmDialog({
-            title: 'Terminate Mission?',
-            message: 'Caution: Data for the current test case will not be permanently stored.',
+            title: FIELD_LABELS.terminateMission,
+            message: FIELD_LABELS.terminateWarning,
             onConfirm: () => {
               resetAllFields();
               setView('home');
@@ -248,20 +249,22 @@ export default function TestView({
           className="p-2 sm:p-4 bg-slate-900 border border-slate-800 rounded-xl sm:rounded-2xl text-slate-500 hover:text-white flex flex-col items-center justify-center gap-0.5 transition-all active:scale-90"
         >
           <ChevronLeft size={20} className="sm:size-7" />
-          <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider">Home</span>
+          <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider">{FIELD_LABELS.backToHome.split(' / ')[1]}</span>
         </button>
         <button
           onClick={saveTemporarily}
           className="p-2 sm:p-4 bg-slate-900 border border-slate-800 rounded-xl sm:rounded-2xl text-emerald-500 hover:text-emerald-400 flex flex-col items-center justify-center gap-0.5 transition-all active:scale-90"
         >
           <Clock size={20} className="sm:size-7" />
-          <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider">Save</span>
+          <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider">{FIELD_LABELS.save.split(' / ')[1]}</span>
         </button>
         <button onClick={convertToBug} className="flex-1 bg-red-600/10 border border-red-500/20 text-red-500 rounded-xl sm:rounded-2xl flex items-center justify-center gap-1 font-black text-[10px] sm:text-xs uppercase tracking-widest active:scale-95 transition-all">
-          <Bug size={20} className="sm:size-7" /> Make Bug
+          <Bug size={20} className="sm:size-7" /> {FIELD_LABELS.makeBug.split(' / ')[1]}
         </button>
         <button onClick={nextCase} className="flex-[1.5] automotive-btn py-3 sm:py-5 flex items-center justify-center gap-2 sm:gap-4 group">
-          <span className="italic text-[11px] sm:text-sm">{currentCaseIndex === cases.length - 1 ? 'Save & Finish' : 'Save & Next'}</span>
+          <span className="italic text-[11px] sm:text-sm">
+            {currentCaseIndex === cases.length - 1 ? `${FIELD_LABELS.save.split(' / ')[1]} & ${FIELD_LABELS.completed.split(' / ')[1]}` : `${FIELD_LABELS.save.split(' / ')[1]} & ${FIELD_LABELS.next.split(' / ')[1]}`}
+          </span>
           <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
         </button>
       </footer>
@@ -272,11 +275,11 @@ export default function TestView({
           <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />
           <div className="relative w-72 sm:w-80 ml-auto bg-slate-900 h-full p-6 shadow-[-20px_0_40px_rgba(0,0,0,0.5)] flex flex-col animate-in slide-in-from-right duration-300">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-black italic tracking-tighter uppercase">Case Navigator</h3>
+              <h3 className="text-xl font-black italic tracking-tighter uppercase">{FIELD_LABELS.caseNavigator}</h3>
               <button onClick={() => setIsMenuOpen(false)} className="p-2 bg-slate-800 rounded-full text-slate-500"><X size={20} /></button>
             </div>
             <button onClick={() => { setShowBugList(true); setIsMenuOpen(false); }} className="w-full py-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 mb-6 transition-all hover:bg-red-500/20">
-              <Bug size={14} /> Bugs ({bugs.length})
+              <Bug size={14} /> {FIELD_LABELS.pdcaCenter.split(' / ')[0]} ({bugs.length})
             </button>
             <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
               {cases.map((c, i) => (

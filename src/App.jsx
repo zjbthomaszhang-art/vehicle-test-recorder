@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { INITIAL_CASES, API_BASE } from './constants.js';
+import { FIELD_LABELS } from './constants/labels.js';
 import { createEmptyResult, compressImage } from './utils/formatters.js';
 import { syncManager } from './utils/syncManager.js';
 
@@ -9,6 +10,8 @@ import TestView from './views/TestView.jsx';
 import ReportView from './views/ReportView.jsx';
 import AdminView from './views/AdminView.jsx';
 import HistoryView from './views/HistoryView.jsx';
+import DashboardView from './views/DashboardView.jsx';
+import PDCAView from './views/PDCAView.jsx';
 
 // Shared Components
 import EditSessionModal from './components/EditSessionModal.jsx';
@@ -93,7 +96,7 @@ export default function NDLBRecorder() {
     const pending = await syncManager.getPending();
     if (pending.length === 0) return;
 
-    setToast({ message: `📡 Network restored. Syncing ${pending.length} items...`, type: 'success' });
+    setToast({ message: `📡 网络已恢复。正同步 ${pending.length} 项数据... / Network restored. Syncing ${pending.length} items...`, type: 'success' });
     
     for (const item of pending) {
       try {
@@ -155,13 +158,13 @@ export default function NDLBRecorder() {
 
   const handleFullReset = () => {
     setConfirmDialog({
-      title: 'Reset Everything?',
-      message: 'This will clear all current session data and return to the home screen. This action cannot be undone.',
+      title: '全部重置？ / Reset Everything?',
+      message: '这将清除当前会话的所有数据并返回首页。 / This will clear all current session data and return home.',
       onConfirm: () => {
         resetAllFields();
         setView('home');
         setConfirmDialog(null);
-        setToast({ message: 'All test data has been reset.', type: 'success' });
+        setToast({ message: '所有测试数据已重置。 / All test data has been reset.', type: 'success' });
       }
     });
   };
@@ -204,7 +207,7 @@ export default function NDLBRecorder() {
     updatePendingCount();
 
     if (!isOnline) {
-      setToast({ message: '💾 Saved locally. Will sync when network is restored.', type: 'info' });
+      setToast({ message: '💾 已保存至本地。网络恢复后将自动同步。 / Saved locally. Will sync later.', type: 'info' });
       return Promise.resolve({ sessionId: 'offline-' + localId });
     }
 
@@ -234,7 +237,7 @@ export default function NDLBRecorder() {
             console.error('Sync failed, keeping locally:', err);
             setIsSaving(false);
             // Don't reject, we saved locally already
-            setToast({ message: '📡 Sync failed. Data is safe locally.', type: 'info' });
+            setToast({ message: '📡 同步失败。数据已安全保存至本地。 / Sync failed. Data is safe locally.', type: 'info' });
             resolve({ sessionId: 'offline-' + localId });
           });
       }, 50);
@@ -261,20 +264,20 @@ export default function NDLBRecorder() {
 
   const saveTemporarily = () => {
     saveSession()
-      .then(() => setToast({ message: 'Progress saved temporarily.', type: 'success' }))
-      .catch(err => setToast({ message: 'Save failed: ' + err.message, type: 'error' }));
+      .then(() => setToast({ message: '进度已临时保存。 / Progress saved temporarily.', type: 'success' }))
+      .catch(err => setToast({ message: '保存失败 / Save failed: ' + err.message, type: 'error' }));
   };
 
   const convertToBug = () => {
     if (!currentSessionId) {
-      setToast({ message: 'Please save progress once before making a bug (need session ID).', type: 'error' });
+      setToast({ message: '请先保存一次进度获取会话 ID。 / Please save once to get session ID.', type: 'error' });
       return;
     }
     const activeCase = cases[currentCaseIndex];
     const currentData = caseResults[currentCaseIndex];
 
     if (!currentData.notes || currentData.notes.trim() === '') {
-      setToast({ message: '请在提交 Bug 前填写问题描述 (Notes)', type: 'error' });
+      setToast({ message: '请在提交 Bug 前填写描述 / Please fill description before bug submission', type: 'error' });
       return;
     }
 
@@ -385,6 +388,12 @@ export default function NDLBRecorder() {
       {view === 'admin' && (
         <AdminView cases={cases} setCases={setCases} resetAllFields={resetAllFields} setView={setView} />
       )}
+      {view === 'dashboard' && (
+        <DashboardView API_BASE={API_BASE} setView={setView} />
+      )}
+      {view === 'pdca' && (
+        <PDCAView API_BASE={API_BASE} setView={setView} />
+      )}
       {view === 'history' && (
         <HistoryView
           historySessions={historySessions} setHistorySessions={setHistorySessions}
@@ -412,8 +421,8 @@ export default function NDLBRecorder() {
                 <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
              </div>
           </div>
-          <p className="mt-12 text-2xl font-black text-white italic tracking-tighter uppercase animate-pulse">Synchronizing Data</p>
-          <p className="mt-2 text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">Processing production telemetry...</p>
+          <p className="mt-12 text-2xl font-black text-white italic tracking-tighter uppercase animate-pulse">{FIELD_LABELS.syncingData}</p>
+          <p className="mt-2 text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">{FIELD_LABELS.processingTelemetry}</p>
         </div>
       )}
 

@@ -45,4 +45,33 @@ router.post('/', async (req, res) => {
     }
 });
 
+// Update a bug (PDCA workflow)
+router.put('/:id', async (req, res) => {
+    const { id } = req.params;
+    const { status, assignee, root_cause, action_notes } = req.body;
+    
+    try {
+        const updates = [];
+        const params = [];
+        
+        if (status !== undefined) { updates.push('status = ?'); params.push(status); }
+        if (assignee !== undefined) { updates.push('assignee = ?'); params.push(assignee); }
+        if (root_cause !== undefined) { updates.push('root_cause = ?'); params.push(root_cause); }
+        if (action_notes !== undefined) { updates.push('action_notes = ?'); params.push(action_notes); }
+        
+        if (updates.length === 0) return res.status(400).json({ error: 'No fields to update' });
+        
+        params.push(id);
+        const query = `UPDATE bugs SET ${updates.join(', ')} WHERE id = ?`;
+        
+        const [result] = await db.query(query, params);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Bug not found' });
+        }
+        res.json({ message: 'Bug updated successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

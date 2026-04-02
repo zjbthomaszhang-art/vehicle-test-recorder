@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, RefreshCw, Pencil, Database, Search, Calendar, Car, User, MapPin } from 'lucide-react';
 import { ARCHITECTURES, API_BASE } from '../constants.js';
 import { formatDateTime } from '../utils/formatters.js';
+import { FIELD_LABELS } from '../constants/labels.js';
 
 export default function HistoryView({
   historySessions, setHistorySessions,
@@ -80,22 +81,22 @@ export default function HistoryView({
 
         {/* Filter Section */}
         <section className="bg-[#121826] rounded-3xl p-5 mb-8 border border-slate-800/50">
-          <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Filter Records</h2>
+          <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{FIELD_LABELS.filterRecords}</h2>
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-4">
-              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest shrink-0 w-24">Start Date</label>
+              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest shrink-0 w-24 whitespace-pre-line">{FIELD_LABELS.startDate.replace(' / ', ' / \n')}</label>
               <input type="date" className="flex-1 bg-slate-950/50 border border-slate-800/50 h-9 p-2 rounded-xl text-[11px] font-bold text-slate-300 outline-none focus:border-blue-500" value={historyFilters.startDate} onChange={e => setHistoryFilters({ ...historyFilters, startDate: e.target.value })} />
             </div>
             <div className="flex items-center justify-between gap-4">
-              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest shrink-0 w-24">End Date</label>
+              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest shrink-0 w-24 whitespace-pre-line">{FIELD_LABELS.endDate.replace(' / ', ' / \n')}</label>
               <input type="date" className="flex-1 bg-slate-950/50 border border-slate-800/50 h-9 p-2 rounded-xl text-[11px] font-bold text-slate-300 outline-none focus:border-blue-500" value={historyFilters.endDate} onChange={e => setHistoryFilters({ ...historyFilters, endDate: e.target.value })} />
             </div>
             <div className="flex items-center justify-between gap-4">
-              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest shrink-0 w-24">Vehicle Model</label>
+              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest shrink-0 w-24 whitespace-pre-line">{FIELD_LABELS.vehicleModel.replace(' / ', ' / \n')}</label>
               <input placeholder="e.g. NDLB" className="flex-1 bg-slate-950/50 border border-slate-800/50 h-9 p-2 px-3 rounded-xl text-[11px] font-bold text-slate-300 outline-none focus:border-blue-500 placeholder:text-slate-700" value={historyFilters.vehicleModel} onChange={e => setHistoryFilters({ ...historyFilters, vehicleModel: e.target.value })} />
             </div>
             <div className="flex items-center justify-between gap-4">
-              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest shrink-0 w-24">Architecture</label>
+              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest shrink-0 w-24 whitespace-pre-line">{FIELD_LABELS.architecture.replace(' / ', ' / \n')}</label>
               <div className="relative flex-1">
                 <select className="w-full bg-slate-950/50 border border-slate-800/50 h-9 p-1 px-3 rounded-xl text-[11px] font-bold text-slate-300 outline-none focus:border-blue-500 appearance-none" value={historyFilters.architecture} onChange={e => setHistoryFilters({ ...historyFilters, architecture: e.target.value })}>
                   <option value="">All</option>
@@ -142,6 +143,7 @@ export default function HistoryView({
                 {/* Title Row */}
                 <div className="flex items-center gap-3 mb-5">
                   <h3 className="text-2xl font-black italic tracking-tighter text-white uppercase truncate flex-1 leading-none">
+                    <span className="text-[10px] block opacity-50 not-italic tracking-normal mb-1">{FIELD_LABELS.sessionTitle}</span>
                     {session.model_year ? `MY${session.model_year} ` : ''}{session.vehicle_model || 'UNKNOWN'}
                   </h3>
                   <button
@@ -155,19 +157,19 @@ export default function HistoryView({
                 {/* Grid */}
                 <div className="grid grid-cols-2 gap-x-4 gap-y-4 mb-5">
                   <div>
-                    <div className="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">VIN</div>
+                    <div className="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">{FIELD_LABELS.vin}</div>
                     <div className="text-xs text-white font-mono break-all leading-tight">{session.vin || '-'}</div>
                   </div>
                   <div>
-                    <div className="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Architecture</div>
+                    <div className="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">{FIELD_LABELS.architecture}</div>
                     <div className="text-xs text-white font-bold">{session.architecture || '-'}</div>
                   </div>
                   <div>
-                    <div className="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Address</div>
+                    <div className="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">{FIELD_LABELS.address}</div>
                     <div className="text-xs text-white font-bold">{session.address || '-'}</div>
                   </div>
                   <div>
-                    <div className="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Tester</div>
+                    <div className="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">{FIELD_LABELS.tester}</div>
                     <div className="text-xs text-white font-bold">{session.tester || '-'}</div>
                   </div>
                   <div className="flex items-center">
@@ -180,7 +182,7 @@ export default function HistoryView({
                     )}
                   </div>
                   <div>
-                    <div className="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Execution Rate</div>
+                    <div className="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">测试用例执行率 / Execution Rate</div>
                     <div className="text-sm text-white font-black">{session.total_count > 0 ? Math.round((session.case_count / session.total_count) * 100) : 0}%</div>
                   </div>
                 </div>
@@ -188,7 +190,7 @@ export default function HistoryView({
                 {/* Pass Rate & Action */}
                 <div className="space-y-4">
                   <div>
-                    <div className="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Pass Rate</div>
+                    <div className="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">成功率 / Pass Rate</div>
                     <div className="flex items-end gap-2">
                       <span className={`text-xl font-black leading-none tracking-tight ${session.pass_fail_count > 0 && (session.pass_count / session.pass_fail_count) >= 0.8 ? 'text-emerald-400' : 'text-emerald-400'}`}>
                         {session.pass_fail_count > 0 ? Math.round((session.pass_count / session.pass_fail_count) * 100) : 0}%

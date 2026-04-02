@@ -1,4 +1,6 @@
-import { Car, Calendar, Info, Layers, Cpu, Radio, MapPin, Package, AlertCircle, ArrowRight, Clock, ChevronRight, Globe, User, Image as ImageIcon, Map as MapIcon, Database } from 'lucide-react';
+import React from 'react';
+import { Car, Calendar, Info, Layers, Cpu, Radio, MapPin, Package, AlertCircle, ArrowRight, Clock, ChevronRight, Globe, User, Image as ImageIcon, Map as MapIcon, Database, Activity, Bug } from 'lucide-react';
+import { FIELD_LABELS } from '../constants/labels.js';
 import { ARCHITECTURES, IVI_MODULES, COMM_MODULES } from '../constants.js';
 import { decodeModelYearFromVin } from '../utils/vinDecoder.js';
 
@@ -27,7 +29,7 @@ export default function HomeView({
           <h1 className="text-3xl sm:text-4xl font-black italic tracking-tighter uppercase flex items-center gap-2">
             Vehicle<span className="text-blue-500">Lab</span>
           </h1>
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Validation Test</p>
+          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">{FIELD_LABELS.validationTest}</p>
         </div>
         <div className="w-12 h-12 bg-blue-600/10 rounded-2xl flex items-center justify-center border border-blue-500/20">
           <Car className="text-blue-500" size={28} />
@@ -39,29 +41,29 @@ export default function HomeView({
         <section className="automotive-card p-6 space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-subheader">Vehicle Model</label>
+              <label className="text-subheader">{FIELD_LABELS.vehicleModel}</label>
               <input
                 type="text"
                 value={vehicleModel}
                 onChange={(e) => setVehicleModel(e.target.value.toUpperCase())}
-                placeholder="E.G. NDLB"
+                placeholder={FIELD_LABELS.placeholderVehicle}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl h-9 px-3 text-sm font-bold text-white focus:outline-none focus:border-blue-500 transition-all uppercase placeholder:text-slate-700"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-subheader">Model Year</label>
+              <label className="text-subheader">{FIELD_LABELS.modelYear}</label>
               <input
                 type="text"
                 value={modelYear}
                 onChange={(e) => setModelYear(e.target.value)}
-                placeholder="E.G. 24"
+                placeholder={FIELD_LABELS.placeholderYear}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl h-9 px-3 text-sm font-bold text-white focus:outline-none focus:border-blue-500 transition-all placeholder:text-slate-700"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-subheader">Vehicle VIN</label>
+            <label className="text-subheader">{FIELD_LABELS.vin}</label>
             <input
               type="text"
               value={vin}
@@ -71,43 +73,43 @@ export default function HomeView({
                 const decodedYear = decodeModelYearFromVin(val);
                 if (decodedYear) setModelYear(decodedYear);
               }}
-              placeholder="ENTER 17 DIGIT VIN"
+              placeholder={FIELD_LABELS.placeholderVin}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl h-9 px-3 text-sm font-black text-blue-400 focus:outline-none focus:border-blue-500 transition-all uppercase placeholder:text-slate-700 tracking-wider"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-subheader">Tester</label>
+              <label className="text-subheader">{FIELD_LABELS.tester}</label>
               <input
                 type="text"
                 value={tester}
                 onChange={(e) => setTester(e.target.value)}
-                placeholder="Tester Name"
+                placeholder={FIELD_LABELS.placeholderTester}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl h-9 px-3 text-sm font-bold text-white focus:outline-none focus:border-blue-500 transition-all placeholder:text-slate-700"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-subheader">Mileage (KM)</label>
+              <label className="text-subheader">{FIELD_LABELS.mileage}</label>
               <input
                 type="text"
                 inputMode="numeric"
                 value={mileage}
                 onChange={(e) => setMileage(e.target.value.replace(/\D/g, ''))}
-                placeholder="E.G. 12000"
+                placeholder={FIELD_LABELS.placeholderMileage}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl h-9 px-3 text-sm font-bold text-white focus:outline-none focus:border-blue-500 transition-all placeholder:text-slate-700"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-subheader">Testing Location</label>
+            <label className="text-subheader">{FIELD_LABELS.address}</label>
             <div className="relative">
               <input
                 type="text"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                placeholder="Enter location"
+                placeholder={FIELD_LABELS.enterLocation}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl h-9 px-3 pr-10 text-sm font-bold text-white focus:outline-none focus:border-blue-500 transition-all placeholder:text-slate-700"
               />
               <MapPin size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600" />
@@ -118,7 +120,7 @@ export default function HomeView({
         {/* System Config Card */}
         <section className="automotive-card p-6 space-y-4">
           <div className="space-y-1.5">
-            <label className="text-subheader">Architecture Type</label>
+            <label className="text-subheader">{FIELD_LABELS.architecture}</label>
             <div className="relative">
               <select
                 value={architecture}
@@ -134,12 +136,12 @@ export default function HomeView({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-subheader">IVI Module</label>
+              <label className="text-subheader">{FIELD_LABELS.iviModule}</label>
               <div className="relative">
-                <select 
-                   value={iviModule} 
-                   onChange={(e) => setIviModule(e.target.value)} 
-                   className="w-full bg-slate-950 border border-slate-800 rounded-xl h-9 px-3 pr-8 text-[11px] font-bold text-gray-500 appearance-none focus:outline-none focus:border-blue-500"
+                <select
+                  value={iviModule}
+                  onChange={(e) => setIviModule(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl h-9 px-3 pr-8 text-[11px] font-bold text-gray-500 appearance-none focus:outline-none focus:border-blue-500"
                 >
                   <option value="">-- SELECT --</option>
                   {IVI_MODULES.map(v => <option key={v} value={v}>{v}</option>)}
@@ -148,12 +150,12 @@ export default function HomeView({
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-subheader">Comm Module</label>
+              <label className="text-subheader">{FIELD_LABELS.commModule}</label>
               <div className="relative">
-                <select 
-                   value={commModule} 
-                   onChange={(e) => setCommModule(e.target.value)} 
-                   className="w-full bg-slate-950 border border-slate-800 rounded-xl h-9 px-3 pr-8 text-[11px] font-bold text-gray-500 appearance-none focus:outline-none focus:border-blue-500"
+                <select
+                  value={commModule}
+                  onChange={(e) => setCommModule(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl h-9 px-3 pr-8 text-[11px] font-bold text-gray-500 appearance-none focus:outline-none focus:border-blue-500"
                 >
                   <option value="">-- SELECT --</option>
                   {COMM_MODULES.map(v => <option key={v} value={v}>{v}</option>)}
@@ -167,24 +169,24 @@ export default function HomeView({
         {/* Media Evidence */}
         <section className="flex justify-center gap-8 py-2">
           <div className="flex flex-col items-center gap-2">
-            <button 
-              onClick={() => handleAddMedia('package')} 
+            <button
+              onClick={() => handleAddMedia('package')}
               className={`w-20 h-20 rounded-2xl bg-slate-900 border-2 transition-all active:scale-95 flex items-center justify-center relative overflow-hidden group ${packagePhoto ? 'border-blue-500' : 'border-slate-800'}`}
             >
               <div className="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/5 transition-all" />
               {packagePhoto ? <img src={packagePhoto} className="w-full h-full object-cover" alt="package" /> : <Package size={28} className="text-slate-700" />}
             </button>
-            <span className="text-[10px] font-black text-slate-500 uppercase">Package</span>
+            <span className="text-[10px] font-black text-slate-500 uppercase">{FIELD_LABELS.packagePhoto}</span>
           </div>
           <div className="flex flex-col items-center gap-2">
-            <button 
-              onClick={() => handleAddMedia('env')} 
+            <button
+              onClick={() => handleAddMedia('env')}
               className={`w-20 h-20 rounded-2xl bg-slate-900 border-2 transition-all active:scale-95 flex items-center justify-center relative overflow-hidden group ${envPhoto ? 'border-blue-500' : 'border-slate-800'}`}
             >
               <div className="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/5 transition-all" />
-              {envPhoto ? <img src={envPhoto} className="w-full h-full object-cover" alt="vin" /> : <ImageIcon size={28} className="text-slate-700" />}
+              {envPhoto ? <img src={envPhoto} className="w-full h-full object-cover" alt="env" /> : <ImageIcon size={28} className="text-slate-700" />}
             </button>
-            <span className="text-[10px] font-black text-slate-500 uppercase">VIN Visual</span>
+            <span className="text-[10px] font-black text-slate-500 uppercase">{FIELD_LABELS.envPhoto}</span>
           </div>
         </section>
 
@@ -192,7 +194,7 @@ export default function HomeView({
         {(!vehicleModel || !vin || !tester || !mileage) && (
           <div className="flex items-center gap-3 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-[10px] font-black uppercase tracking-widest">
             <Info size={16} className="shrink-0" />
-            <span>Please fill in Vehicle Model, VIN, Tester, and Mileage before proceeding.</span>
+            <span>{`请填写 ${FIELD_LABELS.vehicleModel.split(' / ')[0]}, ${FIELD_LABELS.vin.split(' / ')[0]}, ${FIELD_LABELS.tester?.split(' / ')[0] || 'Tester'}, ${FIELD_LABELS.mileage?.split(' / ')[0] || 'Mileage'} 后再继续。`} <br></br> {`Please fill in ${FIELD_LABELS.vehicleModel.split(' / ')[1]}, ${FIELD_LABELS.vin.split(' / ')[1]}, ${FIELD_LABELS.tester?.split(' / ')[1] || 'Tester'}, ${FIELD_LABELS.mileage?.split(' / ')[1] || 'Mileage'} before proceeding.`}</span>
           </div>
         )}
 
@@ -201,11 +203,10 @@ export default function HomeView({
           <button
             onClick={() => setView('test')}
             disabled={!vehicleModel || !vin || !tester || !mileage}
-            className={`w-full automotive-btn flex items-center justify-center gap-4 group ${
-              !vehicleModel || !vin || !tester || !mileage ? 'opacity-30 cursor-not-allowed filter grayscale' : ''
-            }`}
+            className={`w-full automotive-btn flex items-center justify-center gap-4 group ${!vehicleModel || !vin || !tester || !mileage ? 'opacity-30 cursor-not-allowed filter grayscale' : ''
+              }`}
           >
-            EXECUTE TESTING
+            {FIELD_LABELS.executeTesting}
             <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
           </button>
 
@@ -227,6 +228,18 @@ export default function HomeView({
               className="automotive-btn-outline flex items-center justify-center gap-3 text-[11px] py-4"
             >
               <MapIcon size={16} /> CASE MANAGEMENT
+            </button>
+            <button
+              onClick={() => setView('dashboard')}
+              className="col-span-2 automotive-btn-outline border-blue-500/30 text-blue-400 hover:bg-blue-600/10 hover:border-blue-400 flex items-center justify-center gap-3 text-[11px] py-4 transition-all"
+            >
+              <Activity size={16} /> MANAGER DASHBOARD
+            </button>
+            <button
+              onClick={() => setView('pdca')}
+              className="col-span-2 automotive-btn-outline border-amber-500/30 text-amber-500 hover:bg-amber-600/10 hover:border-amber-400 flex items-center justify-center gap-3 text-[11px] py-4 transition-all"
+            >
+              <Bug size={16} /> PDCA DEFECT CENTER
             </button>
           </div>
         </div>
