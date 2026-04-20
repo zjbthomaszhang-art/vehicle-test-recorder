@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import {
   Camera, Bug, ChevronLeft, ChevronRight, Clock, CheckCircle2, XCircle,
-  AlertCircle, Menu, X, MinusCircle, Info, Layers, Database
+  Menu, X, MinusCircle, Info, Database, FileText, Home, FastForward, BadgeCheck,
+  Send, Link
 } from 'lucide-react';
 import { formatTime } from '../utils/formatters.js';
 import { FIELD_LABELS } from '../constants/labels.js';
@@ -29,19 +30,6 @@ export default function TestView({
     }
   }, [isMenuOpen]);
 
-  const [durations, setDurations] = useState({ car: null, app: null });
-  useEffect(() => {
-    if (!currentData || !activeCase) return;
-    const { startTime, carExecTime, appFeedbackTime } = currentData;
-    if (!startTime) { setDurations({ car: null, app: null }); return; }
-    const startMs = new Date(startTime).getTime();
-    const carMs = carExecTime ? new Date(carExecTime).getTime() : null;
-    const appMs = appFeedbackTime ? new Date(appFeedbackTime).getTime() : null;
-    const carDur = (!activeCase.hideCarExec && typeof carMs === 'number' && !isNaN(carMs)) ? carMs - startMs : null;
-    const appDur = (typeof appMs === 'number' && !isNaN(appMs)) ? appMs - startMs : null;
-    setDurations({ car: carDur, app: appDur });
-  }, [currentData, activeCase]);
-
   // --- Swipe Detection ---
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
@@ -60,248 +48,298 @@ export default function TestView({
   };
 
   if (!activeCase || !currentData) {
-    return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-500 font-bold uppercase tracking-widest">{FIELD_LABELS.processingTelemetry}</div>;
+    return <div className="min-h-screen bg-[#0f1523] flex items-center justify-center text-slate-500 font-bold uppercase tracking-widest">{FIELD_LABELS.processingTelemetry}</div>;
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans overflow-hidden">
-      {/* Header */}
-      <header className="px-5 py-4 sm:px-8 sm:py-6 bg-slate-900/60 backdrop-blur-3xl border-b border-slate-800 flex justify-between items-center sticky top-0 z-30">
-        <div className="flex flex-col gap-1.5">
-          <h1 className="font-black text-2xl italic tracking-tighter uppercase leading-none">
-            VEHICLE<span className="text-blue-500">LAB</span>
-          </h1>
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* Vehicle Info */}
-            <div className="bg-[#1e293b]/50 border border-blue-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
-              <span className="text-[10px] font-black text-blue-400 uppercase tracking-tighter">
-                MY{modelYear || '25'} {vehicleModel || '557'}
-              </span>
-            </div>
-            
-            {/* Status indicators moved to floating bar for cleaner header */}
-          </div>
+    <div className="min-h-screen bg-[#0f1523] text-slate-200 flex flex-col font-sans overflow-hidden pt-[48px] relative pb-[100px]">
+      
+      {/* Header HD1 */}
+      <header className="px-[24px] flex justify-between items-center w-full z-10 shrink-0">
+        <div className="relative inline-block pb-[4px] w-fit overflow-hidden">
+          <span className="text-[20px] font-black italic tracking-tighter uppercase whitespace-nowrap relative z-10 select-none text-[#f8fafc] px-[4px]">
+            {['V','E','H','I','C','L','E'].map((char, i) => (
+              <span key={`v-${i}`} className="animate-cyber-letter" style={{ animationDelay: `${i * 0.05}s` }}>{char}</span>
+            ))}
+            <span className="inline-block relative pr-2 pb-1 top-[2px] text-[1.25em] ml-[0.3em]">
+              {['L','A','B'].map((char, i) => (
+                <span key={`l-${i}`} className="animate-cyber-letter bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent pr-[0.3em] -mr-[0.3em] pb-[0.2em] -mb-[0.2em]" style={{ animationDelay: `${(7 + i) * 0.05}s` }}>{char}</span>
+              ))}
+            </span>
+          </span>
+          <div className="scanline-overlay rounded-[4px]"></div>
         </div>
-        <button onClick={() => setIsMenuOpen(true)} className="p-2 sm:p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-blue-400 hover:text-blue-300 active:scale-90 transition-all">
-          <Menu size={20} />
-        </button>
+        <div className="flex gap-[12px] items-center">
+          <div className="border border-[#1e3a8a] rounded-[12px] px-[8px] py-[4px] flex items-center justify-center">
+            <span className="text-[9px] font-[800] text-[#60a5fa]">
+              {`MY${modelYear || ''}${modelYear && vehicleModel ? ' ' : ''}${vehicleModel || ''}`  || 'MY-- --'}
+            </span>
+          </div>
+          <button onClick={() => setIsMenuOpen(true)} className="flex items-center justify-center">
+            <Menu size={24} className="text-[#94a3b8]" />
+          </button>
+        </div>
       </header>
 
-      {/* Floating Sync Engine Status (New) */}
-      <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-20 transition-all duration-500 transform ${pendingSyncCount > 0 || !isOnline ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0 pointer-events-none'}`}>
-        <div className={`px-4 py-2 rounded-full border backdrop-blur-xl flex items-center gap-3 shadow-2xl ${isOnline ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-amber-500/10 border-amber-500/30 text-amber-400'}`}>
-           <div className="relative">
-             <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500 animate-pulse'}`} />
-             {isOnline && <div className="absolute inset-0 bg-emerald-500 rounded-full animate-ping opacity-25" />}
-           </div>
-           <span className="text-[10px] font-black uppercase tracking-[0.15em] italic">
-             {isOnline ? (pendingSyncCount > 0 ? `Syncing ${pendingSyncCount} Assets...` : 'Telemetry Synchronized') : 'Offline Storage Mode Active'}
+      {/* System Bar sbarBoxD */}
+      <div className="px-[24px] shrink-0 mt-[16px]">
+        <div className={`inline-flex rounded-[16px] border px-[12px] py-[4px] gap-[8px] items-center ${isOnline ? 'bg-[#d1fae5]/10 border-[#059669]/30' : 'bg-[#1e293b] border-[#334155]'}`}>
+           <div className={`w-[6px] h-[6px] rounded-[3px] ${isOnline ? 'bg-[#10b981]' : 'bg-[#64748b]'}`}></div>
+           <span className={`text-[9px] font-[800] ${isOnline ? 'text-[#10b981]' : 'text-[#94a3b8]'}`}>
+             {isOnline ? (pendingSyncCount > 0 ? `数据同步中(${pendingSyncCount})` : '数据已同步') : '当前离线记录'}
            </span>
         </div>
       </div>
 
-      {/* Progress HUD */}
-      <div className="mx-4 mt-6 sm:mx-8 automotive-card p-5 sm:p-8 animate-in fade-in slide-in-from-top-4 duration-500">
-        <div className="flex justify-between items-center mb-4 border-b border-white/5 pb-2">
-          <span className="text-[10px] font-black bg-blue-600 px-2.5 py-1 rounded-lg text-white uppercase tracking-widest">{FIELD_LABELS.caseId} {activeCase.id}</span>
-          <span className="text-[10px] font-mono font-black text-slate-500 uppercase">{currentCaseIndex + 1} / {cases.length} {FIELD_LABELS.completed}</span>
-        </div>
-        <div className="flex gap-2 mb-3">
-          {(activeCase.function_category || activeCase.functionCategory) && (
-            <span className="text-[9px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-400 px-2 py-1 rounded border border-blue-500/10">
-              {activeCase.function_category || activeCase.functionCategory}
-            </span>
-          )}
-        </div>
-        <h2 className="text-2xl sm:text-3xl font-black text-white italic tracking-tighter uppercase leading-tight mb-2">{activeCase.function}</h2>
-        {activeCase.content && <p className="text-xs sm:text-sm text-slate-400 font-bold leading-relaxed mb-4 border-l-2 border-blue-500/30 pl-3 italic">"{activeCase.content}"</p>}
-        <div className="bg-slate-950/60 p-4 rounded-xl border border-white/5 flex gap-3 items-start">
-          <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />
-          <p className="text-[10px] sm:text-xs font-bold text-slate-300 leading-snug tracking-tight">{activeCase.expected || FIELD_LABELS.noExpectedCriteria}</p>
-        </div>
-      </div>
-
       <main 
-        className="flex-1 p-4 sm:p-8 space-y-6 overflow-y-auto pb-36 touch-action-pan-y"
+        className="flex-1 px-[24px] pt-[24px] flex flex-col overflow-y-auto custom-scrollbar pb-[40px]"
         style={{ touchAction: 'pan-y' }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Timing Section */}
-        <section className="space-y-3">
-          <h3 className="text-subheader"><Clock size={12} className="inline mr-2" /> {FIELD_LABELS.timingCapture}</h3>
-          <div className="grid grid-cols-1 gap-3">
-            <button
-              onClick={() => handleTimeClick('start')}
-              className={`automotive-card p-5 flex justify-between items-center transition-all group ${currentData.startTime ? 'border-blue-500/50 bg-blue-500/5' : ''}`}
-            >
-              <div className="flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs border ${currentData.startTime ? 'bg-blue-600 border-blue-500 text-white' : 'bg-slate-950 border-slate-800 text-slate-600'}`}>01</div>
-                <span className="font-bold text-xs uppercase tracking-widest">{FIELD_LABELS.recordStart}</span>
-              </div>
-              <span className="font-mono text-sm font-black text-blue-400">{formatTime(currentData.startTime)}</span>
-            </button>
-
-            {!activeCase.hideCarExec && activeCase.type === 'timing' && (
-              <button
-                onClick={() => handleTimeClick('car')}
-                className={`automotive-card p-5 flex justify-between items-center transition-all group ${currentData.carExecTime ? 'border-amber-500/50 bg-amber-500/5' : ''}`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs border ${currentData.carExecTime ? 'bg-amber-600 border-amber-500 text-white' : 'bg-slate-950 border-slate-800 text-slate-600'}`}>02</div>
-                  <span className="font-bold text-xs uppercase tracking-widest">{FIELD_LABELS.vehicleExecSuccess}</span>
-                </div>
-                <span className="font-mono text-sm font-black text-amber-500">{formatTime(currentData.carExecTime)}</span>
-              </button>
-            )}
-
-            {(activeCase.type === 'timing' || activeCase.type === 'query') && (
-              <button
-                onClick={() => handleTimeClick('app')}
-                className={`automotive-card p-5 flex justify-between items-center transition-all group ${currentData.appFeedbackTime ? 'border-emerald-500/50 bg-emerald-500/5' : ''}`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs border ${currentData.appFeedbackTime ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-slate-950 border-slate-800 text-slate-600'}`}>
-                    {(activeCase.hideCarExec || activeCase.type === 'query') ? '02' : '03'}
-                  </div>
-                  <span className="font-bold text-xs uppercase tracking-widest">{FIELD_LABELS.appFeedbackSuccess}</span>
-                </div>
-                <span className="font-mono text-sm font-black text-emerald-400">{formatTime(currentData.appFeedbackTime)}</span>
-              </button>
-            )}
-          </div>
-
-          {(activeCase.type === 'timing' || activeCase.type === 'query') && (
-            <div className="bg-slate-900/40 border border-slate-800 rounded-[1.5rem] p-5 grid grid-cols-2 gap-4">
-              {activeCase.type === 'timing' && !activeCase.hideCarExec && (
-                <div className="flex flex-col space-y-0.5">
-                  <span className="text-[9px] font-black text-slate-600 uppercase tracking-wider">Vehicle Exec Drtn.</span>
-                  <span className="text-[9px] italic font-medium text-slate-500">(Vehicle - Start)</span>
-                  <div className="font-mono text-lg font-black text-slate-300">{durations.car !== null ? `${(durations.car / 1000).toFixed(2)}s` : '--'}</div>
-                </div>
-              )}
-              <div className="flex flex-col space-y-0.5">
-                <span className="text-[9px] font-black text-slate-600 uppercase tracking-wider">App Feedback Drtn.</span>
-                <span className="text-[9px] italic font-medium text-slate-500">(APP - Start)</span>
-                <div className="font-mono text-lg font-black text-blue-500">{durations.app !== null ? `${(durations.app / 1000).toFixed(2)}s` : '--'}</div>
-              </div>
+        {/* Tags & Meta tagsD */}
+        <div className="flex justify-between items-center w-full">
+          <div className="flex gap-[8px] items-center">
+            <div className="bg-[#2563eb] rounded-[6px] px-[8px] py-[4px] flex items-center justify-center">
+               <span className="text-[9px] font-[900] text-white">CASE {activeCase.id}</span>
             </div>
-          )}
-        </section>
-
-        {/* Verdict Selection */}
-        <section className="space-y-3">
-          <h3 className="text-subheader"><Layers size={12} className="inline mr-2" /> {FIELD_LABELS.finalVerdict}</h3>
-          <div className="grid grid-cols-3 gap-3">
-            <button onClick={() => updateCurrentResult({ result: 'Pass' })} className={`py-3 sm:py-4 rounded-xl sm:rounded-[1.5rem] border-2 font-black transition-all active:scale-95 flex flex-col items-center gap-1 ${currentData.result === 'Pass' ? 'bg-blue-600 border-blue-400 text-white' : 'bg-slate-950 border-slate-800 text-slate-800'}`}>
-              <CheckCircle2 size={18} className="sm:size-6" /> <span className="text-[9px] sm:text-[10px] uppercase tracking-widest">{FIELD_LABELS.pass}</span>
-            </button>
-            <button onClick={() => updateCurrentResult({ result: 'Fail' })} className={`py-3 sm:py-4 rounded-xl sm:rounded-[1.5rem] border-2 font-black transition-all active:scale-95 flex flex-col items-center gap-1 ${currentData.result === 'Fail' ? 'bg-red-600 border-red-400 text-white' : 'bg-slate-950 border-slate-800 text-slate-800'}`}>
-              <XCircle size={18} className="sm:size-6" /> <span className="text-[9px] sm:text-[10px] uppercase tracking-widest">{FIELD_LABELS.fail}</span>
-            </button>
-            <button onClick={() => updateCurrentResult({ result: 'N/A' })} className={`py-3 sm:py-4 rounded-xl sm:rounded-[1.5rem] border-2 border-slate-800 transition-all active:scale-95 flex flex-col items-center gap-1 ${currentData.result === 'N/A' ? 'bg-slate-800 text-white' : 'bg-slate-950 text-slate-800'}`}>
-              <MinusCircle size={18} className="sm:size-6" /> <span className="text-[9px] sm:text-[10px] uppercase tracking-widest">{FIELD_LABELS.NA}</span>
-            </button>
-          </div>
-        </section>
-
-        {/* Evidence & Notes */}
-        <section className="space-y-4 pt-4">
-          <div className="flex justify-between items-center group">
-            <h3 className="text-subheader">{FIELD_LABELS.captureEvidence}</h3>
-            <button onClick={() => handleAddMedia()} className="p-3 bg-slate-900 border border-slate-800 rounded-2xl text-slate-400 active:scale-90 transition-all group-hover:border-blue-500">
-              <Camera size={18} />
-            </button>
-          </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide min-h-[4rem]">
-            {currentData.media.map(m => (
-              <div key={m.id} className="relative shrink-0 w-16 h-16 rounded-[1.2rem] overflow-hidden border border-slate-800 transition-all hover:scale-105 active:scale-95 group">
-                <img src={m.url} alt="evidence" className="w-full h-full object-cover opacity-80 group-hover:opacity-100" />
-                <button onClick={() => updateCurrentResult({ media: currentData.media.filter(item => item.id !== m.id) })} className="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-full"><X size={10} /></button>
+            {(activeCase.function_category || activeCase.functionCategory) && (
+              <div className="bg-[#1e3a8a] rounded-[6px] px-[8px] py-[4px] flex items-center justify-center">
+                 <span className="text-[9px] font-[800] bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent">{activeCase.function_category || activeCase.functionCategory}</span>
               </div>
-            ))}
-            {currentData.media.length === 0 && (
-              <div className="w-full py-8 border-2 border-dashed border-slate-800 rounded-[2rem] flex items-center justify-center text-slate-700 text-[10px] font-black uppercase tracking-widest">{FIELD_LABELS.noVisualAssets}</div>
             )}
           </div>
-          <textarea
-            placeholder={FIELD_LABELS.notesPlaceholder}
-            value={currentData.notes}
+          <span className="text-[10px] font-[800] text-[#64748b]">进度 {currentCaseIndex + 1} / {cases.length}</span>
+        </div>
+
+        {/* Title */}
+        <h2 className="text-[20px] font-[900] text-[#f8fafc] mt-[16px]">{activeCase.function}</h2>
+        {/* Expected result in quotes */}
+        <p className="text-[12px] font-[600] text-[#94a3b8] mt-[8px]">"{activeCase.content || FIELD_LABELS.noExpectedCriteria}"</p>
+
+        {/* Test steps / method in blue info box */}
+        {activeCase.expected && (
+          <div className="mt-[16px] w-full rounded-[12px] bg-[#111827] border border-[#1e293b] p-[16px] flex gap-[12px]">
+            <Info size={16} className="text-[#3b82f6] shrink-0 mt-[1px]" />
+            <span className="text-[11px] font-[500] text-[#cbd5e1] leading-relaxed break-words whitespace-pre-wrap">{activeCase.expected}</span>
+          </div>
+        )}
+
+        {/* Timing Header tTitleD */}
+        <div className="mt-[24px] flex items-center gap-[8px]">
+          <Clock size={14} className="text-[#64748b]" />
+          <span className="text-[10px] font-[800] text-[#475569]">时间捕获</span>
+        </div>
+
+        {/* Timing Content tRwd */}
+        <div className={`mt-[16px] w-full flex ${(activeCase.type === 'Simple' || activeCase.type === 'simple') ? 'justify-center' : ((activeCase.hideCarExec && activeCase.type !== 'query') ? 'justify-between px-[40px]' : (activeCase.type === 'query' ? 'justify-around' : 'justify-between px-[0px]'))}`}>
+          {/* Block 01 */}
+           <button onClick={() => handleTimeClick('start')} className="flex flex-col items-center gap-[6px] active:scale-95">
+             <div className={`w-[40px] h-[40px] rounded-[20px] flex items-center justify-center ${currentData.startTime ? 'bg-[#2563eb]' : 'bg-[#1e293b]'}`}>
+                <span className={`text-[14px] font-[900] ${currentData.startTime ? 'text-white' : 'text-[#64748b]'}`}>01</span>
+             </div>
+             <span className="text-[8px] font-[800] text-[#64748b]">开始</span>
+             <span className={`text-[12px] font-[800] ${currentData.startTime ? 'text-[#3b82f6]' : 'text-[#1e293b]'}`}>
+               {currentData.startTime ? formatTime(currentData.startTime) : '--:--:--'}
+             </span>
+           </button>
+
+          {/* Block 02 */}
+          {!activeCase.hideCarExec && activeCase.type === 'timing' && (
+             <button onClick={() => handleTimeClick('car')} className="flex flex-col items-center gap-[6px] active:scale-95">
+               <div className={`w-[40px] h-[40px] rounded-[20px] flex items-center justify-center ${currentData.carExecTime ? 'bg-[#d97706]' : 'bg-[#1e293b]'}`}>
+                  <span className={`text-[14px] font-[900] ${currentData.carExecTime ? 'text-white' : 'text-[#64748b]'}`}>02</span>
+               </div>
+               <span className="text-[8px] font-[800] text-[#64748b]">车辆执行</span>
+               <span className={`text-[12px] font-[800] ${currentData.carExecTime ? 'text-[#f59e0b]' : 'text-[#1e293b]'}`}>
+                 {currentData.carExecTime ? formatTime(currentData.carExecTime) : '--:--:--'}
+               </span>
+             </button>
+          )}
+
+          {/* Block 03 */}
+          {(activeCase.type === 'timing' || activeCase.type === 'query') && (
+            <button onClick={() => handleTimeClick('app')} className="flex flex-col items-center gap-[6px] active:scale-95">
+              <div className={`w-[40px] h-[40px] rounded-[20px] flex items-center justify-center ${currentData.appFeedbackTime ? 'bg-[#10b981]' : 'bg-[#1e293b]'}`}>
+                 <span className={`text-[14px] font-[900] ${currentData.appFeedbackTime ? 'text-white' : 'text-[#64748b]'}`}>
+                   {(activeCase.hideCarExec || activeCase.type === 'query') ? '02' : '03'}
+                 </span>
+              </div>
+              <span className="text-[8px] font-[800] text-[#64748b]">App反馈</span>
+              <span className={`text-[12px] font-[800] ${currentData.appFeedbackTime ? 'text-[#34d399]' : 'text-[#1e293b]'}`}>
+                {currentData.appFeedbackTime ? formatTime(currentData.appFeedbackTime) : '--:--:--'}
+              </span>
+            </button>
+          )}
+        </div>
+
+        {/* Duration row dR - timing shows both, query shows only App耗时 */}
+        {(activeCase.type === 'timing' || activeCase.type === 'query') && (
+        <div className="mt-[16px] w-full flex gap-[12px]">
+          {activeCase.type === 'timing' && (
+          <div className="flex-1 h-[72px] rounded-[12px] border border-[#1e293b] py-[12px] px-[16px] flex flex-col justify-between">
+             <span className="text-[9px] font-[800] text-[#64748b]">车辆耗时</span>
+             <span className="text-[18px] font-[900] text-[#f8fafc]">
+               {(currentData.startTime && currentData.carExecTime) ? ((currentData.carExecTime - currentData.startTime) / 1000).toFixed(2) + 's' : '--'}
+             </span>
+          </div>
+          )}
+          <div className="flex-1 h-[72px] rounded-[12px] border border-[#1e293b] py-[12px] px-[16px] flex flex-col justify-between">
+             <span className="text-[9px] font-[800] text-[#64748b]">App 耗时</span>
+             <span className="text-[18px] font-[900] bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent">
+               {(currentData.startTime && currentData.appFeedbackTime) ? ((currentData.appFeedbackTime - currentData.startTime) / 1000).toFixed(2) + 's' : '--'}
+             </span>
+          </div>
+        </div>
+        )}
+
+        {/* Result Judgement Header vTitleD */}
+        <div className="mt-[24px] flex items-center gap-[8px]">
+          <BadgeCheck size={14} className="text-[#64748b]" />
+          <span className="text-[10px] font-[800] text-[#475569]">结果判定</span>
+        </div>
+
+        {/* Buttons vRowD */}
+        <div className="mt-[16px] w-full flex justify-between items-center gap-[12px]">
+          <button onClick={() => updateCurrentResult({ result: 'Pass', ...(!currentData.startTime ? { startTime: Date.now() } : {}) })} className={`flex-1 h-[64px] rounded-[16px] flex flex-col justify-center items-center gap-[4px] border ${currentData.result === 'Pass' ? 'border-[#10b981]' : 'border-[#1e293b]'} bg-transparent transition-all active:scale-95`}>
+            <CheckCircle2 size={20} className={currentData.result === 'Pass' ? 'text-[#10b981]' : 'text-[#64748b]'} />
+            <span className={`text-[11px] font-[900] ${currentData.result === 'Pass' ? 'text-[#10b981]' : 'text-[#64748b]'}`}>通过</span>
+          </button>
+          <button onClick={() => updateCurrentResult({ result: 'Fail', ...(!currentData.startTime ? { startTime: Date.now() } : {}) })} className={`flex-1 h-[64px] rounded-[16px] flex flex-col justify-center items-center gap-[4px] border ${currentData.result === 'Fail' ? 'border-[#ef4444]' : 'border-[#1e293b]'} bg-transparent transition-all active:scale-95`}>
+             <XCircle size={20} className={currentData.result === 'Fail' ? 'text-[#ef4444]' : 'text-[#64748b]'} />
+             <span className={`text-[11px] font-[900] ${currentData.result === 'Fail' ? 'text-[#ef4444]' : 'text-[#64748b]'}`}>未通过</span>
+          </button>
+          <button onClick={() => updateCurrentResult({ result: 'N/A', ...(!currentData.startTime ? { startTime: Date.now() } : {}) })} className={`flex-1 h-[64px] rounded-[16px] flex flex-col justify-center items-center gap-[4px] border ${currentData.result === 'N/A' ? 'border-[#94a3b8]' : 'border-[#1e293b]'} bg-transparent transition-all active:scale-95`}>
+            <MinusCircle size={20} className={currentData.result === 'N/A' ? 'text-[#94a3b8]' : 'text-[#64748b]'} />
+            <span className={`text-[11px] font-[900] ${currentData.result === 'N/A' ? 'text-[#94a3b8]' : 'text-[#64748b]'}`}>不适用</span>
+          </button>
+        </div>
+
+        {/* Notes Header nTitleD */}
+        <div className="mt-[24px] flex justify-between items-center w-full">
+          <div className="flex items-center gap-[8px]">
+            <FileText size={14} className="text-[#475569]" />
+            <span className="text-[10px] font-[800] text-[#475569]">备注详情</span>
+          </div>
+          <button onClick={() => handleAddMedia()} className="w-[24px] h-[24px] rounded-[6px] border border-[#1e293b] flex items-center justify-center active:scale-90 transition-all hover:bg-[#1e293b] shrink-0">
+            <Camera size={14} className="text-[#64748b]" />
+          </button>
+        </div>
+
+        {/* Media Block (If any) */}
+        {currentData.media && currentData.media.length > 0 && (
+          <div className="mt-[12px] flex gap-3 overflow-x-auto pb-2 scrollbar-hide min-h-[4rem]">
+              {currentData.media.map(m => (
+                <div key={m.id} className="relative shrink-0 w-16 h-16 rounded-[1.2rem] overflow-hidden border border-[#1e293b] transition-all hover:scale-105 active:scale-95 group">
+                  <img src={m.url} alt="evidence" className="w-full h-full object-cover opacity-80 group-hover:opacity-100" />
+                  <button onClick={() => updateCurrentResult({ media: currentData.media.filter(item => item.id !== m.id) })} className="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-full"><X size={10} /></button>
+                </div>
+              ))}
+          </div>
+        )}
+
+        <div className="mt-[16px] w-full h-[48px] rounded-[24px] border border-[#1e293b] flex items-center px-[20px] bg-transparent focus-within:border-[#3b82f6]/50 transition-colors">
+          <input
+            type="text"
+            placeholder="点击新增备注..."
+            value={currentData.notes || ''}
             onChange={(e) => updateCurrentResult({ notes: e.target.value })}
-            className="w-full bg-slate-900 border border-slate-800 rounded-[2rem] p-6 text-sm text-slate-300 focus:outline-none focus:border-blue-500 transition-all min-h-[120px] shadow-inner placeholder:text-slate-700"
+            className="w-full bg-transparent text-[13px] font-[500] text-slate-200 placeholder:text-[#64748b] focus:outline-none"
           />
-        </section>
+        </div>
       </main>
 
-      {/* Control Bar */}
-      <footer className="fixed bottom-0 inset-x-0 p-3 sm:p-6 bg-slate-950 border-t border-slate-800 flex gap-3 z-40">
-        <button
-          onClick={() => setConfirmDialog({
-            title: FIELD_LABELS.terminateMission,
-            message: FIELD_LABELS.terminateWarning,
-            onConfirm: () => {
-              resetAllFields();
-              setView('home');
-              setConfirmDialog(null);
-            }
-          })}
-          className="p-2 sm:p-4 bg-slate-900 border border-slate-800 rounded-xl sm:rounded-2xl text-slate-500 hover:text-white flex flex-col items-center justify-center gap-0.5 transition-all active:scale-90"
-        >
-          <ChevronLeft size={20} className="sm:size-7" />
-          <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider">{FIELD_LABELS.backToHome.split(' / ')[1]}</span>
-        </button>
-        <button
-          onClick={saveTemporarily}
-          className="p-2 sm:p-4 bg-slate-900 border border-slate-800 rounded-xl sm:rounded-2xl text-emerald-500 hover:text-emerald-400 flex flex-col items-center justify-center gap-0.5 transition-all active:scale-90"
-        >
-          <Clock size={20} className="sm:size-7" />
-          <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider">{FIELD_LABELS.save.split(' / ')[1]}</span>
-        </button>
-        <button onClick={convertToBug} className="flex-1 bg-red-600/10 border border-red-500/20 text-red-500 rounded-xl sm:rounded-2xl flex items-center justify-center gap-1 font-black text-[10px] sm:text-xs uppercase tracking-widest active:scale-95 transition-all">
-          <Bug size={20} className="sm:size-7" /> {FIELD_LABELS.makeBug.split(' / ')[1]}
-        </button>
-        <button onClick={nextCase} className="flex-[1.5] automotive-btn py-3 sm:py-5 flex items-center justify-center gap-2 sm:gap-4 group">
-          <span className="italic text-[11px] sm:text-sm">
-            {currentCaseIndex === cases.length - 1 ? `${FIELD_LABELS.save.split(' / ')[1]} & ${FIELD_LABELS.completed.split(' / ')[1]}` : `${FIELD_LABELS.save.split(' / ')[1]} & ${FIELD_LABELS.next.split(' / ')[1]}`}
-          </span>
-          <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
-        </button>
+      {/* Footer Navigation fD14 */}
+      <footer className="fixed bottom-0 left-0 right-0 h-[88px] bg-[#0f1523] border-t border-[#1e293b]/50 flex items-center pt-[6px] px-[16px] pb-[20px] z-50">
+        <div className="w-full flex justify-between items-center">
+          <button onClick={() => { saveTemporarily(); setView('home'); }} className="flex flex-col items-center justify-center w-[64px] gap-[6px] transition-all">
+            <Home size={24} className="text-[#64748b]" />
+            <span className="text-[11px] font-[800] text-[#64748b] whitespace-nowrap leading-none">首页</span>
+          </button>
+          
+          <button onClick={convertToBug} className="flex flex-col items-center justify-center w-[80px] h-[60px] rounded-[16px] bg-[#ef4444]/15 gap-[4px] active:scale-95 transition-transform">
+            <Bug size={24} className="text-[#ef4444]" />
+            <span className="text-[11px] font-[900] text-[#ef4444] whitespace-nowrap leading-none">提报问题</span>
+          </button>
+          
+          {currentCaseIndex === cases.length - 1 ? (
+            <button
+              onClick={() => setView('report')}
+              className="flex flex-col items-center justify-center w-[140px] h-[60px] rounded-[16px] bg-[#10b981] shadow-[0_4px_12px_rgba(16,185,129,0.38)] gap-[4px] active:scale-95 transition-transform hover:bg-[#059669]"
+            >
+              <CheckCircle2 size={24} className="text-white" />
+              <span className="text-[11px] font-[900] text-white whitespace-nowrap leading-none">完成</span>
+            </button>
+          ) : (
+            <button onClick={nextCase} className="flex flex-col items-center justify-center w-[140px] h-[60px] rounded-[16px] bg-[#2563eb] shadow-[0_4px_12px_rgba(37,99,235,0.38)] gap-[4px] active:scale-95 transition-transform hover:bg-[#1d4ed8]">
+              <ChevronRight size={24} className="text-white" />
+              <span className="text-[11px] font-[900] text-white whitespace-nowrap leading-none">下一个</span>
+            </button>
+          )}
+          
+          <button onClick={() => setCurrentCaseIndex(cases.length - 1)} className="flex flex-col items-center justify-center w-[72px] gap-[6px] transition-all">
+            <FastForward size={24} className="text-[#64748b]" />
+            <span className="text-[11px] font-[800] text-[#64748b] whitespace-nowrap leading-none">最后一个</span>
+          </button>
+        </div>
       </footer>
 
-      {/* Side Menu */}
+      {/* Side Menu (Case Navigator) */}
       {isMenuOpen && (
-        <div className="fixed inset-0 z-50 flex">
-          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />
-          <div className="relative w-72 sm:w-80 ml-auto bg-slate-900 h-full p-6 shadow-[-20px_0_40px_rgba(0,0,0,0.5)] flex flex-col animate-in slide-in-from-right duration-300">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-black italic tracking-tighter uppercase">{FIELD_LABELS.caseNavigator}</h3>
-              <button onClick={() => setIsMenuOpen(false)} className="p-2 bg-slate-800 rounded-full text-slate-500"><X size={20} /></button>
+        <div className="fixed inset-0 z-[100] flex">
+          <div className="absolute inset-0 bg-black/70" onClick={() => setIsMenuOpen(false)} />
+          <div className="relative w-[85%] max-w-[360px] ml-auto bg-[#0f1523] h-full shadow-[-20px_0_40px_rgba(0,0,0,0.5)] flex flex-col">
+            {/* Header — fill: #0f172a, padding: [40,24,16,24] */}
+            <div className="bg-[#0f172a] flex justify-between items-center pt-[40px] px-[24px] pb-[16px] shrink-0">
+              <span className="text-[26px] font-[800] text-[#f8fafc]">用例导航</span>
+              <button
+                onClick={() => setIsMenuOpen(false)}
+                className="w-[40px] h-[40px] rounded-[20px] bg-[#1e293b] flex items-center justify-center active:scale-90 transition-all"
+              >
+                <X size={20} className="text-[#94a3b8]" />
+              </button>
             </div>
-            <button onClick={() => { setShowBugList(true); setIsMenuOpen(false); }} className="w-full py-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 mb-6 transition-all hover:bg-red-500/20">
-              <Bug size={14} /> {FIELD_LABELS.pdcaCenter.split(' / ')[0]} ({bugs.length})
-            </button>
-            <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+
+            {/* 缺陷中心 button */}
+            <div className="px-[16px] pt-[12px] shrink-0">
+              <button
+                onClick={() => { setShowBugList(true); setIsMenuOpen(false); }}
+                className="w-full h-[48px] rounded-[16px] border border-[#ef4444]/40 bg-transparent flex items-center justify-center gap-[8px] active:scale-95 transition-all"
+              >
+                <Bug size={16} className="text-[#ef4444]" />
+                <span className="text-[13px] font-[700] text-[#ef4444]">缺陷中心 ({bugs.length})</span>
+              </button>
+            </div>
+
+            {/* Case list */}
+            <div className="flex-1 overflow-y-auto px-[16px] py-[12px] space-y-[8px] custom-scrollbar">
               {cases.map((c, i) => (
                 <div
                   key={c.id}
                   ref={i === currentCaseIndex ? activeCaseRef : null}
                   onClick={() => { setCurrentCaseIndex(i); setIsMenuOpen(false); }}
-                  className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center gap-3 active:scale-95 ${i === currentCaseIndex ? 'bg-blue-600 border-blue-400 text-white' : 'bg-slate-950 border-slate-800/50 text-slate-500 hover:border-slate-700'}`}
+                  className={`px-[16px] py-[12px] rounded-[16px] border transition-all cursor-pointer flex items-center gap-[12px] active:scale-95 ${i === currentCaseIndex ? 'bg-[#2563eb] border-[#3b82f6]' : 'bg-transparent border-[#1e293b] hover:border-[#334155]'}`}
                 >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-mono font-black text-xs shrink-0 border ${i === currentCaseIndex ? 'bg-white/20 border-white/20' : 'bg-slate-900 border-slate-800'}`}>{c.id}</div>
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <div className="flex flex-wrap gap-1">
-                      {(c.function_category || c.functionCategory) && (
-                        <span className={`text-[7px] font-black uppercase px-1 rounded ${i === currentCaseIndex ? 'bg-white/20 text-white' : 'bg-blue-500/20 text-blue-400'}`}>{c.function_category || c.functionCategory}</span>
-                      )}
-                    </div>
-                    <div className="text-[11px] font-black leading-tight uppercase italic">{c.function}</div>
-                    <div className={`text-[9px] font-bold truncate leading-none ${i === currentCaseIndex ? 'text-white/60' : 'text-slate-600'}`}>{c.content}</div>
+                  {/* Case ID badge */}
+                  <div className={`w-[32px] h-[32px] rounded-[10px] flex items-center justify-center font-[900] text-[12px] shrink-0 ${i === currentCaseIndex ? 'bg-white/20 text-white' : 'bg-[#1e293b] text-[#94a3b8]'}`}>
+                    {c.id}
                   </div>
-                  {caseResults[i]?.result === 'Pass' && <CheckCircle2 size={16} className="text-green-400 shrink-0" />}
-                  {caseResults[i]?.result === 'Fail' && <XCircle size={16} className="text-red-400 shrink-0" />}
-                  {caseResults[i]?.result === 'N/A' && <MinusCircle size={16} className="text-slate-500 shrink-0" />}
+                  {/* Text */}
+                  <div className="flex-1 min-w-0 flex flex-col gap-[4px]">
+                    {/* function_category tag */}
+                    {(c.function_category || c.functionCategory) && (
+                      <span className={`text-[9px] font-[800] px-[6px] py-[2px] rounded-[4px] self-start leading-none ${i === currentCaseIndex ? 'bg-white/20 text-white' : 'bg-[#1e3a8a] text-[#60a5fa]'}`}>
+                        {c.function_category || c.functionCategory}
+                      </span>
+                    )}
+                    <span className={`text-[13px] font-[900] leading-tight truncate ${i === currentCaseIndex ? 'text-white' : 'text-[#f8fafc]'}`}>{c.function}</span>
+                    <span className={`text-[11px] font-[500] truncate leading-none ${i === currentCaseIndex ? 'text-white/70' : 'text-[#64748b]'}`}>{c.content || c.expected || ''}</span>
+                  </div>
+                  {/* Result indicator */}
+                  {caseResults[i]?.result === 'Pass' && <CheckCircle2 size={16} className="text-[#10b981] shrink-0" />}
+                  {caseResults[i]?.result === 'Fail' && <XCircle size={16} className="text-[#ef4444] shrink-0" />}
+                  {caseResults[i]?.result === 'N/A' && <div className="w-[8px] h-[8px] rounded-full bg-[#64748b] shrink-0" />}
                 </div>
               ))}
             </div>
@@ -309,51 +347,58 @@ export default function TestView({
         </div>
       )}
 
-      {/* Bug Modal */}
+      {/* Bug Modal — 缺陷中心 */}
       {showBugList && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" onClick={() => setShowBugList(false)} />
-          <div className="relative bg-[#0d1117] border border-white/5 rounded-[2.5rem] w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <header className="p-4 sm:p-6 flex justify-between items-center border-b border-white/5 bg-slate-950/40">
-              <div className="flex items-center gap-3">
-                <div className="w-1.5 h-6 bg-red-600 rounded-full" />
-                <h2 className="text-lg sm:text-xl font-black italic tracking-tighter uppercase text-white leading-none">
-                  <span className="text-red-500 mr-2">CURRENT</span>BUG LIST
-                </h2>
-              </div>
-              <button 
-                onClick={() => setShowBugList(false)} 
-                className="p-2 sm:p-2.5 bg-slate-800 rounded-xl text-slate-400 hover:text-white transition-all active:scale-90"
+        <div className="fixed inset-0 z-[100]" style={{background: '#00000099'}}>
+          <div
+            className="absolute bottom-0 left-0 right-0 bg-[#0f1523] rounded-t-[32px] flex flex-col overflow-hidden"
+            style={{maxHeight: '85vh', gap: 0, paddingTop: 24}}
+          >
+            {/* topNav: justify-between, px-24 */}
+            <div className="flex justify-between items-center px-[24px] pb-[24px]">
+              <span className="text-[18px] font-[900] italic text-[#ef4444]">缺陷中心</span>
+              <button
+                onClick={() => setShowBugList(false)}
+                className="w-[40px] h-[40px] rounded-[20px] bg-[#1e293b] flex items-center justify-center active:scale-90 transition-all"
               >
-                <X size={18} />
+                <X size={20} className="text-[#94a3b8]" />
               </button>
-            </header>
+            </div>
 
-            <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-4 sm:space-y-6 custom-scrollbar">
+            {/* stats: px-24 */}
+            <div className="px-[24px] pb-[20px]">
+              <span className="text-[12px] font-[600] text-[#64748b]">当前会话内共计 {bugs.length} 个待跟进缺陷</span>
+            </div>
+
+            {/* dScroll: gap-20, px-24, pb-24 */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-[20px] px-[24px] pb-[24px]">
               {bugs.length === 0 ? (
-                <div className="py-24 text-center opacity-20 italic font-black uppercase tracking-[0.3em] text-sm">No Faults Logged</div>
+                <div className="py-16 text-center text-[12px] font-[600] text-[#64748b]">暂无缺陷记录</div>
               ) : (
                 bugs.map((bug, idx) => {
                   const linkedCase = cases.find(c => c.id === bug.case_id);
+                  const bugNum = String(bug.display_id || idx + 1).padStart(4, '0');
+                  let timeStr = '';
+                  if (bug.timestamp) {
+                    const d = new Date(bug.timestamp.replace(' ', 'T'));
+                    if (!isNaN(d)) {
+                      const h = d.getHours();
+                      const m = String(d.getMinutes()).padStart(2, '0');
+                      const ampm = h >= 12 ? 'PM' : 'AM';
+                      const h12 = h % 12 || 12;
+                      timeStr = `${h12}:${m} ${ampm} 上报`;
+                    }
+                  }
                   return (
-                    <div key={bug.id || idx} className="relative bg-[#161b22] border border-white/5 rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-6 shadow-xl">
-                      {/* Top Metadata Row */}
-                      <div className="flex justify-between items-start mb-4 gap-2 sm:gap-4">
-                        <div className="flex flex-col gap-1.5 min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                             <span className="bg-red-500/10 text-red-500 text-[9px] sm:text-[10px] font-black px-2 sm:px-3 py-1 rounded-full uppercase tracking-widest border border-red-500/10 shrink-0">Bug #{idx + 1}</span>
-                             <div className="flex items-center gap-1 text-slate-500">
-                               <Clock size={10} className="sm:hidden" />
-                               <Clock size={12} className="hidden sm:block" />
-                               <span className="text-[9px] sm:text-[10px] font-mono font-bold tracking-tight">{bug.timestamp}</span>
-                             </div>
-                          </div>
-                          {(linkedCase?.function_category || linkedCase?.functionCategory) && (
-                            <span className="w-fit bg-blue-600/10 text-blue-400 text-[8px] sm:text-[9px] font-black px-2 sm:px-2.5 py-1 rounded-lg uppercase tracking-widest border border-blue-500/10">
-                              {linkedCase.function_category || linkedCase.functionCategory}
-                            </span>
-                          )}
-                        </div>
+                    <div
+                      key={bug.id || idx}
+                      className="bg-[#111827] rounded-[20px] border border-[#1e293b] flex flex-col"
+                      style={{padding: 20, gap: 16}}
+                    >
+                      {/* d1Top: justify-between */}
+                      <div className="flex justify-between items-center">
+                        <span className="text-[14px] font-[900] text-[#f1f5f9]">#BUG-{bugNum}</span>
+                        {/* loc1D: near_me icon, #60a5fa, 18px inside #1e293b rounded-16 32x32 */}
                         <button
                           onClick={() => {
                             const targetIndex = cases.findIndex(c => c.id === bug.case_id);
@@ -362,42 +407,38 @@ export default function TestView({
                               setShowBugList(false);
                             }
                           }}
-                          className="bg-blue-600 text-white text-[9px] sm:text-[10px] font-black uppercase tracking-[0.05em] sm:tracking-[0.1em] px-3 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all active:scale-95 shadow-lg shadow-blue-600/20 shrink-0"
+                          className="w-[32px] h-[32px] rounded-[16px] bg-[#1e293b] flex items-center justify-center active:scale-90 transition-all"
                         >
-                          Inspect Case
+                          <Send size={14} className="text-[#60a5fa]" />
                         </button>
                       </div>
-
-                      <div className="flex gap-4 sm:gap-6 items-start">
-                        <div className="w-10 h-10 sm:w-14 sm:h-14 bg-red-500/5 border border-red-500/10 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0">
-                          <Bug size={18} className="text-red-500 sm:hidden" />
-                          <Bug size={24} className="text-red-500 hidden sm:block" />
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
-                            <h3 className="text-base sm:text-xl font-black text-white italic tracking-tighter shrink-0 leading-none">Case {bug.case_id}</h3>
-                            <div className="h-[1px] bg-white/5 flex-1" />
-                          </div>
-                          <div className="mb-4">
-                            <span className="text-[10px] sm:text-[11px] font-black text-blue-400 italic uppercase tracking-tight block leading-normal">
-                              {linkedCase?.function || 'Unknown Function'}
-                            </span>
-                            <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 italic mt-0.5 uppercase tracking-tight block leading-normal">
-                              {linkedCase?.content || 'Case content description unavailable'}
-                            </p>
-                          </div>
-
-                          {/* Observation Inset */}
-                          <div className="bg-black/40 border border-white/5 rounded-xl sm:rounded-2xl p-3 sm:p-5 flex flex-col gap-2 sm:gap-3 group">
-                            <div className="flex justify-between items-center">
-                              <span className="text-[7px] sm:text-[8px] font-black text-slate-600 uppercase tracking-widest">Observation / Notes</span>
-                              <Info size={12} className="text-slate-700 group-hover:text-blue-500 transition-colors" />
-                            </div>
-                            <span className="text-[11px] sm:text-xs font-black text-slate-200 italic leading-relaxed whitespace-pre-wrap">"{bug.description}"</span>
-                          </div>
-                        </div>
+                      {/* d1Mid: link icon #64748b + case ref */}
+                      <div className="flex items-center gap-[8px]">
+                        <Link size={16} className="text-[#64748b] shrink-0" />
+                        <span className="text-[12px] font-[600] text-[#94a3b8]">关联用例：Case {bug.case_id} - {linkedCase?.function || '未知'}</span>
                       </div>
+                      {/* txt: description */}
+                      <span className="text-[14px] font-[600] text-[#cbd5e1] break-words leading-relaxed">{bug.description}</span>
+                      {/* pRow: only show when there's media */}
+                      {bug.media && bug.media.length > 0 && (
+                        <div className="flex gap-[8px] flex-wrap">
+                          {bug.media.slice(0, 4).map((m, mi) => (
+                            <div key={mi} className="w-[64px] h-[64px] rounded-[8px] bg-[#334155] overflow-hidden shrink-0">
+                              {m.type === 'video' ? (
+                                <video src={m.url} className="w-full h-full object-cover" />
+                              ) : (
+                                <img src={m.url} alt={`media-${mi}`} className="w-full h-full object-cover" />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {/* foot: timestamp */}
+                      {timeStr ? (
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-[500] text-[#64748b]">{timeStr}</span>
+                        </div>
+                      ) : null}
                     </div>
                   );
                 })
@@ -408,9 +449,9 @@ export default function TestView({
       )}
 
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
       `}</style>

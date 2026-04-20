@@ -119,8 +119,7 @@ if (import.meta.env.VITE_APP_MODE === 'demo') {
                  vin: s.vehicle.vin,
                  address: s.vehicle.address,
                  architecture: s.vehicle.architecture,
-                 package_photo: s.vehicle.packagePhoto,
-                 env_photo: s.vehicle.envPhoto,
+                 env_photos: JSON.stringify(s.vehicle.envPhotos || []),
                  case_count: s.results.length,
                  total_count: s.results.length, // approximation
                  pass_count: passCount,

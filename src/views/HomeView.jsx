@@ -1,20 +1,23 @@
 import React from 'react';
-import { Car, Calendar, Info, Layers, Cpu, Radio, MapPin, Package, AlertCircle, ArrowRight, Clock, ChevronRight, Globe, User, Image as ImageIcon, Map as MapIcon, Database, Activity, Bug } from 'lucide-react';
+import { Car, Calendar, Info, Layers, Radio, MapPin, ArrowRight, User, Map as MapIcon, Database, Activity, Bug, Code, Gauge, Monitor, Network, Music, ChevronDown, X, Camera, CameraIcon } from 'lucide-react';
 import { FIELD_LABELS } from '../constants/labels.js';
 import { ARCHITECTURES, IVI_MODULES, COMM_MODULES } from '../constants.js';
 import { decodeModelYearFromVin } from '../utils/vinDecoder.js';
+import CustomSelect from '../components/CustomSelect.jsx';
 
 export default function HomeView({
   vehicleModel, setVehicleModel,
   modelYear, setModelYear,
   vin, setVin,
+  productionStage, setProductionStage,
+  testEnv, setTestEnv,
   tester, setTester,
   mileage, setMileage,
   address, setAddress,
   architecture, setArchitecture,
   iviModule, setIviModule,
   commModule, setCommModule,
-  packagePhoto, envPhoto,
+  envPhotos, setEnvPhotos,
   handleAddMedia,
   setToast,
   setView,
@@ -26,9 +29,19 @@ export default function HomeView({
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans p-4 sm:p-8 overflow-y-auto selection:bg-blue-500">
       <header className="mb-8 flex justify-between items-center animate-in fade-in slide-in-from-top duration-500">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-black italic tracking-tighter uppercase flex items-center gap-2">
-            Vehicle<span className="text-blue-500">Lab</span>
-          </h1>
+          <div className="relative inline-block pb-[4px] w-fit overflow-hidden">
+            <h1 className="text-3xl sm:text-4xl font-black italic tracking-tighter uppercase whitespace-nowrap relative z-10 px-[4px]">
+              {['V','E','H','I','C','L','E'].map((char, i) => (
+                <span key={`v-${i}`} className="animate-cyber-letter" style={{ animationDelay: `${i * 0.05}s` }}>{char}</span>
+              ))}
+              <span className="inline-block relative pr-2 pb-1 top-[2px] text-[1.25em] ml-[0.3em]">
+                {['L','A','B'].map((char, i) => (
+                  <span key={`l-${i}`} className="animate-cyber-letter bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent pr-[0.3em] -mr-[0.3em] pb-[0.2em] -mb-[0.2em]" style={{ animationDelay: `${(7 + i) * 0.05}s` }}>{char}</span>
+                ))}
+              </span>
+            </h1>
+            <div className="scanline-overlay rounded-[4px]"></div>
+          </div>
           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">{FIELD_LABELS.validationTest}</p>
         </div>
         <div className="w-12 h-12 bg-blue-600/10 rounded-2xl flex items-center justify-center border border-blue-500/20">
@@ -36,213 +49,235 @@ export default function HomeView({
         </div>
       </header>
 
-      <div className="space-y-6 max-w-md mx-auto w-full pb-12">
-        {/* Vehicle Info Card */}
-        <section className="automotive-card p-6 space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-subheader">{FIELD_LABELS.vehicleModel}</label>
-              <input
-                type="text"
-                value={vehicleModel}
-                onChange={(e) => setVehicleModel(e.target.value.toUpperCase())}
-                placeholder={FIELD_LABELS.placeholderVehicle}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl h-9 px-3 text-sm font-bold text-white focus:outline-none focus:border-blue-500 transition-all uppercase placeholder:text-slate-700"
-              />
+      {/* Scrolling Form Container */}
+      <div className="px-0 pt-[4px] space-y-[8px] w-full max-w-lg mx-auto pb-12">
+        
+        {/* Group 1: 生产年份 & 工程代码 */}
+        <div className="flex gap-[8px] w-full">
+          <div className="flex-[46] bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+            <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
+              <Calendar size={26} className="text-[#8e8e93] p-[2px] shrink-0" strokeWidth={1.5} />
+              <span className="text-[13px] sm:text-[14px] font-[600] text-slate-100 whitespace-nowrap">生产年份</span>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-subheader">{FIELD_LABELS.modelYear}</label>
-              <input
-                type="text"
-                value={modelYear}
-                onChange={(e) => setModelYear(e.target.value)}
-                placeholder={FIELD_LABELS.placeholderYear}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl h-9 px-3 text-sm font-bold text-white focus:outline-none focus:border-blue-500 transition-all placeholder:text-slate-700"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-subheader">{FIELD_LABELS.vin}</label>
             <input
               type="text"
-              value={vin}
-              onChange={(e) => {
-                const val = e.target.value.toUpperCase();
-                setVin(val.slice(0, 17));
-                const decodedYear = decodeModelYearFromVin(val);
-                if (decodedYear) setModelYear(decodedYear);
-              }}
-              placeholder={FIELD_LABELS.placeholderVin}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl h-9 px-3 text-sm font-black text-blue-400 focus:outline-none focus:border-blue-500 transition-all uppercase placeholder:text-slate-700 tracking-wider"
+              inputMode="numeric"
+              value={modelYear}
+              onChange={(e) => setModelYear(e.target.value.replace(/\D/g, ''))}
+              placeholder=""
+              className="bg-transparent text-right outline-none text-slate-200 font-semibold text-[13px] sm:text-[14px] flex-1 min-w-0 ml-2 placeholder:text-slate-600 placeholder:font-normal"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-subheader">{FIELD_LABELS.tester}</label>
-              <input
-                type="text"
-                value={tester}
-                onChange={(e) => setTester(e.target.value)}
-                placeholder={FIELD_LABELS.placeholderTester}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl h-9 px-3 text-sm font-bold text-white focus:outline-none focus:border-blue-500 transition-all placeholder:text-slate-700"
+          <div className="flex-[54] bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+            <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
+              <Code size={26} className="text-[#8e8e93] p-[2px] shrink-0" strokeWidth={1.5} />
+              <span className="text-[13px] sm:text-[14px] font-[600] text-slate-100 whitespace-nowrap">工程代码</span>
+            </div>
+            <input
+              type="text"
+              value={vehicleModel}
+              onChange={(e) => setVehicleModel(e.target.value.toUpperCase())}
+              placeholder=""
+              className="bg-transparent text-right outline-none text-slate-200 font-semibold text-[13px] sm:text-[14px] flex-1 min-w-0 ml-2 placeholder:text-slate-600 placeholder:font-normal uppercase"
+            />
+          </div>
+        </div>
+
+        {/* Row 2: VIN */}
+        <div className="bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
+          <div className="flex items-center gap-[14px] shrink-0">
+            <Car size={26} className="text-[#8e8e93] p-[2px]" strokeWidth={1.5} />
+            <span className="text-[14px] font-[600] text-slate-100">VIN</span>
+          </div>
+          <input
+            type="text"
+            value={vin}
+            onChange={(e) => {
+              const val = e.target.value.toUpperCase();
+              setVin(val.slice(0, 17));
+              const decodedYear = decodeModelYearFromVin(val);
+              if (decodedYear) setModelYear(decodedYear);
+            }}
+            placeholder=""
+            className="bg-transparent text-right outline-none text-slate-200 font-semibold text-[14px] flex-1 min-w-0 ml-4 placeholder:text-slate-600 placeholder:font-normal uppercase"
+          />
+        </div>
+
+        {/* Group 2: 生产阶段 & 总里程数 */}
+        <div className="flex gap-[8px] w-full">
+          <div className="flex-[46] bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+            <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
+              <Layers size={26} className="text-[#8e8e93] p-[2px] shrink-0" strokeWidth={1.5} />
+              <span className="text-[13px] sm:text-[14px] font-[600] text-slate-100 whitespace-nowrap">生产阶段</span>
+            </div>
+            <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-[2px]">
+              <CustomSelect
+                value={productionStage}
+                onChange={setProductionStage}
+                options={['PPV', 'NS', 'VDC', 'S', 'STC']}
+                className="w-full h-full"
               />
             </div>
-            <div className="space-y-1.5">
-              <label className="text-subheader">{FIELD_LABELS.mileage}</label>
+          </div>
+
+          <div className="flex-[54] bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+            <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
+              <Gauge size={26} className="text-[#8e8e93] p-[2px] shrink-0" strokeWidth={1.5} />
+              <span className="text-[13px] sm:text-[14px] font-[600] text-slate-100 whitespace-nowrap">总里程数</span>
+            </div>
+            <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-2">
               <input
                 type="text"
                 inputMode="numeric"
                 value={mileage}
                 onChange={(e) => setMileage(e.target.value.replace(/\D/g, ''))}
-                placeholder={FIELD_LABELS.placeholderMileage}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl h-9 px-3 text-sm font-bold text-white focus:outline-none focus:border-blue-500 transition-all placeholder:text-slate-700"
+                placeholder=""
+                className="bg-transparent text-right outline-none text-slate-200 font-semibold text-[13px] sm:text-[14px] min-w-0 flex-1 placeholder:text-slate-600 placeholder:font-normal"
+              />
+              {mileage && <span className="text-[#64748b] text-[12px] font-[500] shrink-0">km</span>}
+            </div>
+          </div>
+        </div>
+
+        {/* Group 3: 测试环境 & 测试人员 */}
+        <div className="flex gap-[8px] w-full">
+          <div className="flex-[46] bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+            <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
+              <Monitor size={26} className="text-[#8e8e93] p-[2px] shrink-0" strokeWidth={1.5} />
+              <span className="text-[13px] sm:text-[14px] font-[600] text-slate-100 whitespace-nowrap">测试环境</span>
+            </div>
+            <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-[2px]">
+              <CustomSelect
+                value={testEnv}
+                onChange={setTestEnv}
+                options={['生产', '测试']}
+                className="w-full h-full"
               />
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-subheader">{FIELD_LABELS.address}</label>
-            <div className="relative">
-              <input
-                type="text"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder={FIELD_LABELS.enterLocation}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl h-9 px-3 pr-10 text-sm font-bold text-white focus:outline-none focus:border-blue-500 transition-all placeholder:text-slate-700"
-              />
-              <MapPin size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600" />
+          <div className="flex-[54] bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+            <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
+              <User size={26} className="text-[#8e8e93] p-[2px] shrink-0" strokeWidth={1.5} />
+              <span className="text-[13px] sm:text-[14px] font-[600] text-slate-100 whitespace-nowrap">测试人员</span>
             </div>
+            <input
+              type="text"
+              value={tester}
+              onChange={(e) => setTester(e.target.value)}
+              placeholder=""
+              className="bg-transparent text-right outline-none text-slate-200 font-semibold text-[13px] sm:text-[14px] flex-1 min-w-0 ml-2 placeholder:text-slate-600 placeholder:font-normal"
+            />
           </div>
-        </section>
+        </div>
 
-        {/* System Config Card */}
-        <section className="automotive-card p-6 space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-subheader">{FIELD_LABELS.architecture}</label>
-            <div className="relative">
-              <select
-                value={architecture}
-                onChange={(e) => setArchitecture(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl h-9 px-3 text-[11px] font-bold text-gray-500 appearance-none focus:outline-none focus:border-blue-500"
-              >
-                <option value="">-- SELECT --</option>
-                {ARCHITECTURES.map(v => <option key={v} value={v}>{v}</option>)}
-              </select>
-              <ChevronRight size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 rotate-90 pointer-events-none" />
-            </div>
+        {/* Row 4: 测试地址 */}
+        <div className="bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
+          <div className="flex items-center gap-[14px] shrink-0">
+            <MapPin size={26} className="text-[#8e8e93] p-[2px]" strokeWidth={1.5} />
+            <span className="text-[14px] font-[600] text-slate-100">测试地址</span>
           </div>
+          <input
+            type="text"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder=""
+            className="bg-transparent text-right outline-none text-slate-200 font-semibold text-[14px] flex-1 min-w-0 ml-4 placeholder:text-slate-600 placeholder:font-normal"
+          />
+        </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-subheader">{FIELD_LABELS.iviModule}</label>
-              <div className="relative">
-                <select
-                  value={iviModule}
-                  onChange={(e) => setIviModule(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl h-9 px-3 pr-8 text-[11px] font-bold text-gray-500 appearance-none focus:outline-none focus:border-blue-500"
-                >
-                  <option value="">-- SELECT --</option>
-                  {IVI_MODULES.map(v => <option key={v} value={v}>{v}</option>)}
-                </select>
-                <ChevronRight size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-600 rotate-90 pointer-events-none" />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-subheader">{FIELD_LABELS.commModule}</label>
-              <div className="relative">
-                <select
-                  value={commModule}
-                  onChange={(e) => setCommModule(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl h-9 px-3 pr-8 text-[11px] font-bold text-gray-500 appearance-none focus:outline-none focus:border-blue-500"
-                >
-                  <option value="">-- SELECT --</option>
-                  {COMM_MODULES.map(v => <option key={v} value={v}>{v}</option>)}
-                </select>
-                <ChevronRight size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-600 rotate-90 pointer-events-none" />
-              </div>
-            </div>
+        {/* Row 7: 总线架构 */}
+        <div className="bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
+          <div className="flex items-center gap-[14px] shrink-0">
+            <Network size={26} className="text-[#8e8e93] p-[2px]" strokeWidth={1.5} />
+            <span className="text-[14px] font-[600] text-slate-100">总线架构</span>
           </div>
-        </section>
+          <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-4">
+            <CustomSelect
+              value={architecture}
+              onChange={setArchitecture}
+              options={ARCHITECTURES}
+              className="w-full h-full"
+            />
+          </div>
+        </div>
 
-        {/* Media Evidence */}
-        <section className="flex justify-center gap-8 py-2">
-          <div className="flex flex-col items-center gap-2">
-            <button
-              onClick={() => handleAddMedia('package')}
-              className={`w-20 h-20 rounded-2xl bg-slate-900 border-2 transition-all active:scale-95 flex items-center justify-center relative overflow-hidden group ${packagePhoto ? 'border-blue-500' : 'border-slate-800'}`}
-            >
-              <div className="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/5 transition-all" />
-              {packagePhoto ? <img src={packagePhoto} className="w-full h-full object-cover" alt="package" /> : <Package size={28} className="text-slate-700" />}
-            </button>
-            <span className="text-[10px] font-black text-slate-500 uppercase">{FIELD_LABELS.packagePhoto}</span>
+        {/* Row 8: 娱乐系统 */}
+        <div className="bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
+          <div className="flex items-center gap-[14px] shrink-0">
+            <Music size={26} className="text-[#8e8e93] p-[2px]" strokeWidth={1.5} />
+            <span className="text-[14px] font-[600] text-slate-100">娱乐系统</span>
           </div>
-          <div className="flex flex-col items-center gap-2">
-            <button
+          <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-4">
+            <CustomSelect
+              value={iviModule}
+              onChange={setIviModule}
+              options={IVI_MODULES}
+              className="w-full h-full"
+            />
+          </div>
+        </div>
+
+        {/* Row 9: 通讯模块 */}
+        <div className="bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
+          <div className="flex items-center gap-[14px] shrink-0">
+            <Radio size={26} className="text-[#8e8e93] p-[2px]" strokeWidth={1.5} />
+            <span className="text-[14px] font-[600] text-slate-100">通讯模块</span>
+          </div>
+          <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-4">
+            <CustomSelect
+              value={commModule}
+              onChange={setCommModule}
+              options={COMM_MODULES}
+              className="w-full h-full"
+            />
+          </div>
+        </div>
+
+        {/* Row 10: 现场环境照片 */}
+        <div className="bg-[#111827] rounded-[16px] flex flex-col gap-[10px] pt-[10px] pb-[14px]">
+          <div className="flex items-center justify-between px-[16px]">
+            <div className="flex items-center gap-[14px] shrink-0">
+              <Camera size={26} className="text-[#8e8e93] p-[2px]" strokeWidth={1.5} />
+              <span className="text-[14px] font-[600] text-slate-100">现场环境照片</span>
+            </div>
+            <button 
               onClick={() => handleAddMedia('env')}
-              className={`w-20 h-20 rounded-2xl bg-slate-900 border-2 transition-all active:scale-95 flex items-center justify-center relative overflow-hidden group ${envPhoto ? 'border-blue-500' : 'border-slate-800'}`}
+              className="w-[32px] h-[32px] rounded-md border border-[#3c3c43] bg-[#1c1c1e] flex items-center justify-center hover:bg-[#2c2c2e] transition-colors active:scale-95"
             >
-              <div className="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/5 transition-all" />
-              {envPhoto ? <img src={envPhoto} className="w-full h-full object-cover" alt="env" /> : <ImageIcon size={28} className="text-slate-700" />}
+              <CameraIcon size={18} className="text-[#8e8e93]" strokeWidth={2} />
             </button>
-            <span className="text-[10px] font-black text-slate-500 uppercase">{FIELD_LABELS.envPhoto}</span>
           </div>
-        </section>
+          {envPhotos && envPhotos.length > 0 && (
+            <div className="flex gap-[8px] pl-[62px] pr-[16px] overflow-x-auto pt-[2px] pb-[8px]">
+              {envPhotos.map((photo, idx) => (
+                <div key={idx} className="flex flex-col items-center gap-[4px] flex-shrink-0">
+                  <button
+                    onClick={() => setEnvPhotos(prev => prev.filter((_, i) => i !== idx))}
+                    className="w-[16px] h-[16px] rounded-full bg-[#ef4444] flex items-center justify-center"
+                  >
+                    <X size={10} className="text-white" strokeWidth={3} />
+                  </button>
+                  <div className="w-[48px] h-[40px] rounded-md bg-[#1c1c1e] overflow-hidden border border-[#2c2c2e]/50">
+                    <img src={photo} className="w-full h-full object-cover" alt={`env ${idx}`} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Data Validation Alert */}
         {(!vehicleModel || !vin || !tester || !mileage) && (
-          <div className="flex items-center gap-3 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-[10px] font-black uppercase tracking-widest">
+          <div className="flex items-center gap-3 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-[10px] font-black uppercase tracking-widest mt-4">
             <Info size={16} className="shrink-0" />
             <span>{`请填写 ${FIELD_LABELS.vehicleModel.split(' / ')[0]}, ${FIELD_LABELS.vin.split(' / ')[0]}, ${FIELD_LABELS.tester?.split(' / ')[0] || 'Tester'}, ${FIELD_LABELS.mileage?.split(' / ')[0] || 'Mileage'} 后再继续。`} <br></br> {`Please fill in ${FIELD_LABELS.vehicleModel.split(' / ')[1]}, ${FIELD_LABELS.vin.split(' / ')[1]}, ${FIELD_LABELS.tester?.split(' / ')[1] || 'Tester'}, ${FIELD_LABELS.mileage?.split(' / ')[1] || 'Mileage'} before proceeding.`}</span>
           </div>
         )}
 
-        {/* Command Actions */}
-        <div className="space-y-4 pt-2">
-          <button
-            onClick={() => setView('test')}
-            disabled={!vehicleModel || !vin || !tester || !mileage}
-            className={`w-full automotive-btn flex items-center justify-center gap-4 group ${!vehicleModel || !vin || !tester || !mileage ? 'opacity-30 cursor-not-allowed filter grayscale' : ''
-              }`}
-          >
-            {FIELD_LABELS.executeTesting}
-            <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-          </button>
 
-          <div className="grid grid-cols-2 gap-4">
-            <button
-              onClick={() => {
-                fetch(`${API_BASE}/test-sessions`)
-                  .then(res => res.json())
-                  .then(data => setHistorySessions(data))
-                  .catch(err => console.error('Failed to fetch history:', err));
-                setView('history');
-              }}
-              className="automotive-btn-outline flex items-center justify-center gap-3 text-[11px] py-4"
-            >
-              <Database size={16} /> TEST HISTORY
-            </button>
-            <button
-              onClick={() => setView('admin')}
-              className="automotive-btn-outline flex items-center justify-center gap-3 text-[11px] py-4"
-            >
-              <MapIcon size={16} /> CASE MANAGEMENT
-            </button>
-            <button
-              onClick={() => setView('dashboard')}
-              className="col-span-2 automotive-btn-outline border-blue-500/30 text-blue-400 hover:bg-blue-600/10 hover:border-blue-400 flex items-center justify-center gap-3 text-[11px] py-4 transition-all"
-            >
-              <Activity size={16} /> MANAGER DASHBOARD
-            </button>
-            <button
-              onClick={() => setView('pdca')}
-              className="col-span-2 automotive-btn-outline border-amber-500/30 text-amber-500 hover:bg-amber-600/10 hover:border-amber-400 flex items-center justify-center gap-3 text-[11px] py-4 transition-all"
-            >
-              <Bug size={16} /> PDCA DEFECT CENTER
-            </button>
-          </div>
-        </div>
+
       </div>
     </div>
   );

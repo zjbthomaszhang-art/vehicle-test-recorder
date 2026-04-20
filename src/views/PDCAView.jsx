@@ -100,20 +100,20 @@ export default function PDCAView({ API_BASE, setView }) {
 
   if (loading && bugs.length === 0) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-[#0f1523] flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans p-4 flex flex-col h-screen overflow-hidden">
+    <div className="min-h-screen bg-[#0f1523] text-slate-100 font-sans p-4 flex flex-col h-screen overflow-hidden">
       {/* Header */}
       <header className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-white/5 flex-shrink-0">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setView('dashboard')} 
-            className="p-2 sm:p-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white transition-all active:scale-95"
+            className="p-2 sm:p-3 bg-[#111827] border border-[#1e293b] rounded-xl text-slate-400 hover:text-white transition-all active:scale-95"
             title={FIELD_LABELS.backToDashboard}
           >
             <ArrowLeft size={20} />
@@ -140,7 +140,7 @@ export default function PDCAView({ API_BASE, setView }) {
           return (
             <div 
               key={stage.id} 
-              className="flex-shrink-0 w-[300px] h-full flex flex-col bg-slate-900/40 rounded-2xl border border-white/5 overflow-hidden"
+              className="flex-shrink-0 w-[300px] h-full flex flex-col bg-[#111827]/40 rounded-2xl border border-white/5 overflow-hidden"
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, stage.id)}
             >
@@ -149,7 +149,7 @@ export default function PDCAView({ API_BASE, setView }) {
                 <span className={`font-black uppercase tracking-wider text-sm ${stage.text}`}>
                   {stage.label}
                 </span>
-                <span className="bg-slate-900/50 text-slate-400 font-black text-xs px-2 py-1 rounded">
+                <span className="bg-[#111827]/50 text-slate-400 font-black text-xs px-2 py-1 rounded">
                   {stageBugs.length}
                 </span>
               </div>
@@ -164,10 +164,10 @@ export default function PDCAView({ API_BASE, setView }) {
                       draggable
                       onDragStart={(e) => handleDragStart(e, bug.id)}
                       onClick={() => openBugModal(bug)}
-                      className={`bg-slate-900 border border-slate-700/50 hover:border-slate-500 p-3 rounded-lg cursor-grab active:cursor-grabbing hover:shadow-lg transition-all group`}
+                      className={`bg-[#111827] border border-[#334155]/50 hover:border-slate-500 p-3 rounded-lg cursor-grab active:cursor-grabbing hover:shadow-lg transition-all group`}
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 bg-[#1e293b] px-1.5 py-0.5 rounded">
                           BUG {bug.id}
                         </span>
                         <span className="text-[9px] text-slate-500 font-bold">
@@ -197,7 +197,7 @@ export default function PDCAView({ API_BASE, setView }) {
                   )
                 })}
                 {stageBugs.length === 0 && (
-                  <div className="border border-dashed border-slate-800 rounded-lg h-24 flex items-center justify-center text-slate-600 font-bold text-xs uppercase tracking-widest pointer-events-none">
+                  <div className="border border-dashed border-[#1e293b] rounded-lg h-24 flex items-center justify-center text-slate-600 font-bold text-xs uppercase tracking-widest pointer-events-none">
                     Drop Here
                   </div>
                 )}
@@ -210,9 +210,9 @@ export default function PDCAView({ API_BASE, setView }) {
       {/* Editor Modal */}
       {selectedBug && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+          <div className="bg-[#111827] border border-[#334155] w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
             {/* Modal Header */}
-            <div className="p-4 sm:p-5 border-b border-slate-800 flex justify-between items-center bg-slate-950/50">
+            <div className="p-4 sm:p-5 border-b border-[#1e293b] flex justify-between items-center bg-[#0f1523]/50">
               <div className="flex items-center gap-3">
                 <div className="bg-rose-500/10 p-2 rounded-lg">
                   <Bug className="text-rose-500" size={20} />
@@ -251,7 +251,7 @@ export default function PDCAView({ API_BASE, setView }) {
                     value={selectedBug.assignee || ''} 
                     onChange={e => setSelectedBug({...selectedBug, assignee: e.target.value})}
                     placeholder="Enter assignee name..."
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm focus:border-blue-500 focus:outline-none transition-colors"
+                    className="w-full gm-input"
                   />
                 </div>
                 <div>
@@ -259,7 +259,7 @@ export default function PDCAView({ API_BASE, setView }) {
                     <Flag size={14} className="text-amber-500" />
                     Status (当前状态)
                   </label>
-                  <div className="bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm text-slate-300 font-bold">
+                  <div className="bg-[#0f1523] border border-[#1e293b] rounded-lg p-3 text-sm text-slate-300 font-bold">
                     {STAGES.find(s => s.id === (selectedBug.status || 'Plan'))?.label}
                   </div>
                 </div>
@@ -275,7 +275,7 @@ export default function PDCAView({ API_BASE, setView }) {
                   onChange={e => setSelectedBug({...selectedBug, root_cause: e.target.value})}
                   placeholder="Analyze why this failure occurred..."
                   rows={4}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm focus:border-indigo-500 focus:outline-none transition-colors font-mono resize-none custom-scrollbar"
+                  className="w-full bg-[#0f1523] border border-[#1e293b] rounded-lg p-3 text-sm focus:border-indigo-500 focus:outline-none transition-colors font-mono resize-none custom-scrollbar"
                 />
               </div>
 
@@ -289,16 +289,16 @@ export default function PDCAView({ API_BASE, setView }) {
                   onChange={e => setSelectedBug({...selectedBug, action_notes: e.target.value})}
                   placeholder="How was this fixed and standardized?"
                   rows={4}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm focus:border-emerald-500 focus:outline-none transition-colors font-mono resize-none custom-scrollbar"
+                  className="w-full bg-[#0f1523] border border-[#1e293b] rounded-lg p-3 text-sm focus:border-emerald-500 focus:outline-none transition-colors font-mono resize-none custom-scrollbar"
                 />
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 sm:p-5 border-t border-slate-800 bg-slate-900 flex justify-end gap-3">
+            <div className="p-4 sm:p-5 border-t border-[#1e293b] bg-[#111827] flex justify-end gap-3">
               <button 
                 onClick={() => setSelectedBug(null)}
-                className="px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-xs border border-slate-700 hover:bg-slate-800 transition-colors"
+                className="px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-xs border border-[#334155] hover:bg-[#1e293b] transition-colors"
               >
                 Cancel
               </button>

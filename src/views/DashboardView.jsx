@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { ArrowLeft, CheckCircle2, XCircle, LayoutDashboard, Activity, Car, Users, Calendar, MapPin, AlertTriangle, Bug } from 'lucide-react';
+import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { TerminalSquare, UserCircle as LucideUserCircle, TrendingUp as LucideTrendingUp, CheckCircle2, BadgeCheck, XCircle, Car, BarChart3, AlertTriangle, Bug, ArrowLeft, Gauge } from 'lucide-react';
 import { FIELD_LABELS } from '../constants/labels.js';
+import MobileNavigator from '../components/MobileNavigator.jsx';
 
-export default function DashboardView({ API_BASE, setView }) {
+export default function DashboardView({ API_BASE, cases, bugs, historySessions, setView }) {
   const [data, setData] = useState([]);
   const [bugsData, setBugsData] = useState([]);
   const [casesMap, setCasesMap] = useState({});
@@ -25,47 +26,63 @@ export default function DashboardView({ API_BASE, setView }) {
   const [selectedModel, setSelectedModel] = useState(null);
   const [modelSessions, setModelSessions] = useState([]);
 
+  // Responsive UI state
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
   useEffect(() => {
-    Promise.all([
-      fetch(`${API_BASE}/test-sessions`).then(res => res.json()),
-      fetch(`${API_BASE}/bugs`).then(res => res.json()),
-      fetch(`${API_BASE}/cases`).then(res => res.json()),
-      fetch(`${API_BASE}/cases/top-fails`).then(res => res.json())
-    ])
-      .then(([sessionData, bugs, casesData, topFailsData]) => {
-        // 1. Map Cases
-        const cMap = {};
-        if (Array.isArray(casesData)) {
-          casesData.forEach(c => {
-            cMap[c.id] = c;
-          });
-        }
-        setCasesMap(cMap);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-        // 2. Process Bugs
-        if (Array.isArray(bugs)) {
-          bugs.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
-          setBugsData(bugs);
-        }
+  useEffect(() => {
+    // Process Local Injected Data Instantly
+    const cMap = {};
+    if (Array.isArray(cases)) {
+      cases.forEach(c => {
+        cMap[c.id] = c;
+      });
+    }
+    setCasesMap(cMap);
+    
+    // UI displays instantly
+    setLoading(false);
 
-        // 3. Process Top Fails
+    // Asynchronously fetch top-fails in the background
+    fetch(`${API_BASE}/cases/top-fails`)
+      .then(res => res.json())
+      .then(topFailsData => {
         if (Array.isArray(topFailsData)) {
           setTopFailed(topFailsData);
         }
-
-        // 4. Process Sessions
-        if (Array.isArray(sessionData)) {
-          setData(sessionData);
-          processStats(sessionData);
-        }
-        
-        setLoading(false);
       })
       .catch(err => {
-        console.error('Failed to load dashboard data', err);
-        setLoading(false);
+        console.error('Failed to load top fails data', err);
       });
-  }, [API_BASE]);
+
+    // Asynchronously fetch historical sessions for dashboard stats
+    fetch(`${API_BASE}/test-sessions`)
+      .then(res => res.json())
+      .then(sessions => {
+        if (Array.isArray(sessions)) {
+          setData(sessions);
+          processStats(sessions);
+        }
+      })
+      .catch(console.error);
+
+    // Asynchronously fetch global defects for the defect feed
+    fetch(`${API_BASE}/bugs`)
+      .then(res => res.json())
+      .then(defects => {
+        if (Array.isArray(defects)) {
+          const sortedBugs = defects.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+          setBugsData(sortedBugs);
+        }
+      })
+      .catch(console.error);
+      
+  }, [API_BASE, cases]);
 
   const processStats = (sessions) => {
     let tSessions = sessions.length;
@@ -79,13 +96,13 @@ export default function DashboardView({ API_BASE, setView }) {
     sessions.forEach(s => {
       const pCount = parseInt(s.pass_count) || 0;
       const fCount = parseInt(s.fail_count) || 0;
-      const tCount = pCount + fCount; // Only Pass and Fail count towards total completion rate. Ignore N/A and unexecuted.
+      const tCount = pCount + fCount;
 
       tCases += tCount;
       tPassed += pCount;
       tFailed += fCount;
 
-      const dateKey = s.timestamp ? s.timestamp.substring(0, 10) : 'Unknown';
+      const dateKey = s.timestamp ? s.timestamp.substring(5, 10).replace('-', '/') : 'Unknown';
       if (!dailyMap[dateKey]) {
         dailyMap[dateKey] = { date: dateKey, total: 0, passed: 0, failed: 0 };
       }
@@ -110,7 +127,7 @@ export default function DashboardView({ API_BASE, setView }) {
     });
 
     const sortedDaily = Object.values(dailyMap).sort((a, b) => a.date.localeCompare(b.date));
-    setDailyData(sortedDaily);
+    setDailyData(sortedDaily.slice(-7)); // Last 7 days
 
     const pModelStats = Object.values(modelMap).map(m => {
       let rate = 0;
@@ -126,12 +143,12 @@ export default function DashboardView({ API_BASE, setView }) {
 
   const handleBarClick = (dataParams) => {
     let clickedModel = null;
-    if (dataParams && dataParams.activePayload && dataParams.activePayload.length > 0) {
+    if (dataParams && dataParams.model) {
+      clickedModel = dataParams.model; // Active payload directly from <Bar> onClick
+    } else if (dataParams && dataParams.activePayload && dataParams.activePayload.length > 0) {
       clickedModel = dataParams.activePayload[0].payload.model;
-    } else if (dataParams && dataParams.model) {
-      clickedModel = dataParams.model;
-    } else if (dataParams && dataParams.payload && dataParams.payload.model) {
-      clickedModel = dataParams.payload.model;
+    } else if (dataParams && dataParams.activeLabel) {
+      clickedModel = dataParams.activeLabel;
     }
 
     if (clickedModel) {
@@ -142,334 +159,463 @@ export default function DashboardView({ API_BASE, setView }) {
     }
   };
 
-  // No longer deriving Top Failed Cases from bugs data
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-[#0f1523] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#3b82f6] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   const overallPassRate = stats.totalCases > 0 
     ? ((stats.totalPassed / stats.totalCases) * 100).toFixed(1) 
-    : 0;
+    : '0.0';
 
-  // --- DRILL DOWN VIEW ---
   if (selectedModel) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 font-sans p-4 sm:p-8 overflow-y-auto">
-        <header className="mb-6 flex justify-between items-center pb-4 border-b border-white/5">
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => setSelectedModel(null)} 
-              className="p-2 sm:p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-400 hover:text-white transition-all active:scale-95 flex items-center gap-2 font-black text-[10px] sm:text-xs tracking-widest"
-            >
-              <ArrowLeft size={16} /> GLOBAL VIEW
+      <div className="min-h-screen bg-[#0f1523] text-slate-100 font-sans px-[24px] pt-[44px] pb-[100px] overflow-y-auto">
+        <div className="max-w-4xl mx-auto">
+          <header className="mb-6 flex justify-between items-center pb-4 border-b border-[#1e293b]">
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setSelectedModel(null)} 
+                className="p-2 sm:p-3 bg-[#3b82f6]/10 border border-[#3b82f6]/20 rounded-[12px] text-[#60a5fa] hover:text-white transition-all active:scale-95 flex items-center gap-2 font-[900] text-[10px] tracking-widest"
+              >
+              <ArrowLeft size={16} /> 返回上页
             </button>
-            <div className="flex flex-col ml-1 sm:ml-4">
-              <h1 className="text-lg sm:text-3xl font-black italic tracking-tighter uppercase leading-none text-blue-400">
-                {selectedModel} <span className="text-white">{FIELD_LABELS.sessionTitle.split(' / ')[1]}</span>
+            <div className="flex flex-col ml-1">
+              <h1 className="text-[20px] font-[900] italic tracking-tighter uppercase leading-none bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent">
+                {selectedModel} <span className="text-white">测试记录</span>
               </h1>
-              <p className="text-[10px] sm:text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">
-                Detailed Execution History
-              </p>
             </div>
           </div>
-          <Car className="text-blue-500 opacity-20 hidden sm:block" size={32} />
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="flex flex-col gap-[16px]">
           {modelSessions.map((session, idx) => {
-            const passed = parseInt(session.pass_count) || 0;
-            const failed = parseInt(session.fail_count) || 0;
-            const total = passed + failed; // Exclude N/A
-            const rate = total > 0 ? ((passed / total) * 100).toFixed(1) : "0.0";
-            const isPerfect = rate === "100.0";
-            const isCritical = parseFloat(rate) < 50.0;
+            const execCount = parseInt(session.case_count) || 0;
+            const passCount = parseInt(session.pass_count) || 0;
+            const totalCases = cases ? cases.length : 0;
+            const passRate = execCount > 0 ? ((passCount / execCount) * 100).toFixed(0) : 0;
 
             return (
-              <div key={session.id || idx} className={`automotive-card p-5 relative overflow-hidden group ${isCritical ? 'border-rose-500/30 shadow-[0_0_15px_-3px_rgba(244,63,94,0.2)]' : ''}`}>
-                {isPerfect && (
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/10 rounded-bl-full flex items-start justify-end p-3 pointer-events-none">
-                    <CheckCircle2 size={16} className="text-emerald-500/50" />
-                  </div>
-                )}
-                {isCritical && (
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-rose-500/10 rounded-bl-full flex items-start justify-end p-3 pointer-events-none animate-pulse">
-                    <AlertTriangle size={16} className="text-rose-500/60" />
-                  </div>
-                )}
-                <div className="mb-5">
-                  <div className="flex justify-between items-start">
-                    <h4 className="text-xl font-black uppercase italic tracking-tighter mb-1 mt-1 text-slate-200">
-                      ID: {session.id}
-                    </h4>
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase">
-                    <Calendar size={12} />
-                    {session.timestamp ? new Date(session.timestamp).toLocaleString() : 'Unknown Date'}
-                  </div>
+              <div key={session.id || idx} className="bg-[#121826] border border-[#1e293b] rounded-[20px] p-[14px] flex flex-col gap-[10px]">
+                {/* Top Row */}
+                <div className="flex justify-between items-center w-full">
+                   <div className="flex gap-[8px] items-center">
+                      <span className="text-[11px] font-[600] text-[#3b82f6]">
+                         {session.timestamp ? String(session.timestamp).substring(0, 16).replace(/-/g, '/') : ''}
+                      </span>
+                   </div>
+                   <span className="text-[11px] font-[normal] text-[#64748b]">{totalCases} 用例</span>
                 </div>
 
-                <div className="space-y-3 mb-6 bg-slate-900/50 p-3 rounded-lg border border-slate-800/50">
-                  <div className="flex items-center gap-3 text-xs font-bold text-slate-400">
-                    <Users size={14} className="text-blue-500" />
-                    {FIELD_LABELS.tester.split(' / ')[0]}: <span className="text-white">{session.tester || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs font-bold text-slate-400 truncate">
-                    <MapPin size={14} className="text-blue-500 flex-shrink-0" />
-                    {FIELD_LABELS.address.split(' / ')[0]}: <span className="text-white truncate">{session.address || 'N/A'}</span>
-                  </div>
+                {/* Title Row */}
+                <div className="flex justify-between items-center w-full">
+                   <span className="text-[22px] font-[900] text-white italic">
+                      {session.model_year ? `MY${session.model_year}` : ''} {session.vehicle_model || 'Unknown'}
+                   </span>
                 </div>
 
-                <div className="pt-4 border-t border-slate-800 flex justify-between items-end">
-                  <div className="flex gap-6">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-slate-500 font-black uppercase mb-1">Pass</span>
-                      <span className="text-xl font-black text-emerald-500 leading-none">{passed}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-slate-500 font-black uppercase mb-1">Fail</span>
-                      <span className="text-xl font-black text-amber-500 leading-none">{failed}</span>
-                    </div>
-                  </div>
-                  <div className="text-right flex flex-col items-end">
-                    <span className={`text-[10px] font-black uppercase mb-1 ${isCritical ? 'text-rose-500 pt-1' : 'text-slate-500'}`}>
-                      {isCritical ? '严重警告 / CRITICAL WARN' : '通过率 / Pass Rate'}
-                    </span>
-                    <span className={`text-2xl leading-none font-black ${isPerfect ? 'text-emerald-500' : isCritical ? 'text-rose-500 animate-pulse' : 'text-blue-400'}`}>
-                      {rate}%
-                    </span>
-                  </div>
+                {/* Info Row */}
+                <div className="flex gap-[12px] items-center w-full">
+                   <div className="bg-[#1e293b] rounded-[10px] w-[36px] h-[36px] flex items-center justify-center shrink-0">
+                      <Car size={18} className="text-[#64748b]" />
+                   </div>
+                   <div className="flex flex-col gap-[2px] min-w-0 flex-1">
+                      <span className="text-[12px] font-[normal] text-[#cbd5e1] truncate">VIN: {session.vin || 'N/A'}</span>
+                      <span className="text-[11px] font-[normal] text-[#64748b] truncate">
+                         {(session.vehicle_architecture || session.architecture) || 'N/A'} • {session.test_location || session.address || 'N/A'} • {session.tester || 'N/A'}
+                      </span>
+                   </div>
+                </div>
+
+                {/* Bottom Row */}
+                <div className="flex justify-between items-center w-full pt-[4px]">
+                   <div className="flex gap-[8px] items-center">
+                      <span className={`text-[13px] font-[bold] ${passRate >= 90 ? 'text-[#22c55e]' : (passRate >= 60 ? 'text-[#eab308]' : 'text-[#ef4444]')}`}>
+                         通过 {passRate}%
+                      </span>
+                      <span className="text-[13px] font-[bold] text-[#64748b]">已执行 {execCount} 条用例</span>
+                   </div>
                 </div>
               </div>
             );
           })}
-          {modelSessions.length === 0 && (
-            <div className="col-span-full py-16 text-center text-slate-500 font-bold uppercase tracking-widest border border-dashed border-slate-800 rounded-2xl">
-              No detailed sessions found for this model.
-            </div>
-          )}
+        </div>
         </div>
       </div>
     );
   }
 
-  // --- GLOBAL DASHBOARD (UX Optimized 3-Column Layout) ---
-  return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans p-4 sm:p-8 overflow-y-auto">
-      {/* Header */}
-      <header className="mb-6 flex justify-between items-center pb-4 border-b border-white/5">
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setView('home')} 
-            className="p-2 sm:p-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white transition-all active:scale-95"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <div className="flex flex-col">
-            <h1 className="text-xl sm:text-3xl font-black italic tracking-tighter uppercase leading-none">
-              Command <span className="text-blue-500">Center</span>
-            </h1>
-            <p className="text-[10px] sm:text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">
-              Test Quality & Insights
-            </p>
-          </div>
+  const renderMobile = () => (
+    <div className="min-h-screen bg-[#0f1523] text-slate-100 flex flex-col font-sans">
+      <header className="px-[24px] pt-[44px] pb-[8px] flex justify-between items-center w-full z-10 shrink-0">
+        <div className="flex flex-col gap-[2px]">
+          <span className="text-[26px] font-[800] text-white leading-none tracking-tight">仪表面板</span>
         </div>
-        <LayoutDashboard className="text-blue-500 opacity-20" size={32} />
+        <div className="flex gap-[10px] items-center">
+          <TerminalSquare size={20} strokeWidth={2} className="text-[#1e293b]" />
+          <LucideUserCircle size={28} strokeWidth={1.5} className="text-[#475569]" />
+        </div>
       </header>
-
-      {/* KPI Cards (Strategic Layer) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="automotive-card p-4 sm:p-5 flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-1">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{FIELD_LABELS.sessionTitle.split(' / ')[1]}s</span>
-            <Activity size={16} className="text-blue-500" />
-          </div>
-          <span className="text-2xl font-black">{stats.totalSessions}</span>
-        </div>
-
-        <div className="automotive-card p-4 sm:p-5 flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-1">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{FIELD_LABELS.globalPassRate}</span>
-            <CheckCircle2 size={16} className="text-emerald-500" />
-          </div>
-          <div className="flex items-end gap-1">
-            <span className="text-2xl font-black text-emerald-500">{overallPassRate}</span>
-            <span className="text-xs font-bold text-emerald-500/50 mb-1">%</span>
-          </div>
-        </div>
-
-        <div className="automotive-card p-4 sm:p-5 flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-1">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{FIELD_LABELS.casesPassed}</span>
-            <CheckCircle2 size={16} className="text-blue-400" />
-          </div>
-          <div className="flex items-end gap-2">
-            <span className="text-2xl font-black">{stats.totalPassed}</span>
-            <span className="text-[10px] font-bold text-slate-600 mb-1">/ {stats.totalCases}</span>
-          </div>
-        </div>
-
-        <div className="automotive-card p-4 sm:p-5 flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-1">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{FIELD_LABELS.casesFailed}</span>
-            <XCircle size={16} className="text-amber-500" />
-          </div>
-          <span className="text-2xl font-black text-amber-500">{stats.totalFailed}</span>
-        </div>
-      </div>
-
-      {/* Main Grid: 2 Columns for Charts (Strategic), 1 Column for Insights (Actionable) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 items-start">
-        
-        {/* Left Area (Strategic Charts) */}
-        <div className="col-span-1 lg:col-span-2 space-y-6">
-          {/* Model Pass Rate Comparison */}
-          <div className="automotive-card p-5 sm:p-6 w-full">
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-2">
-                <Car size={16} className="text-blue-500" />
-                <h3 className="text-sm font-black italic tracking-tighter uppercase text-slate-200">{FIELD_LABELS.modelPassRateComparison}</h3>
-              </div>
-              <span className="text-[9px] text-blue-500/50 font-bold uppercase tracking-widest animate-pulse hidden sm:block">
-                {FIELD_LABELS.clickBarToDrillDown}
-              </span>
-            </div>
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart onClick={handleBarClick} data={modelData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                  <XAxis dataKey="model" stroke="#475569" tick={{fill: '#64748b', fontSize: 10}} tickMargin={10} axisLine={false} tickLine={false} />
-                  <YAxis stroke="#475569" tick={{fill: '#64748b', fontSize: 10}} domain={[0, 100]} axisLine={false} tickLine={false} />
-                  <Tooltip 
-                    cursor={{fill: '#0f172a', opacity: 0.5}}
-                    contentStyle={{ backgroundColor: '#020617', border: '1px solid #1e293b', borderRadius: '1rem', padding: '12px' }}
-                    itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                    labelStyle={{ color: '#94a3b8', fontSize: '10px', textTransform: 'uppercase', marginBottom: '8px', fontWeight: '900' }}
-                  />
-                  <Bar 
-                    dataKey="passRate" 
-                    name={FIELD_LABELS.passRatePercent} 
-                    fill="#10b981" 
-                    radius={[4, 4, 0, 0]} 
-                    barSize={40}
-                    className="cursor-pointer hover:brightness-125 transition-all"
-                    onClick={handleBarClick}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Daily Testing Volume Trend */}
-          <div className="automotive-card p-5 sm:p-6 w-full">
-            <div className="flex items-center gap-2 mb-6">
-              <Activity size={16} className="text-blue-500" />
-              <h3 className="text-sm font-black italic tracking-tighter uppercase text-slate-200">{FIELD_LABELS.dailyTestingVolume}</h3>
-            </div>
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={dailyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                  <XAxis dataKey="date" stroke="#475569" tick={{fill: '#64748b', fontSize: 10}} tickMargin={10} axisLine={false} tickLine={false} />
-                  <YAxis stroke="#475569" tick={{fill: '#64748b', fontSize: 10}} axisLine={false} tickLine={false} />
-                  <Tooltip 
-                    cursor={{fill: '#0f172a', opacity: 0.5}}
-                    contentStyle={{ backgroundColor: '#020617', border: '1px solid #1e293b', borderRadius: '1rem', padding: '12px' }}
-                    itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                    labelStyle={{ color: '#94a3b8', fontSize: '10px', textTransform: 'uppercase', marginBottom: '8px', fontWeight: '900' }}
-                  />
-                  <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', bottom: 0 }} />
-                  <Bar dataKey="passed" name={FIELD_LABELS.pass?.split(' / ')[1] || 'Passed'} stackId="a" fill="#3b82f6" radius={[0, 0, 4, 4]} barSize={32} />
-                  <Bar dataKey="failed" name={FIELD_LABELS.fail?.split(' / ')[1] || 'Failed'} stackId="a" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={32} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Area (Actionable Insights) */}
-        <div className="col-span-1 border-l-0 lg:border-l border-white/5 pl-0 lg:pl-6 space-y-6">
-          
-          {/* Top Failed Cases (From True test_results Database) */}
-          <div className="automotive-card p-5 relative overflow-hidden">
-            <div className="flex items-center gap-2 mb-4">
-              <AlertTriangle size={16} className="text-amber-500" />
-              <h3 className="text-sm font-black italic tracking-tighter uppercase text-amber-500">{FIELD_LABELS.topFailedCases}</h3>
-            </div>
-            
-            <div className="space-y-3">
-              {topFailed.length > 0 ? topFailed.map((item, idx) => {
-                const caseDef = casesMap[item.case_id];
-                const displayName = caseDef 
-                  ? `${caseDef.category} > ${caseDef.function}`
-                  : `Case ID #${item.case_id}`;
-                  
-                return (
-                  <div key={idx} className="bg-slate-900/50 p-3 rounded-lg border border-slate-800 flex justify-between items-center group">
-                    <div className="flex flex-col flex-1 overflow-hidden pr-2">
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest truncate">{displayName}</span>
-                      <span className="text-xs text-slate-300 font-black truncate">{caseDef?.content || 'Unknown Case'}</span>
-                    </div>
-                    <div className="bg-amber-500/10 text-amber-500 font-black text-xs px-2 py-1 rounded">
-                      {item.fail_count} {FIELD_LABELS.fails}
-                    </div>
-                  </div>
-                );
-              }) : (
-                <div className="text-xs text-slate-500 font-bold uppercase text-center py-4">{FIELD_LABELS.noFailures}</div>
-              )}
-            </div>
-          </div>
-
-          {/* Recent Defect Log */}
-          <div className="automotive-card p-5 relative overflow-hidden flex flex-col h-[400px]">
-            <div className="flex items-center gap-2 mb-4 flex-shrink-0">
-              <Bug size={16} className="text-rose-500" />
-              <h3 className="text-sm font-black italic tracking-tighter uppercase text-rose-500">{FIELD_LABELS.recentDefectFeedTitle}</h3>
-            </div>
-            
-            <div className="overflow-y-auto pr-2 space-y-3 custom-scrollbar flex-1">
-              {bugsData.length > 0 ? bugsData.slice(0, 15).map((bug, idx) => {
-                const caseDef = casesMap[bug.case_id];
-                const sessionInfo = data.find(s => s.id === bug.session_id);
-                const testerName = sessionInfo && sessionInfo.tester ? sessionInfo.tester : 'Unknown';
-                
-                return (
-                  <div key={idx} className="border-l-2 border-rose-500 pl-3 py-1 mb-4">
-                    <div className="flex justify-between items-start mb-1">
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest truncate max-w-[75%]">
-                        {caseDef ? `${caseDef.category} > ${caseDef.function}` : `Case #${bug.case_id}`}
-                      </span>
-                      <div className="flex flex-col items-end flex-shrink-0 ml-2">
-                        <span className="text-[9px] text-slate-600 font-black">
-                          {bug.timestamp ? new Date(bug.timestamp).toLocaleDateString() : ''}
-                        </span>
-                        <span className="text-[9px] text-blue-500/80 font-bold uppercase mt-0.5">
-                          {testerName}
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-xs text-slate-300 font-medium line-clamp-2">
-                      <span className="text-rose-400 font-bold mr-1">BUG:</span>
-                      {bug.description || 'No description provided.'}
-                    </p>
-                  </div>
-                );
-              }) : (
-                <div className="text-xs text-slate-500 font-bold uppercase text-center py-4">Zero active defects 🚀</div>
-              )}
-            </div>
-            {/* Scroll indicators fade out */}
-            <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-[#0f172a] to-transparent pointer-events-none rounded-b-xl" />
-          </div>
-
-        </div>
-      </div>
       
+      <main className="flex-1 overflow-y-auto px-[16px] pt-[16px] pb-[100px] flex flex-col gap-[16px] custom-scrollbar">
+        {/* KPI Row 1 */}
+        <div className="flex gap-[12px] w-full">
+          <div className="flex-1 bg-[#111827] rounded-[14px] border border-[#1e293b] p-[16px] h-[86px] flex flex-col justify-between">
+            <div className="flex justify-between items-center w-full">
+               <span className="text-[12px] font-[900] text-[#475569]">总场次</span>
+               <LucideTrendingUp size={14} strokeWidth={3} className="text-[#3b82f6]" />
+            </div>
+            <span className="text-[28px] font-[900] text-[#f8fafc] leading-none">{stats.totalSessions}</span>
+          </div>
+          <div className="flex-1 bg-[#111827] rounded-[14px] border border-[#1e293b] p-[16px] h-[86px] flex flex-col justify-between">
+            <div className="flex justify-between items-center w-full">
+               <span className="text-[12px] font-[900] text-[#475569]">全局通过率</span>
+               <CheckCircle2 size={14} strokeWidth={3} className="text-[#10b981]" />
+            </div>
+            <div className="flex items-end gap-[2px]">
+               <span className="text-[28px] font-[900] text-[#10b981] leading-none">{overallPassRate}</span>
+               <span className="text-[13px] font-[900] text-[#10b981]/50 leading-none mb-[2px]">%</span>
+            </div>
+          </div>
+        </div>
+
+        {/* KPI Row 2 */}
+        <div className="flex gap-[12px] w-full">
+          <div className="flex-1 bg-[#111827] rounded-[14px] border border-[#1e293b] p-[16px] h-[86px] flex flex-col justify-between">
+            <div className="flex justify-between items-center w-full">
+               <span className="text-[12px] font-[900] text-[#475569]">通过用例</span>
+               <BadgeCheck size={14} strokeWidth={3} className="text-[#60a5fa]" />
+            </div>
+            <div className="flex items-end gap-[4px]">
+               <span className="text-[28px] font-[900] text-[#f8fafc] leading-none">{stats.totalPassed}</span>
+               <span className="text-[12px] font-[800] text-[#334155] leading-none mb-[4px]">/ {stats.totalCases}</span>
+            </div>
+          </div>
+          <div className="flex-1 bg-[#111827] rounded-[14px] border border-[#1e293b] p-[16px] h-[86px] flex flex-col justify-between">
+            <div className="flex justify-between items-center w-full">
+               <span className="text-[12px] font-[900] text-[#475569]">失败用例</span>
+               <XCircle size={14} strokeWidth={3} className="text-[#f59e0b]" />
+            </div>
+            <span className="text-[28px] font-[900] text-[#f59e0b] leading-none">{stats.totalFailed}</span>
+          </div>
+        </div>
+
+        {/* Model Pass Rate */}
+        <div className="bg-[#111827] rounded-[14px] border border-[#1e293b] p-[16px] flex flex-col gap-[12px]">
+          <div className="flex justify-between items-center w-full">
+             <div className="flex items-center gap-[6px]">
+                <Car size={14} strokeWidth={2.5} className="text-[#3b82f6]" />
+                <span className="text-[11px] font-[900] text-[#e2e8f0] italic">各车型通过率对比</span>
+             </div>
+             <span className="text-[8px] font-[800] text-[#3b82f6]/60 tracking-wider">点击下钻</span>
+          </div>
+          <div className="h-[150px] w-full ml-[-20px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={modelData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }} onClick={handleBarClick}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+                <XAxis dataKey="model" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} dx={-10} />
+                <Tooltip cursor={{ fill: '#1e293b' }} contentStyle={{ backgroundColor: '#0f1523', border: '1px solid #1e293b', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold' }} />
+                <Bar dataKey="passRate" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Daily Volume */}
+        <div className="bg-[#111827] rounded-[14px] border border-[#1e293b] p-[16px] flex flex-col gap-[12px]">
+          <div className="flex items-center gap-[6px]">
+            <BarChart3 size={14} strokeWidth={2.5} className="text-[#3b82f6]" />
+            <span className="text-[11px] font-[900] text-[#e2e8f0] italic">每日测试量趋势</span>
+          </div>
+          <div className="flex items-center gap-[12px]">
+            <div className="flex items-center gap-[5px]">
+               <div className="w-[7px] h-[7px] bg-[#3b82f6] rounded-full"></div>
+               <span className="text-[9px] font-[700] text-[#94a3b8]">通过</span>
+            </div>
+            <div className="flex items-center gap-[5px]">
+               <div className="w-[7px] h-[7px] bg-[#f59e0b] rounded-full"></div>
+               <span className="text-[9px] font-[700] text-[#94a3b8]">未通过</span>
+            </div>
+          </div>
+          <div className="h-[110px] w-full ml-[-20px] mt-[4px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dailyData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+                <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 9, fontWeight: 700 }} axisLine={false} tickLine={false} />
+                <YAxis hide />
+                <Tooltip cursor={{ fill: '#1e293b' }} contentStyle={{ backgroundColor: '#0f1523', border: '1px solid #1e293b', borderRadius: '8px', fontSize: '10px', fontWeight: 'bold' }} />
+                <Bar dataKey="passed" stackId="a" fill="#3b82f6" barSize={12} radius={[0, 0, 2, 2]} />
+                <Bar dataKey="failed" stackId="a" fill="#f59e0b" barSize={12} radius={[2, 2, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Top Failed */}
+        <div className="bg-[#111827] rounded-[14px] border border-[#1e293b] p-[16px] flex flex-col gap-[10px]">
+          <div className="flex items-center gap-[6px] mb-[4px]">
+             <AlertTriangle size={14} strokeWidth={2.5} className="text-[#f59e0b]" />
+             <span className="text-[11px] font-[900] text-[#f59e0b] italic">高频失败用例</span>
+          </div>
+          
+          {topFailed.length > 0 ? topFailed.slice(0, 3).map((tf, i) => {
+             const caseDef = casesMap[tf.case_id] || tf;
+             return (
+             <div key={tf.case_id || i} className="bg-[#0f172a] border border-[#1e293b]/50 rounded-[8px] p-[10px] px-[12px] flex justify-between items-center">
+                <div className="flex flex-col gap-[2px] flex-1 min-w-0 pr-2">
+                   <span className="text-[8px] font-[800] text-[#475569]">{caseDef.function_category || caseDef.functionCategory || 'Unknown'} &gt; {caseDef.function || 'Unknown'}</span>
+                   <span className="text-[10px] font-[800] text-[#e2e8f0] truncate">{caseDef.expected || caseDef.content || '...'}</span>
+                </div>
+                <div className="bg-[#f59e0b]/10 rounded-[5px] px-[6px] py-[3px] shrink-0">
+                   <span className="text-[9px] font-[900] text-[#f59e0b]">{tf.fail_count}次</span>
+                </div>
+             </div>
+             );
+          }) : (
+            <div className="text-[10px] font-[800] text-[#475569] text-center py-4">暂无失败用例</div>
+          )}
+        </div>
+
+        {/* Recent Defects */}
+        <div className="bg-[#111827] rounded-[14px] border border-[#1e293b] p-[16px] flex flex-col gap-[10px]">
+           <div className="flex items-center gap-[6px] mb-[4px]">
+             <Bug size={14} strokeWidth={2.5} className="text-[#ef4444]" />
+             <span className="text-[11px] font-[900] text-[#ef4444] italic">最新缺陷动态</span>
+           </div>
+
+           {bugsData.length > 0 ? bugsData.slice(0, 2).map((bug, i) => {
+             const linkedCase = casesMap[bug.case_id];
+             return (
+               <div key={bug.id || i} className="flex gap-[8px] w-full">
+                  <div className="w-[2px] bg-[#ef4444] rounded-[2px]" />
+                  <div className="flex flex-col gap-[3px] w-full min-w-0">
+                    <div className="flex justify-between items-center w-full">
+                      <span className="text-[10px] font-[900] text-white truncate">{linkedCase?.function || `Case ${bug.case_id}`}</span>
+                      <span className="text-[8px] font-[800] text-[#475569] shrink-0">{bug.timestamp?.substring(0, 16).replace(/-/g, '/')}</span>
+                    </div>
+                    <span className="text-[9px] font-[600] text-[#94a3b8] truncate w-full">"{bug.description}"</span>
+                  </div>
+               </div>
+             )
+           }) : (
+             <div className="text-[10px] font-[800] text-[#475569] text-center py-4">暂无缺陷动态</div>
+           )}
+        </div>
+
+      </main>
+
+      <MobileNavigator activeTab="dashboard" setView={setView} />
+      
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+      `}</style>
     </div>
   );
+
+  const renderPC = () => (
+    <div className="min-h-screen bg-[#0a0f1e] text-slate-100 flex flex-col font-sans">
+      <header className="px-[40px] pt-[24px] pb-[24px] flex justify-between items-center w-full z-10 shrink-0">
+        <div className="flex items-center gap-[16px]">
+          <Gauge size={28} strokeWidth={2} className="text-[#3b82f6]" />
+          <div className="flex flex-col gap-[2px]">
+            <span className="text-[24px] font-[900] text-white leading-none tracking-tight italic">仪表面板</span>
+            <span className="text-[10px] font-[800] text-[#64748b]">测试质量与数据洞察</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-[16px]">
+          <button 
+            onClick={() => setView('home')} 
+            className="flex items-center gap-2 border border-[#1e293b] rounded-[8px] px-[16px] py-[10px] text-[12px] font-[800] text-[#64748b] hover:text-white transition-all"
+          >
+             <ArrowLeft size={14} /> 返回主页
+          </button>
+          
+          <div className="flex items-center gap-[12px]">
+             <span className="text-[14px] font-[900] text-[#475569]">VEHICLE LAB</span>
+             <LucideUserCircle size={32} strokeWidth={1.5} className="text-[#475569]" />
+          </div>
+
+          <button 
+            onClick={() => setView('monitor')}
+            className="border border-[#1e293b] rounded-[8px] w-[40px] h-[40px] flex items-center justify-center hover:bg-[#1e293b] transition-all group"
+          >
+             <TerminalSquare size={18} strokeWidth={2} className="text-[#64748b] group-hover:text-white" />
+          </button>
+        </div>
+      </header>
+
+      <main className="flex-1 overflow-y-auto px-[40px] pb-[24px] flex flex-col gap-[20px] custom-scrollbar">
+        {/* KPI Row */}
+        <div className="flex gap-[16px] w-full">
+          <div className="flex-1 bg-[#111827] rounded-[16px] border border-[#1e293b] p-[20px] h-[100px] flex flex-col justify-between">
+            <div className="flex justify-between items-center w-full">
+               <span className="text-[10px] font-[900] text-[#475569]">总测试场次</span>
+               <LucideTrendingUp size={18} strokeWidth={3} className="text-[#3b82f6]" />
+            </div>
+            <span className="text-[32px] font-[900] text-[#f8fafc] leading-none">{stats.totalSessions}</span>
+          </div>
+          <div className="flex-1 bg-[#111827] rounded-[16px] border border-[#1e293b] p-[20px] h-[100px] flex flex-col justify-between">
+            <div className="flex justify-between items-center w-full">
+               <span className="text-[10px] font-[900] text-[#475569]">全局通过率</span>
+               <CheckCircle2 size={18} strokeWidth={3} className="text-[#10b981]" />
+            </div>
+            <div className="flex items-end gap-[4px]">
+               <span className="text-[32px] font-[900] text-[#10b981] leading-none">{overallPassRate}</span>
+               <span className="text-[16px] font-[900] text-[#10b981]/50 leading-none mb-[2px]">%</span>
+            </div>
+          </div>
+          <div className="flex-1 bg-[#111827] rounded-[16px] border border-[#1e293b] p-[20px] h-[100px] flex flex-col justify-between">
+            <div className="flex justify-between items-center w-full">
+               <span className="text-[10px] font-[900] text-[#475569]">通过用例数</span>
+               <BadgeCheck size={18} strokeWidth={3} className="text-[#60a5fa]" />
+            </div>
+            <div className="flex items-end gap-[6px]">
+               <span className="text-[32px] font-[900] text-[#f8fafc] leading-none">{stats.totalPassed}</span>
+               <span className="text-[14px] font-[800] text-[#334155] leading-none mb-[4px]">/ {stats.totalCases}</span>
+            </div>
+          </div>
+          <div className="flex-1 bg-[#111827] rounded-[16px] border border-[#1e293b] p-[20px] h-[100px] flex flex-col justify-between">
+            <div className="flex justify-between items-center w-full">
+               <span className="text-[10px] font-[900] text-[#475569]">失败用例数</span>
+               <XCircle size={18} strokeWidth={3} className="text-[#f59e0b]" />
+            </div>
+            <span className="text-[32px] font-[900] text-[#f59e0b] leading-none">{stats.totalFailed}</span>
+          </div>
+        </div>
+
+        {/* Main Row */}
+        <div className="flex gap-[20px] w-full min-h-[400px]">
+          {/* Left Column */}
+          <div className="flex-1 flex flex-col gap-[20px]">
+            {/* Model Pass Rate */}
+            <div className="bg-[#111827] rounded-[16px] border border-[#1e293b] p-[24px] flex-1 flex flex-col gap-[16px] min-h-[200px]">
+              <div className="flex justify-between items-center w-full">
+                 <div className="flex items-center gap-[8px]">
+                    <Car size={16} strokeWidth={2.5} className="text-[#3b82f6]" />
+                    <span className="text-[12px] font-[900] text-[#e2e8f0] italic">各车型通过率对比</span>
+                 </div>
+                 <span className="text-[10px] font-[800] text-[#3b82f6]/60 tracking-wider">点击下钻</span>
+              </div>
+              <div className="flex-1 w-full ml-[-20px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={modelData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }} onClick={(data) => data && data.activePayload && handleBarClick(data.activePayload[0].payload)}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+                    <XAxis dataKey="model" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} dx={-10} />
+                    <Tooltip cursor={{ fill: '#1e293b' }} contentStyle={{ backgroundColor: '#0f1523', border: '1px solid #1e293b', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold' }} />
+                    <Bar dataKey="passRate" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={24} onClick={(data) => handleBarClick(data)} cursor="pointer" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Daily Volume */}
+            <div className="bg-[#111827] rounded-[16px] border border-[#1e293b] p-[24px] flex-1 flex flex-col gap-[16px] min-h-[200px]">
+              <div className="flex justify-between items-center w-full">
+                  <div className="flex items-center gap-[8px]">
+                    <BarChart3 size={16} strokeWidth={2.5} className="text-[#3b82f6]" />
+                    <span className="text-[12px] font-[900] text-[#e2e8f0] italic">每日测试量趋势</span>
+                  </div>
+                  <div className="flex items-center gap-[16px]">
+                    <div className="flex items-center gap-[6px]">
+                       <div className="w-[8px] h-[8px] bg-[#3b82f6] rounded-full"></div>
+                       <span className="text-[10px] font-[700] text-[#94a3b8]">通过</span>
+                    </div>
+                    <div className="flex items-center gap-[6px]">
+                       <div className="w-[8px] h-[8px] bg-[#f59e0b] rounded-full"></div>
+                       <span className="text-[10px] font-[700] text-[#94a3b8]">未通过</span>
+                    </div>
+                  </div>
+              </div>
+              <div className="flex-1 w-full ml-[-20px] mt-[8px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={dailyData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+                    <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} />
+                    <YAxis hide />
+                    <Tooltip cursor={{ fill: '#1e293b' }} contentStyle={{ backgroundColor: '#0f1523', border: '1px solid #1e293b', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold' }} />
+                    <Bar dataKey="passed" stackId="a" fill="#3b82f6" barSize={16} radius={[0, 0, 4, 4]} />
+                    <Bar dataKey="failed" stackId="a" fill="#f59e0b" barSize={16} radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div className="w-[400px] flex flex-col gap-[20px]">
+            {/* Top Failed */}
+            <div className="bg-[#111827] rounded-[16px] border border-[#1e293b] p-[24px] flex-1 flex flex-col gap-[12px]">
+              <div className="flex items-center gap-[8px] mb-[8px]">
+                 <AlertTriangle size={16} strokeWidth={2.5} className="text-[#f59e0b]" />
+                 <span className="text-[12px] font-[900] text-[#f59e0b] italic">高频失败用例</span>
+              </div>
+              
+              <div className="flex-1 flex flex-col gap-[8px] overflow-y-auto">
+              {topFailed.length > 0 ? topFailed.slice(0, 4).map((tf, i) => {
+                 const caseDef = casesMap[tf.case_id] || tf;
+                 return (
+                 <div key={tf.case_id || i} className="bg-[#0f172a] border border-[#1e293b]/50 rounded-[10px] p-[12px] px-[14px] flex justify-between items-center">
+                    <div className="flex flex-col gap-[4px] flex-1 min-w-0 pr-3">
+                       <span className="text-[10px] font-[800] text-[#475569]">{caseDef.function_category || caseDef.functionCategory || 'Unknown'} &gt; {caseDef.function || 'Unknown'}</span>
+                       <span className="text-[12px] font-[800] text-[#e2e8f0] truncate">{caseDef.expected || caseDef.content || '...'}</span>
+                    </div>
+                    <div className="bg-[#f59e0b]/10 rounded-[6px] px-[8px] py-[4px] shrink-0">
+                       <span className="text-[10px] font-[900] text-[#f59e0b]">{tf.fail_count}次</span>
+                    </div>
+                 </div>
+                 );
+              }) : (
+                <div className="text-[12px] font-[800] text-[#475569] text-center py-4">暂无失败用例</div>
+              )}
+              </div>
+            </div>
+
+            {/* Recent Defects */}
+            <div className="bg-[#111827] rounded-[16px] border border-[#1e293b] p-[24px] flex-1 flex flex-col gap-[12px]">
+               <div className="flex items-center gap-[8px] mb-[8px]">
+                 <Bug size={16} strokeWidth={2.5} className="text-[#ef4444]" />
+                 <span className="text-[12px] font-[900] text-[#ef4444] italic">最新缺陷动态</span>
+               </div>
+
+               <div className="flex-1 flex flex-col gap-[16px] overflow-y-auto pr-[4px]">
+               {bugsData.length > 0 ? bugsData.slice(0, 4).map((bug, i) => {
+                 const linkedCase = casesMap[bug.case_id];
+                 return (
+                   <div key={bug.id || i} className="flex gap-[12px] w-full items-start">
+                      <div className="w-[3px] bg-[#ef4444] rounded-[3px] self-stretch mt-1 mb-1 shadow-[0_0_8px_rgba(239,68,68,0.4)]" />
+                      <div className="flex flex-col gap-[4px] w-full min-w-0">
+                        <div className="flex justify-between items-baseline w-full">
+                          <span className="text-[11px] font-[900] text-[#f8fafc] truncate">{linkedCase?.function || `Case ${bug.case_id}`}</span>
+                          <span className="text-[10px] font-[800] text-[#64748b] shrink-0 ml-2">{bug.timestamp?.substring(0, 16).replace(/-/g, '/')}</span>
+                        </div>
+                        <span className="text-[10.5px] font-[600] text-[#94a3b8] break-words line-clamp-2 leading-snug">"{bug.description}"</span>
+                      </div>
+                   </div>
+                 )
+               }) : (
+                 <div className="text-[12px] font-[800] text-[#475569] text-center py-4">暂无缺陷动态</div>
+               )}
+               </div>
+            </div>
+          </div>
+        </div>
+        <style>{`
+          .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+          .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+          .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+          .scrollbar-hide::-webkit-scrollbar { display: none; }
+        `}</style>
+      </main>
+    </div>
+  );
+
+  return isMobile ? renderMobile() : renderPC();
 }

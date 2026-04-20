@@ -10,7 +10,6 @@ export const FIELD_LABELS = {
   architecture: '总线架构 / Architecture',
   iviModule: '娱乐系统 / IVI Module',
   commModule: '通讯模块 / Comm Module',
-  packagePhoto: '套餐包照片 / Package Photo',
   envPhoto: '现场环境照片 / Env Photo',
 
   // 按钮文字
@@ -59,7 +58,7 @@ export const FIELD_LABELS = {
   appFeedbackSuccess: 'APP 反馈成功时间 / APP Feedback Success Time',
   pass: '通过 / Pass',
   fail: '失败 / Fail',
-  NA: '不支持 / N/A',
+  NA: '不适用 / N/A',
   syncingData: '同步数据中 / Synchronizing Data',
   processingTelemetry: '处理生产遥测数据... / Processing production telemetry...',
   validationTest: '验证测试 / Validation Test',

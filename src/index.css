@@ -4,19 +4,55 @@
 
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-200 overflow-x-hidden antialiased;
-    background-image: 
-      radial-gradient(circle at 50% 0%, rgba(30, 58, 138, 0.15) 0%, transparent 75%),
-      radial-gradient(circle at 100% 100%, rgba(30, 58, 138, 0.05) 0%, transparent 50%);
-    background-attachment: fixed;
-    overscroll-behavior-y: none;
+    @apply text-slate-200 overflow-x-hidden antialiased;
+    background-color: #0f1523;
   }
+
+  /* Inputs sizes are managed by Tailwind utility classes to match titles */
 }
 
 @layer utilities {
-  /* Professional Industrial Card */
+  /* Cyberpunk Text Glitch & Reveal */
+  @keyframes cyber-reveal {
+    0% { opacity: 0; transform: scaleY(0.1) scaleX(2) translateY(5px); filter: blur(8px) drop-shadow(0 0 20px #38bdf8); }
+    30% { opacity: 1; transform: scaleY(1.2) scaleX(0.9) translateY(-2px); filter: blur(2px) drop-shadow(0 0 10px #38bdf8); }
+    100% { opacity: 1; transform: scaleY(1) scaleX(1) translateY(0); filter: blur(0px) drop-shadow(0 0 4px rgba(56, 189, 248, 0.4)); }
+  }
+
+  .animate-cyber-letter {
+    display: inline-block;
+    opacity: 0;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    animation: cyber-reveal 0.6s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+  }
+
+  @keyframes cyber-scanline {
+    0% { background-position: 0 -200%; opacity: 0; }
+    5% { opacity: 1; }
+    95% { opacity: 1; }
+    100% { background-position: 0 200%; opacity: 0; }
+  }
+
+  .scanline-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(to bottom, 
+      transparent 40%, 
+      rgba(255, 255, 255, 0.6) 45%, 
+      rgba(56, 189, 248, 0.8) 50%, 
+      rgba(255, 255, 255, 0.6) 55%, 
+      transparent 60%
+    );
+    background-size: 100% 40px;
+    mix-blend-mode: overlay;
+    animation: cyber-scanline 2s linear infinite;
+    z-index: 10;
+  }
+  /* V4 Glassmorphism Dark Card */
   .automotive-card {
-    @apply bg-slate-900/40 backdrop-blur-xl border border-slate-800/60 rounded-[2rem] shadow-2xl;
+    @apply bg-[#111827]/80 backdrop-blur-2xl border border-[#1e293b] rounded-[2rem] shadow-2xl;
   }
 
   .automotive-card-glass {
@@ -50,8 +86,45 @@
     animation: pulse-blue 3s infinite;
   }
 
+  /* Global Input Style */
+  .gm-input {
+    @apply bg-slate-900/50 border border-slate-700/60 rounded-xl text-base font-[600] text-slate-200 outline-none p-3
+           focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30
+           placeholder:text-slate-600 transition-colors;
+  }
+
   @keyframes pulse-blue {
     0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.1); }
     50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.3); }
   }
+}
+
+/* ───── iOS-style scrollbars (global) ───── */
+.custom-scrollbar::-webkit-scrollbar,
+.ios-scrollbar::-webkit-scrollbar {
+  width: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-track,
+.ios-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb,
+.ios-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.30);
+  border-radius: 99px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+.ios-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.55);
+}
+.custom-scrollbar,
+.ios-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.30) transparent;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  scrollbar-width: none;
 }

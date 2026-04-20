@@ -16,7 +16,7 @@ export default function Toast({ toast }) {
           : 'bg-red-500/20 border-red-500/30 text-red-500'
       }`}>
         {toast.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
-        <span className="text-[10px] font-black uppercase tracking-widest">{toast.message}</span>
+        <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">{toast.message}</span>
       </div>
     </div>
   );

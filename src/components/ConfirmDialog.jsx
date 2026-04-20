@@ -23,13 +23,13 @@ export default function ConfirmDialog({ dialog, onClose }) {
               onClick={onClose}
               className="py-4 bg-slate-800 text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-700 transition-colors"
             >
-              Cancel
+              取消
             </button>
             <button
               onClick={dialog.onConfirm}
               className="py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/20"
             >
-              Confirm
+              确认
             </button>
           </div>
         </div>

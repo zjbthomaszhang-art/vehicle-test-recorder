@@ -1,196 +1,275 @@
 import React, { useState, useRef } from 'react';
-import { X, Pencil, MapPin, Layers, Cpu, Radio, Package, Car, Info } from 'lucide-react';
-
+import { ChevronDown, X, Code, Calendar, Car, User, Gauge, MapPin, Network, Music, Radio, Camera, Save, Trash2, Image as ImageIcon, CameraIcon } from 'lucide-react';
 import { ARCHITECTURES, IVI_MODULES, COMM_MODULES } from '../constants.js';
+import { decodeModelYearFromVin } from '../utils/vinDecoder.js';
+import { uploadPhoto } from '../utils/photoUpload.js';
 
-/**
- * Modal for editing historical session metadata (address, arch, IVI/Comm modules, photos).
- */
-export default function EditSessionModal({ session, onClose, onSave }) {
+// Row wrapper — matches HomeView row style exactly
+function FieldRow({ children, tall }) {
+  return (
+    <div className={`bg-[#121826] rounded-[16px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all ${tall ? 'py-[10px]' : 'h-[54px]'}`}>
+      {children}
+    </div>
+  );
+}
+
+// Left label block
+function FieldLabel({ icon: Icon, label }) {
+  return (
+    <div className="flex items-center gap-[14px] shrink-0">
+      <Icon size={32} className="text-[#8e8e93] p-1" strokeWidth={1.5} />
+      <span className="text-[16px] font-[600] text-slate-100">{label}</span>
+    </div>
+  );
+}
+
+const inputCls = 'bg-transparent text-right outline-none text-slate-200 font-semibold text-[15px] w-1/2 placeholder:text-slate-600 placeholder:font-normal';
+const selectCls = 'bg-transparent text-right outline-none text-slate-200 font-semibold text-[15px] w-1/2 appearance-none cursor-pointer';
+
+export default function EditSessionModal({ session, onClose, onSave, onDelete }) {
   const [formData, setFormData] = useState({
     vehicleModel: session.vehicle_model || '',
-    model_year: session.model_year || '',
-    vin: session.vin || '',
-    address: session.address || '',
-    architecture: session.architecture || '',
-    iviModule: session.ivi_module || '',
-    commModule: session.comm_module || '',
-    packagePhoto: session.package_photo || null,
-    envPhoto: session.env_photo || null,
-    tester: session.tester || '',
-    mileage: session.mileage || ''
+    model_year:   session.model_year || '',
+    vin:          session.vin || '',
+    address:      session.address || session.test_location || '',
+    architecture: session.architecture || session.vehicle_architecture || '',
+    iviModule:    session.ivi_module || '',
+    commModule:   session.comm_module || '',
+    envPhotos:    (() => {
+      const raw = session.env_photo ?? session.env_photos;
+      if (!raw) return [];
+      if (Array.isArray(raw)) return raw;
+      try { const p = JSON.parse(raw); return Array.isArray(p) ? p : []; } catch { return []; }
+    })(),
+    tester:       session.tester || '',
+    mileage:      session.mileage || '',
   });
 
   const photoInputRef = useRef(null);
-  const [activeTarget, setActiveTarget] = useState(null);
 
-  const handlePhotoUpload = (e) => {
+  const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (activeTarget === 'package') setFormData(prev => ({ ...prev, packagePhoto: reader.result }));
-        else if (activeTarget === 'env') setFormData(prev => ({ ...prev, envPhoto: reader.result }));
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+    e.target.value = '';
+    const url = await uploadPhoto(file);
+    if (url) setFormData(prev => ({ ...prev, envPhotos: [...(prev.envPhotos || []), url] }));
   };
 
-  const handleAddPhoto = (target) => {
-    setActiveTarget(target);
-    photoInputRef.current?.click();
+  const set = (key, transform) => (e) => {
+    const val = transform ? transform(e.target.value) : e.target.value;
+    setFormData(prev => ({ ...prev, [key]: val }));
   };
 
   return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="w-full max-w-2xl bg-slate-900 border border-white/10 rounded-[2.5rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-8 duration-500">
-        <div className="p-8 border-b border-white/5 flex items-center justify-between bg-gradient-to-r from-blue-600/10 to-transparent">
-          <div>
-            <h2 className="text-xl font-black text-white italic tracking-tighter uppercase flex items-center gap-3">
-              <Pencil size={20} className="text-blue-500" /> Edit Session Record
-            </h2>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">ID: #{session.id} • Metadata Management</p>
-          </div>
-          <button onClick={onClose} className="p-3 hover:bg-white/5 rounded-2xl transition-all text-slate-400">
-            <X size={20} />
-          </button>
+    <div className="fixed inset-0 z-[300] bg-[#0f1523] flex flex-col animate-in fade-in duration-200">
+
+        {/* Header — matches HomeView header padding */}
+        <div className="px-[24px] pt-[44px] pb-[16px] shrink-0">
+          <h2 className="text-[26px] font-[800] text-[#f8fafc]">编辑测试记录</h2>
         </div>
 
-        <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 px-1">
-                  <MapPin size={14} className="text-blue-500" /> Address
-                </label>
-                <input
-                  className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-3 px-4 text-xs font-bold text-white focus:border-blue-500 outline-none transition-all shadow-inner"
-                  value={formData.address}
-                  onChange={e => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 px-1">
-                  <Layers size={14} className="text-blue-500" /> Architecture
-                </label>
-                <select
-                  className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-3 px-4 text-xs font-bold text-white focus:border-blue-500 outline-none transition-all appearance-none"
-                  value={formData.architecture}
-                  onChange={e => setFormData(prev => ({ ...prev, architecture: e.target.value }))}
-                >
-                  <option value="">-- Select --</option>
-                  {ARCHITECTURES.map(v => <option key={v} value={v}>{v}</option>)}
-                </select>
-              </div>
-            </div>
+        {/* Scrollable Fields */}
+        <div className="flex-1 overflow-y-auto px-[16px] pt-[8px] pb-[16px] flex flex-col gap-[8px] edit-modal-scroll">
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 px-1">
-                  <Cpu size={14} className="text-blue-500" /> IVI Module
-                </label>
-                <select
-                  className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-3 px-4 text-xs font-bold text-white focus:border-blue-500 outline-none transition-all appearance-none"
-                  value={formData.iviModule}
-                  onChange={e => setFormData(prev => ({ ...prev, iviModule: e.target.value }))}
-                >
-                  <option value="">-- Select --</option>
-                  {IVI_MODULES.map(v => <option key={v} value={v}>{v}</option>)}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 px-1">
-                  <Radio size={14} className="text-blue-500" /> Comm Module
-                </label>
-                <select
-                  className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-3 px-4 text-xs font-bold text-white focus:border-blue-500 outline-none transition-all appearance-none"
-                  value={formData.commModule}
-                  onChange={e => setFormData(prev => ({ ...prev, commModule: e.target.value }))}
-                >
-                  <option value="">-- Select --</option>
-                  {COMM_MODULES.map(v => <option key={v} value={v}>{v}</option>)}
-                </select>
-              </div>
-            </div>
-          </div>
+          {/* 工程代码 — uppercase */}
+          <FieldRow>
+            <FieldLabel icon={Code} label="工程代码" />
+            <input
+              type="text"
+              value={formData.vehicleModel}
+              onChange={set('vehicleModel', v => v.toUpperCase())}
+              className={`${inputCls} uppercase`}
+            />
+          </FieldRow>
 
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 px-1">
-                <Car size={14} className="text-blue-500" /> Tester
-              </label>
+          {/* 生产年份 — digits only */}
+          <FieldRow>
+            <FieldLabel icon={Calendar} label="生产年份" />
+            <input
+              type="text"
+              inputMode="numeric"
+              value={formData.model_year}
+              onChange={set('model_year', v => v.replace(/\D/g, ''))}
+              className={inputCls}
+            />
+          </FieldRow>
+
+          {/* VIN — uppercase, max 17, auto-decode year */}
+          <FieldRow>
+            <FieldLabel icon={Car} label="VIN" />
+            <input
+              type="text"
+              value={formData.vin}
+              onChange={(e) => {
+                const val = e.target.value.toUpperCase().slice(0, 17);
+                const decodedYear = decodeModelYearFromVin(val);
+                setFormData(prev => ({
+                  ...prev,
+                  vin: val,
+                  ...(decodedYear ? { model_year: decodedYear } : {})
+                }));
+              }}
+              className={`${inputCls} w-full ml-4 uppercase`}
+            />
+          </FieldRow>
+
+          {/* 测试人员 */}
+          <FieldRow>
+            <FieldLabel icon={User} label="测试人员" />
+            <input
+              type="text"
+              value={formData.tester}
+              onChange={set('tester')}
+              className={inputCls}
+            />
+          </FieldRow>
+
+          {/* 总里程数 — digits only + km suffix */}
+          <FieldRow>
+            <FieldLabel icon={Gauge} label="总里程数" />
+            <div className="flex items-center justify-end gap-[4px] w-1/2">
               <input
-                className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-3 px-4 text-xs font-bold text-white focus:border-blue-500 outline-none transition-all shadow-inner"
-                value={formData.tester}
-                onChange={e => setFormData(prev => ({ ...prev, tester: e.target.value }))}
-                placeholder="Tester name"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 px-1">
-                <Info size={14} className="text-blue-500" /> Total Mileage
-              </label>
-              <input
-                className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-3 px-4 text-xs font-bold text-white focus:border-blue-500 outline-none transition-all shadow-inner"
+                type="text"
+                inputMode="numeric"
                 value={formData.mileage}
-                onChange={e => setFormData(prev => ({ ...prev, mileage: e.target.value.replace(/\D/g, '') }))}
-                placeholder="e.g. 12000"
+                onChange={set('mileage', v => v.replace(/\D/g, ''))}
+                className="bg-transparent text-right outline-none text-slate-200 font-semibold text-[15px] min-w-0 placeholder:text-slate-600"
               />
+              {formData.mileage && <span className="text-[#64748b] text-[13px] font-[500] shrink-0">km</span>}
             </div>
+          </FieldRow>
+
+          {/* 测试地址 */}
+          <FieldRow>
+            <FieldLabel icon={MapPin} label="测试地址" />
+            <input
+              type="text"
+              value={formData.address}
+              onChange={set('address')}
+              className={inputCls}
+            />
+          </FieldRow>
+
+          {/* 总线架构 */}
+          <FieldRow>
+            <FieldLabel icon={Network} label="总线架构" />
+            <div className="relative flex items-center justify-end w-1/2">
+              <select
+                value={formData.architecture}
+                onChange={set('architecture')}
+                className={selectCls}
+              >
+                <option value="" className="bg-[#0f1523] text-slate-500"></option>
+                {ARCHITECTURES.map(v => <option key={v} value={v} className="bg-[#0f1523]">{v}</option>)}
+              </select>
+              {!formData.architecture && <ChevronDown size={16} className="text-[#64748b] pointer-events-none shrink-0" />}
+            </div>
+          </FieldRow>
+
+          {/* 娱乐系统 */}
+          <FieldRow>
+            <FieldLabel icon={Music} label="娱乐系统" />
+            <div className="relative flex items-center justify-end w-1/2">
+              <select
+                value={formData.iviModule}
+                onChange={set('iviModule')}
+                className={selectCls}
+              >
+                <option value="" className="bg-[#0f1523] text-slate-500"></option>
+                {IVI_MODULES.map(v => <option key={v} value={v} className="bg-[#0f1523]">{v}</option>)}
+              </select>
+              {!formData.iviModule && <ChevronDown size={16} className="text-[#64748b] pointer-events-none shrink-0" />}
+            </div>
+          </FieldRow>
+
+          {/* 通讯模块 */}
+          <FieldRow>
+            <FieldLabel icon={Radio} label="通讯模块" />
+            <div className="relative flex items-center justify-end w-1/2">
+              <select
+                value={formData.commModule}
+                onChange={set('commModule')}
+                className={selectCls}
+              >
+                <option value="" className="bg-[#0f1523] text-slate-500"></option>
+                {COMM_MODULES.map(v => <option key={v} value={v} className="bg-[#0f1523]">{v}</option>)}
+              </select>
+              {!formData.commModule && <ChevronDown size={16} className="text-[#64748b] pointer-events-none shrink-0" />}
+            </div>
+          </FieldRow>
+
+          {/* 现场环境照片 — matches HomeView photo row exactly */}
+          <div className="bg-[#121826] rounded-[16px] flex flex-col gap-[10px] pt-[10px] pb-[14px]">
+            <div className="flex items-center justify-between px-[16px]">
+              <div className="flex items-center gap-[14px] shrink-0">
+                <Camera size={32} className="text-[#8e8e93] p-1" strokeWidth={1.5} />
+                <span className="text-[16px] font-[600] text-slate-100">现场环境照片</span>
+              </div>
+              <button
+                onClick={() => photoInputRef.current?.click()}
+                className="w-[32px] h-[32px] rounded-md border border-[#3c3c43] bg-[#1c1c1e] flex items-center justify-center hover:bg-[#2c2c2e] transition-colors active:scale-95"
+              >
+                <CameraIcon size={18} className="text-[#8e8e93]" strokeWidth={2} />
+              </button>
+            </div>
+
+            {formData.envPhotos && formData.envPhotos.length > 0 && (
+              <div className="flex gap-[8px] pl-[62px] pr-[16px] overflow-x-auto pt-[2px] pb-[8px]">
+                {formData.envPhotos.map((photo, idx) => (
+                  <div key={idx} className="flex flex-col items-center gap-[4px] flex-shrink-0">
+                    <button
+                      onClick={() => setFormData(prev => ({ ...prev, envPhotos: prev.envPhotos.filter((_, i) => i !== idx) }))}
+                      className="w-[16px] h-[16px] rounded-full bg-[#ef4444] flex items-center justify-center"
+                    >
+                      <X size={10} className="text-white" strokeWidth={3} />
+                    </button>
+                    <div className="w-[48px] h-[40px] rounded-md bg-[#1c1c1e] overflow-hidden border border-[#2c2c2e]/50">
+                      <img src={photo} className="w-full h-full object-cover" alt={`env ${idx}`} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Package Photo</label>
-              <button
-                onClick={() => handleAddPhoto('package')}
-                className="w-full aspect-video bg-slate-950/50 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center group hover:bg-slate-950 transition-all overflow-hidden"
-              >
-                {formData.packagePhoto ? (
-                  <img src={formData.packagePhoto} className="w-full h-full object-cover" alt="package" />
-                ) : (
-                  <>
-                    <Package size={20} className="text-slate-700 group-hover:text-blue-500/50 transition-all mb-2" />
-                    <span className="text-[9px] font-black text-slate-700 uppercase">Update Photo</span>
-                  </>
-                )}
-              </button>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Env Photo</label>
-              <button
-                onClick={() => handleAddPhoto('env')}
-                className="w-full aspect-video bg-slate-950/50 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center group hover:bg-slate-950 transition-all overflow-hidden"
-              >
-                {formData.envPhoto ? (
-                  <img src={formData.envPhoto} className="w-full h-full object-cover" alt="env" />
-                ) : (
-                  <>
-                    <MapPin size={20} className="text-slate-700 group-hover:text-blue-500/50 transition-all mb-2" />
-                    <span className="text-[9px] font-black text-slate-700 uppercase">Update Photo</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
         </div>
 
-        <div className="p-8 bg-slate-950/50 border-t border-white/5 flex gap-4">
+        {/* Footer Buttons */}
+        <div className="flex items-center gap-[8px] px-[16px] py-[16px] pb-[40px] shrink-0 border-t border-[#1e293b]">
           <button
             onClick={onClose}
-            className="flex-1 py-4 rounded-2xl border border-white/5 text-slate-400 font-bold uppercase text-[10px] tracking-widest hover:bg-white/5 transition-all"
+            className="flex flex-col items-center justify-center gap-[4px] w-[72px] h-[56px] rounded-[16px] text-[#64748b] hover:bg-[#1e293b] transition-colors shrink-0"
           >
-            Cancel
+            <X size={16} />
+            <span className="text-[11px] font-[800]">取消</span>
           </button>
+
           <button
             onClick={() => onSave(formData)}
-            className="flex-1 py-4 bg-blue-600 rounded-2xl text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-blue-600/20 hover:bg-blue-500 active:scale-95 transition-all"
+            className="flex-1 h-[56px] bg-[#2563eb] hover:bg-[#1d4ed8] active:scale-95 transition-all rounded-[16px] flex items-center justify-center gap-[8px] shadow-lg shadow-blue-600/20"
           >
-            Save Changes
+            <Save size={16} className="text-white" />
+            <span className="text-[14px] font-[900] text-white">保存修改</span>
+          </button>
+
+          <button
+            onClick={() => onDelete && onDelete(session.id)}
+            className="flex flex-col items-center justify-center gap-[4px] w-[72px] h-[56px] rounded-[16px] text-[#ef4444] hover:bg-[#ef4444]/10 transition-colors shrink-0"
+          >
+            <Trash2 size={16} />
+            <span className="text-[11px] font-[800]">删除记录</span>
           </button>
         </div>
+
         <input type="file" ref={photoInputRef} className="hidden" accept="image/*" onChange={handlePhotoUpload} />
-      </div>
+
+        <style>{`
+          .edit-modal-scroll::-webkit-scrollbar { width: 4px; }
+          .edit-modal-scroll::-webkit-scrollbar-track { background: transparent; }
+          .edit-modal-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+          .edit-modal-scroll::-webkit-scrollbar-thumb:hover { background: #475569; }
+          .edit-modal-scroll { scrollbar-width: thin; scrollbar-color: #334155 transparent; }
+        `}</style>
     </div>
   );
 }
