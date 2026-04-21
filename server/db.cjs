@@ -107,6 +107,28 @@ async function initializeDatabase() {
             console.error('⚠️ DB Migration missing for bugs:', err);
         }
 
+        // Test Sessions Columns Auto-migration
+        try {
+            const [cols] = await db.query("SHOW COLUMNS FROM test_sessions");
+            const existingColumns = cols.map(c => c.Field);
+            
+            const addColumn = async (colName, colDef) => {
+                if (!existingColumns.includes(colName)) {
+                    await db.query(`ALTER TABLE test_sessions ADD COLUMN ${colName} ${colDef}`);
+                    console.log(`✅ Successfully added ${colName} column to test_sessions table`);
+                }
+            };
+
+            await addColumn('model_year', "VARCHAR(50) DEFAULT ''");
+            await addColumn('production_stage', "VARCHAR(100) DEFAULT ''");
+            await addColumn('test_env', "VARCHAR(100) DEFAULT ''");
+            await addColumn('env_photo', "LONGTEXT");
+            await addColumn('tester', "VARCHAR(255) DEFAULT ''");
+            await addColumn('mileage', "VARCHAR(255) DEFAULT ''");
+        } catch (err) {
+            console.error('⚠️ DB Migration missing for test_sessions:', err);
+        }
+
         // Seed Initial Cases if empty
         const [rows] = await db.query("SELECT COUNT(*) as count FROM cases");
         if (rows[0].count === 0) {

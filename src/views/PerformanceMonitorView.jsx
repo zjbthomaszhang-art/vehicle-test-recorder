@@ -2,37 +2,43 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ChevronLeft, Activity, Server, HardDrive, Terminal } from 'lucide-react';
 
 export default function PerformanceMonitorView({ setView }) {
-  // Mock Data Engine State
-  const [cpuData, setCpuData] = useState(Array(60).fill(10));
-  const [ramData, setRamData] = useState(Array(60).fill(3.5)); // in GB out of 8GB
-  const [diskData] = useState(28.5); // Static mock out of 100GB
+  // Real Data Engine State
+  const [cpuData, setCpuData] = useState(Array(60).fill(0));
+  const [ramData, setRamData] = useState(Array(60).fill(0));
+  const [diskData, setDiskData] = useState({ total: 100, used: 0 });
+  const [ramTotal, setRamTotal] = useState(8);
+  const [systemInfo, setSystemInfo] = useState({ uptime: 0, loadavg: [0,0,0], type: '', release: '', arch: '' });
   
-  // Simulation Loop
+  // Polling Loop
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCpuData(prev => {
-        const next = [...prev.slice(1)];
-        // Random walk CPU between 5% and 40%, with occasional spikes
-        let newVal = next[next.length - 1] + (Math.random() * 10 - 5);
-        if (Math.random() > 0.9) newVal += 30; // Spike
-        if (newVal < 2) newVal = 2;
-        if (newVal > 98) newVal = 98;
-        next.push(newVal);
-        return next;
-      });
+    const fetchMetrics = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/metrics`);
+        if (!response.ok) return;
+        const data = await response.json();
+        
+        setCpuData(prev => {
+          const next = [...prev.slice(1)];
+          next.push(data.cpu || 0);
+          return next;
+        });
 
-      setRamData(prev => {
-        const next = [...prev.slice(1)];
-        // Gentle RAM climb and GC drops
-        let newVal = next[next.length - 1] + (Math.random() * 0.1 - 0.05);
-        if (Math.random() > 0.95) newVal -= 0.5; // GC Drop
-        if (newVal < 2) newVal = 2;
-        if (newVal > 7.5) newVal = 7.5;
-        next.push(newVal);
-        return next;
-      });
-    }, 1000);
+        setRamData(prev => {
+          const next = [...prev.slice(1)];
+          next.push(data.ram?.used || 0);
+          return next;
+        });
 
+        if (data.ram?.total) setRamTotal(data.ram.total);
+        if (data.disk) setDiskData(data.disk);
+        if (data.system) setSystemInfo(data.system);
+      } catch (err) {
+        console.error("Failed to fetch metrics", err);
+      }
+    };
+
+    fetchMetrics();
+    const interval = setInterval(fetchMetrics, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -71,7 +77,7 @@ export default function PerformanceMonitorView({ setView }) {
   }, []);
 
   const cpuPath = useMemo(() => generateSmoothPath(cpuData, 100, 800, 160), [cpuData, generateSmoothPath]);
-  const ramPath = useMemo(() => generateSmoothPath(ramData, 8, 800, 160), [ramData, generateSmoothPath]);
+  const ramPath = useMemo(() => generateSmoothPath(ramData, ramTotal, 800, 160), [ramData, ramTotal, generateSmoothPath]);
 
   return (
     <div className="h-screen bg-[#0f1523] text-slate-200 flex flex-col font-sans overflow-hidden antialiased">
@@ -114,7 +120,7 @@ export default function PerformanceMonitorView({ setView }) {
             </span>
             <div className="text-slate-200 flex items-baseline leading-none">
               <span className="text-4xl font-black italic tracking-tighter text-[#a855f7] leading-none">{currentRam.toFixed(1)}</span>
-              <span className="text-lg font-bold text-[#c084fc] ml-1 leading-none">GB <span className="text-xs text-[#64748b]">/ 8GB</span></span>
+              <span className="text-lg font-bold text-[#c084fc] ml-1 leading-none">GB <span className="text-xs text-[#64748b]">/ {ramTotal.toFixed(1)}GB</span></span>
             </div>
           </div>
 
@@ -124,8 +130,8 @@ export default function PerformanceMonitorView({ setView }) {
               <HardDrive size={14} /> 存储空间 (SSD)
             </span>
             <div className="text-slate-200 flex items-baseline leading-none">
-              <span className="text-4xl font-black italic tracking-tighter text-[#f97316] leading-none">{diskData.toFixed(1)}</span>
-              <span className="text-lg font-bold text-[#fb923c] ml-1 leading-none">GB <span className="text-xs text-[#64748b]">/ 100GB</span></span>
+              <span className="text-4xl font-black italic tracking-tighter text-[#f97316] leading-none">{diskData.used.toFixed(1)}</span>
+              <span className="text-lg font-bold text-[#fb923c] ml-1 leading-none">GB <span className="text-xs text-[#64748b]">/ {diskData.total.toFixed(0)}GB</span></span>
             </div>
           </div>
         </div>
@@ -178,7 +184,7 @@ export default function PerformanceMonitorView({ setView }) {
               <div className="flex-1 relative flex min-h-0">
                 {/* Y Axis */}
                 <div className="flex flex-col justify-between text-[10px] text-[#64748b] font-mono pr-4 min-w-[40px] font-bold py-2">
-                  <span>8GB</span>
+                  <span>{ramTotal.toFixed(1)}GB</span>
                   <span>0GB</span>
                 </div>
                 
@@ -211,37 +217,34 @@ export default function PerformanceMonitorView({ setView }) {
 
           {/* Right Area - Sidebar */}
           <div className="w-[450px] flex flex-col gap-[24px] shrink-0 h-full">
-            {/* Top Processes */}
+            {/* System Runtime Status */}
             <div className="flex-1 bg-[#111827]/80 backdrop-blur-xl border border-[#1e293b] rounded-[1rem] p-[24px] shadow-2xl flex flex-col min-h-0">
-              <h2 className="text-sm font-black italic text-slate-300 mb-6 shrink-0">高负载进程</h2>
+              <h2 className="text-sm font-black italic text-slate-300 mb-6 shrink-0">系统运行状态</h2>
               <div className="flex-1 flex flex-col justify-around">
                 <div>
-                  <div className="flex justify-between items-center text-sm font-bold">
-                    <span className="font-mono text-[#cbd5e1]">node (vrecorder-api)</span>
-                    <span className="text-[#60a5fa]">{(currentCpu * 0.4).toFixed(1)}%</span>
+                  <div className="flex justify-between items-center text-sm font-bold text-[#64748b] mb-1">
+                    <span>平均负载 (1m, 5m, 15m)</span>
                   </div>
-                  <div className="w-full bg-[#1e293b] h-[6px] rounded-full overflow-hidden mt-2">
-                    <div className="bg-[#3b82f6] h-full rounded-full transition-all duration-300" style={{width: `${currentCpu * 0.4}%`}}></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between items-center text-sm font-bold">
-                    <span className="font-mono text-[#cbd5e1]">nginx</span>
-                    <span className="text-[#60a5fa]">{(currentCpu * 0.15).toFixed(1)}%</span>
-                  </div>
-                  <div className="w-full bg-[#1e293b] h-[6px] rounded-full overflow-hidden mt-2">
-                    <div className="bg-[#3b82f6] h-full rounded-full transition-all duration-300" style={{width: `${currentCpu * 0.15}%`}}></div>
+                  <div className="text-[#cbd5e1] font-mono text-lg">
+                    {systemInfo.loadavg.map(v => v.toFixed(2)).join(' / ')}
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex justify-between items-center text-sm font-bold">
-                    <span className="font-mono text-[#cbd5e1]">python3 (metrics)</span>
-                    <span className="text-[#60a5fa]">{(currentCpu * 0.05).toFixed(1)}%</span>
+                  <div className="flex justify-between items-center text-sm font-bold text-[#64748b] mb-1">
+                    <span>已运行时间 (Uptime)</span>
                   </div>
-                  <div className="w-full bg-[#1e293b] h-[6px] rounded-full overflow-hidden mt-2">
-                    <div className="bg-[#3b82f6] h-full rounded-full transition-all duration-300" style={{width: `${currentCpu * 0.05}%`}}></div>
+                  <div className="text-[#cbd5e1] font-mono text-lg">
+                    {Math.floor(systemInfo.uptime / 86400)}天 {Math.floor((systemInfo.uptime % 86400) / 3600)}小时 {Math.floor((systemInfo.uptime % 3600) / 60)}分钟
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center text-sm font-bold text-[#64748b] mb-1">
+                    <span>系统内核</span>
+                  </div>
+                  <div className="text-[#cbd5e1] font-mono text-[13px] truncate">
+                    {systemInfo.type} {systemInfo.release} ({systemInfo.arch})
                   </div>
                 </div>
               </div>
