@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
     }
 
     try {
-        const [rows] = await db.query(query, params);
+        const [rows] = params.length > 0 ? await db.query(query, params) : await db.query(query);
         res.json(rows);
     } catch (err) {
         res.status(500).json({ error: err.message });

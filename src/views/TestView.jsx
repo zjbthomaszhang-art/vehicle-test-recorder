@@ -56,19 +56,10 @@ export default function TestView({
       
       {/* Header HD1 */}
       <header className="px-[24px] flex justify-between items-center w-full z-10 shrink-0">
-        <div className="relative inline-block pb-[4px] w-fit overflow-hidden">
-          <span className="text-[20px] font-black italic tracking-tighter uppercase whitespace-nowrap relative z-10 select-none text-[#f8fafc] px-[4px]">
-            {['V','E','H','I','C','L','E'].map((char, i) => (
-              <span key={`v-${i}`} className="animate-cyber-letter" style={{ animationDelay: `${i * 0.05}s` }}>{char}</span>
-            ))}
-            <span className="inline-block relative pr-2 pb-1 top-[2px] text-[1.25em] ml-[0.3em]">
-              {['L','A','B'].map((char, i) => (
-                <span key={`l-${i}`} className="animate-cyber-letter bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent pr-[0.3em] -mr-[0.3em] pb-[0.2em] -mb-[0.2em]" style={{ animationDelay: `${(7 + i) * 0.05}s` }}>{char}</span>
-              ))}
-            </span>
-          </span>
-          <div className="scanline-overlay rounded-[4px]"></div>
-        </div>
+        <div className="flex items-baseline gap-[0.25em]">
+            <span className="text-[20px] font-black italic tracking-tighter uppercase text-[#f8fafc] select-none">VEHICLE</span>
+            <span className="text-[25px] font-black italic tracking-tighter uppercase bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent select-none pr-[6px]">LAB</span>
+          </div>
         <div className="flex gap-[12px] items-center">
           <div className="border border-[#1e3a8a] rounded-[12px] px-[8px] py-[4px] flex items-center justify-center">
             <span className="text-[9px] font-[800] text-[#60a5fa]">
@@ -253,28 +244,25 @@ export default function TestView({
       {/* Footer Navigation fD14 */}
       <footer className="fixed bottom-0 left-0 right-0 h-[88px] bg-[#0f1523] border-t border-[#1e293b]/50 flex items-center pt-[6px] px-[16px] pb-[20px] z-50">
         <div className="w-full flex justify-between items-center">
-          <button onClick={() => { saveTemporarily(); setView('home'); }} className="flex flex-col items-center justify-center w-[64px] gap-[6px] transition-all">
+          <button onClick={() => { resetAllFields(); setView('home'); }} className="flex flex-col items-center justify-center w-[64px] gap-[6px] transition-all">
             <Home size={24} className="text-[#64748b]" />
             <span className="text-[11px] font-[800] text-[#64748b] whitespace-nowrap leading-none">首页</span>
           </button>
           
-          <button onClick={convertToBug} className="flex flex-col items-center justify-center w-[80px] h-[60px] rounded-[16px] bg-[#ef4444]/15 gap-[4px] active:scale-95 transition-transform">
+          <button onClick={convertToBug} className="flex flex-col items-center justify-center w-[64px] gap-[6px] transition-all">
             <Bug size={24} className="text-[#ef4444]" />
-            <span className="text-[11px] font-[900] text-[#ef4444] whitespace-nowrap leading-none">提报问题</span>
+            <span className="text-[11px] font-[800] text-[#ef4444] whitespace-nowrap leading-none">提报问题</span>
           </button>
           
           {currentCaseIndex === cases.length - 1 ? (
-            <button
-              onClick={() => setView('report')}
-              className="flex flex-col items-center justify-center w-[140px] h-[60px] rounded-[16px] bg-[#10b981] shadow-[0_4px_12px_rgba(16,185,129,0.38)] gap-[4px] active:scale-95 transition-transform hover:bg-[#059669]"
-            >
-              <CheckCircle2 size={24} className="text-white" />
-              <span className="text-[11px] font-[900] text-white whitespace-nowrap leading-none">完成</span>
+            <button onClick={() => setView('report')} className="flex flex-col items-center justify-center w-[64px] gap-[6px] transition-all">
+              <CheckCircle2 size={24} className="text-[#10b981]" />
+              <span className="text-[11px] font-[800] text-[#10b981] whitespace-nowrap leading-none">完成</span>
             </button>
           ) : (
-            <button onClick={nextCase} className="flex flex-col items-center justify-center w-[140px] h-[60px] rounded-[16px] bg-[#2563eb] shadow-[0_4px_12px_rgba(37,99,235,0.38)] gap-[4px] active:scale-95 transition-transform hover:bg-[#1d4ed8]">
-              <ChevronRight size={24} className="text-white" />
-              <span className="text-[11px] font-[900] text-white whitespace-nowrap leading-none">下一个</span>
+            <button onClick={nextCase} className="flex flex-col items-center justify-center w-[64px] gap-[6px] transition-all">
+              <ChevronRight size={24} className="text-[#2563eb]" />
+              <span className="text-[11px] font-[800] text-[#2563eb] whitespace-nowrap leading-none">下一个</span>
             </button>
           )}
           

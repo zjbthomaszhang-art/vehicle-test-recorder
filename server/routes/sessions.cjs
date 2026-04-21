@@ -13,20 +13,23 @@ router.post('/', async (req, res) => {
         await connection.beginTransaction();
 
         const sessionQuery = `
-            INSERT INTO test_sessions (vehicle_model, model_year, vin, address, architecture, ivi_module, comm_module, package_photo, env_photo, tester, mileage, timestamp)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO test_sessions (vehicle_model, model_year, vin, production_stage, address, architecture, ivi_module, comm_module, test_env, env_photo, tester, mileage, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const [sessionResult] = await connection.query(sessionQuery, [
             vehicle.vehicleModel,
             vehicle.model_year,
             vehicle.vin,
+            vehicle.production_stage || '',
             vehicle.address || '',
             vehicle.architecture,
             vehicle.iviModule,
             vehicle.commModule,
-            vehicle.packagePhoto || null,
-            vehicle.envPhoto || null,
+            vehicle.test_env || '',
+            (Array.isArray(vehicle.envPhotos) && vehicle.envPhotos.length > 0)
+                ? JSON.stringify(vehicle.envPhotos)
+                : (vehicle.envPhoto || null),
             vehicle.tester || '',
             vehicle.mileage || '',
             getBeijingTime()
@@ -67,8 +70,8 @@ router.get('/', async (req, res) => {
 
     let query = `
         SELECT 
-            ts.id, ts.vehicle_model, ts.model_year, ts.vin, ts.address, ts.architecture, 
-            ts.ivi_module, ts.comm_module, ts.tester, ts.mileage, ts.timestamp,
+            ts.id, ts.vehicle_model, ts.model_year, ts.vin, ts.production_stage, ts.test_env, ts.address, ts.architecture, 
+            ts.ivi_module, ts.comm_module, ts.env_photo, ts.tester, ts.mileage, ts.timestamp,
             COUNT(tr.id) as total_count,
             SUM(CASE WHEN tr.result IN ('Pass', 'Fail', 'N/A') THEN 1 ELSE 0 END) as case_count,
             SUM(CASE WHEN tr.result = 'Pass' THEN 1 ELSE 0 END) as pass_count,
@@ -100,7 +103,7 @@ router.get('/', async (req, res) => {
     query += ` GROUP BY ts.id ORDER BY ts.id DESC`;
 
     try {
-        const [rows] = await db.query(query, params);
+        const [rows] = params.length > 0 ? await db.query(query, params) : await db.query(query);
         res.json(rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -136,13 +139,16 @@ router.put('/:id', async (req, res) => {
 
         const updateSessionQuery = `
             UPDATE test_sessions SET 
-                vehicle_model = ?, model_year = ?, vin = ?, address = ?, architecture = ?, ivi_module = ?, comm_module = ?, package_photo = ?, env_photo = ?, tester = ?, mileage = ?, timestamp = ?
+                vehicle_model = ?, model_year = ?, vin = ?, production_stage = ?, test_env = ?, address = ?, architecture = ?, ivi_module = ?, comm_module = ?, env_photo = ?, tester = ?, mileage = ?, timestamp = ?
             WHERE id = ?
         `;
 
         await connection.query(updateSessionQuery, [
-            vehicle.vehicleModel, vehicle.model_year, vehicle.vin, vehicle.address || '', vehicle.architecture,
-            vehicle.iviModule, vehicle.commModule, vehicle.packagePhoto || null, vehicle.envPhoto || null,
+            vehicle.vehicleModel, vehicle.model_year, vehicle.vin, vehicle.productionStage || vehicle.production_stage || '', vehicle.testEnv || vehicle.test_env || '', vehicle.address || '', vehicle.architecture,
+            vehicle.iviModule, vehicle.commModule,
+            (Array.isArray(vehicle.envPhotos) && vehicle.envPhotos.length > 0)
+                ? JSON.stringify(vehicle.envPhotos)
+                : (vehicle.envPhoto || null),
             vehicle.tester || '', vehicle.mileage || '', getBeijingTime(), sessionId
         ]);
 
@@ -167,6 +173,24 @@ router.put('/:id', async (req, res) => {
 
         await connection.commit();
         res.json({ message: 'Session updated successfully' });
+    } catch (err) {
+        await connection.rollback();
+        res.status(500).json({ error: err.message });
+    } finally {
+        connection.release();
+    }
+});
+
+// Delete a test session and its results
+router.delete('/:id', async (req, res) => {
+    const sessionId = req.params.id;
+    const connection = await pool.promise().getConnection();
+    try {
+        await connection.beginTransaction();
+        await connection.query('DELETE FROM test_results WHERE session_id = ?', [sessionId]);
+        await connection.query('DELETE FROM test_sessions WHERE id = ?', [sessionId]);
+        await connection.commit();
+        res.json({ message: 'Session deleted successfully' });
     } catch (err) {
         await connection.rollback();
         res.status(500).json({ error: err.message });

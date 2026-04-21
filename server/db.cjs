@@ -15,6 +15,13 @@ const pool = mysql.createPool({
     dateStrings: true
 });
 
+pool.on('error', (err) => {
+    console.error('MySQL Pool Error:', err);
+    if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+        console.error('Database connection was closed by the server. Pool will automatically reconnect.');
+    }
+});
+
 const db = pool.promise();
 
 async function initializeDatabase() {
@@ -40,12 +47,13 @@ async function initializeDatabase() {
                 vehicle_model VARCHAR(255),
                 model_year VARCHAR(50),
                 vin VARCHAR(100),
+                production_stage VARCHAR(100) DEFAULT '',
                 address VARCHAR(255),
                 architecture VARCHAR(100),
                 ivi_module VARCHAR(100),
                 comm_module VARCHAR(100),
-                package_photo LONGTEXT,
                 env_photo LONGTEXT,
+                test_env VARCHAR(100) DEFAULT '',
                 tester VARCHAR(255),
                 mileage VARCHAR(255),
                 timestamp DATETIME(3)

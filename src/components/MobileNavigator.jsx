@@ -13,7 +13,7 @@ export default function MobileNavigator({ currentView, setView, onTestPress }) {
   ];
 
   return (
-    <div className={`${['dashboard', 'pdca'].includes(currentView) ? 'md:hidden' : ''} fixed bottom-0 left-0 right-0 h-[88px] bg-[#0f1523]/90 backdrop-blur-2xl border-t border-[#1e293b] flex justify-between items-end px-[10px] pb-[20px] pt-[6px] z-50`}>
+    <div className={`${['dashboard', 'pdca'].includes(currentView) ? 'md:hidden' : ''} fixed bottom-0 left-0 right-0 h-[88px] bg-[#0f1523]/70 backdrop-blur-2xl border-t border-[#1e293b] flex justify-between items-end px-[10px] pb-[20px] pt-[6px] z-50`}>
       
       {tabsLeft.map(tab => {
         const Icon = tab.icon;

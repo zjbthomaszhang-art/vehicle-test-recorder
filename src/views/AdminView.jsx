@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FolderOpen, Plus, Search, Edit3, X, ChevronLeft, ChevronRight, UploadCloud, ChevronDown } from 'lucide-react';
+import { FolderOpen, Plus, Search, Edit3, X, ChevronLeft, UploadCloud } from 'lucide-react';
+import CustomSelect from '../components/CustomSelect.jsx';
 import MobileNavigator from '../components/MobileNavigator.jsx';
 import { API_BASE } from '../constants.js';
 
@@ -178,7 +179,7 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
               value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}
             />
             <input 
-              placeholder="功能大类" className="flex-1 min-w-0 bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] text-[12px] text-white focus:outline-none focus:border-[#3b82f6]"
+              placeholder="功能大类" className="w-[110px] shrink-0 bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] text-[12px] text-white focus:outline-none focus:border-[#3b82f6]"
               value={formData.functionCategory} onChange={e => setFormData({...formData, functionCategory: e.target.value})}
             />
           </div>
@@ -188,18 +189,18 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
               placeholder="功能" className="flex-1 min-w-0 bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] text-[12px] text-white focus:outline-none focus:border-[#3b82f6]"
               value={formData.function} onChange={e => setFormData({...formData, function: e.target.value})}
              />
-             <div className="relative w-[110px] shrink-0">
-               <select 
-                className={`w-full bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] pr-[28px] text-[12px] focus:outline-none focus:border-[#3b82f6] appearance-none ${formData.type === '' ? 'text-[#94a3b8]' : 'text-white'}`}
-                value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})}
-               >
-                 <option value="" disabled hidden>案例类型</option>
-                 <option value="timing" className="text-white">Timing</option>
-                 <option value="query" className="text-white">Query</option>
-                 <option value="simple" className="text-white">Simple</option>
-               </select>
-               <ChevronDown size={14} className="absolute right-[8px] top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
-             </div>
+             <CustomSelect
+               value={formData.type || ''}
+               onChange={(val) => setFormData({...formData, type: val})}
+               options={[
+                 { value: 'timing', label: 'Timing' },
+                 { value: 'query', label: 'Query' },
+                 { value: 'simple', label: 'Simple' },
+               ]}
+               placeholder="案例类型"
+               align="left"
+               className="w-[110px] shrink-0 bg-[#0f172a] border border-[#334155] rounded-[8px] px-[8px] py-[8px]"
+             />
           </div>
 
           <div className="w-full">
@@ -237,20 +238,16 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
         <div className="bg-[#1e293b] border border-[#334155] rounded-[20px] p-[16px] flex flex-col gap-[12px]">
            <span className="text-[10px] font-[900] text-[#94a3b8]">筛选用例</span>
            <div className="flex gap-[8px] w-full">
-              <div className="relative flex-1 min-w-0">
-                <select 
-                  className={`w-full bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] pl-[12px] pr-[28px] text-[12px] focus:outline-none appearance-none ${filterCat === '' ? 'text-[#94a3b8]' : 'text-white'}`}
-                  value={filterCat} onChange={e => setFilterCat(e.target.value)}
-                >
-                  <option value="" className="text-[#94a3b8]">按功能大类筛选</option>
-                  {uniqueFunctionCategories.map(cat => (
-                    <option key={cat} value={cat} className="text-white">{cat}</option>
-                  ))}
-                </select>
-                <ChevronDown size={14} className="absolute right-[8px] top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
-              </div>
+              <CustomSelect
+                value={filterCat}
+                onChange={setFilterCat}
+                options={['', ...uniqueFunctionCategories]}
+                placeholder="按功能大类筛选"
+                align="left"
+                className="flex-1 min-w-0 w-1/2 bg-[#0f172a] border border-[#334155] rounded-[8px] px-[12px] py-[8px]"
+              />
               <input 
-                placeholder="搜索功能名称..." className="flex-1 bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] px-[12px] text-[12px] text-white focus:outline-none"
+                placeholder="搜索功能名称..." className="flex-1 min-w-0 w-1/2 bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] px-[12px] text-[12px] text-white focus:outline-none"
                 value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
               />
            </div>

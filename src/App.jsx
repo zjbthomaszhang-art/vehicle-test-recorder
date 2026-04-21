@@ -69,8 +69,11 @@ export default function NDLBRecorder() {
   // Track previous results refs for auto-save detection
   const prevResultsRef = useRef([]);
   const sessionIdRef = useRef(currentSessionId);
+  const saveQueueRef = useRef(Promise.resolve());
   useEffect(() => { sessionIdRef.current = currentSessionId; }, [currentSessionId]);
   const [historySessions, setHistorySessions] = useState([]);
+  const [allBugs, setAllBugs] = useState([]);
+  const [topFailed, setTopFailed] = useState([]);
 
   // --- UI Overlay State ---
   const [confirmDialog, setConfirmDialog] = useState(null);
@@ -137,20 +140,42 @@ export default function NDLBRecorder() {
     window.scrollTo(0, 0);
   }, [view]);
 
-  // Load history sessions when navigating to history view
+  // Fetch history sessions and global bugs from server
+  function fetchGlobalData() {
+    Promise.all([
+      fetch(`${API_BASE}/test-sessions`).then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      }),
+      fetch(`${API_BASE}/bugs`).then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      }),
+      fetch(`${API_BASE}/cases/top-fails`).then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+    ]).then(([sessionsData, bugsData, topFailsData]) => {
+      if (Array.isArray(sessionsData)) {
+        setHistorySessions(prev => JSON.stringify(prev) === JSON.stringify(sessionsData) ? prev : sessionsData);
+      }
+      if (Array.isArray(bugsData)) {
+        const sortedBugs = bugsData.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+        setAllBugs(prev => JSON.stringify(prev) === JSON.stringify(sortedBugs) ? prev : sortedBugs);
+      }
+      if (Array.isArray(topFailsData)) {
+        setTopFailed(prev => JSON.stringify(prev) === JSON.stringify(topFailsData) ? prev : topFailsData);
+      }
+    }).catch(err => console.error('fetchGlobalData failed:', err));
+  }
+
+  // Fetch on first mount so Dashboard/History have data immediately
+  useEffect(() => { fetchGlobalData(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Re-fetch whenever user enters history, dashboard, or pdca view
   useEffect(() => {
-    if (view === 'history') {
-      fetch(`${API_BASE}/test-sessions`)
-        .then(res => {
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          return res.json();
-        })
-        .then(data => {
-          if (Array.isArray(data)) setHistorySessions(data);
-        })
-        .catch(err => console.error('Failed to fetch history sessions:', err));
-    }
-  }, [view]);
+    if (view === 'history' || view === 'dashboard' || view === 'pdca') fetchGlobalData();
+  }, [view]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Photo input ref (used for home page package/env photos)
   const photoInputRef = useRef(null);
@@ -262,6 +287,10 @@ export default function NDLBRecorder() {
       setCurrentCaseIndex(0);
     }
 
+    // 4. Restore session bugs from the global allBugs cache
+    const sessionBugs = allBugs.filter(b => String(b.session_id) === String(sess.id));
+    setBugs(sessionBugs);
+
     setCurrentSessionId(sess.id);
     setView('test');
   };
@@ -302,22 +331,25 @@ export default function NDLBRecorder() {
   };
 
   const saveSession = async (silent = false) => {
-    const sessionData = buildSessionData();
-    
-    // Always add to local sync queue first for safety
-    const localId = await syncManager.addToQueue(sessionData);
-    updatePendingCount();
+    // Add to queue to prevent race conditions on rapid saves (e.g., clicking "Next Case" repeatedly)
+    saveQueueRef.current = saveQueueRef.current.then(async () => {
+      // Use sessionIdRef.current to ensure we get the absolute latest ID, even if React state is lagging
+      const currentId = sessionIdRef.current;
+      const sessionData = buildSessionData(currentId);
+      
+      // Always add to local sync queue first for safety
+      const localId = await syncManager.addToQueue(sessionData);
+      updatePendingCount();
 
-    if (!isOnline) {
-      if (!silent) setToast({ message: '💾 已保存至本地。网络恢复后将自动同步。', type: 'info' });
-      return Promise.resolve({ sessionId: 'offline-' + localId });
-    }
+      if (!isOnline) {
+        if (!silent) setToast({ message: '💾 已保存至本地。网络恢复后将自动同步。', type: 'info' });
+        return { sessionId: 'offline-' + localId };
+      }
 
-    if (!silent) setIsSaving(true);
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const url = currentSessionId ? `${API_BASE}/test-sessions/${currentSessionId}` : `${API_BASE}/test-sessions`;
-        const method = currentSessionId ? 'PUT' : 'POST';
+      if (!silent) setIsSaving(true);
+      return new Promise((resolve) => {
+        const url = currentId ? `${API_BASE}/test-sessions/${currentId}` : `${API_BASE}/test-sessions`;
+        const method = currentId ? 'PUT' : 'POST';
         
         fetch(url, {
           method,
@@ -326,7 +358,11 @@ export default function NDLBRecorder() {
         })
           .then(res => res.json())
           .then(async data => {
-            if (data.sessionId && !currentSessionId) setCurrentSessionId(data.sessionId);
+            if (data.sessionId && !currentId) {
+              setCurrentSessionId(data.sessionId);
+              // Update ref immediately so subsequent queued saves use PUT instead of POST
+              sessionIdRef.current = data.sessionId;
+            }
             
             // Success: remove from local sync queue
             await syncManager.remove(localId);
@@ -343,8 +379,13 @@ export default function NDLBRecorder() {
             }
             resolve({ sessionId: 'offline-' + localId });
           });
-      }, 50);
+      });
+    }).catch(err => {
+      console.error('Save queue error:', err);
+      return { error: err };
     });
+
+    return saveQueueRef.current;
   };
 
   const nextCase = () => {
@@ -573,10 +614,10 @@ export default function NDLBRecorder() {
         <AdminView cases={cases} setCases={setCases} setView={setView} setToast={setToast} />
       )}
       {view === 'dashboard' && (
-        <DashboardView API_BASE={API_BASE} cases={cases} bugs={bugs} historySessions={historySessions} setView={setView} />
+        <DashboardView API_BASE={API_BASE} cases={cases} bugs={allBugs} historySessions={historySessions} topFailed={topFailed} setView={setView} />
       )}
       {view === 'pdca' && (
-        <DefectsView setView={setView} />
+        <DefectsView cases={cases} bugs={allBugs} setAllBugs={setAllBugs} historySessions={historySessions} API_BASE={API_BASE} setView={setView} />
       )}
       {view === 'monitor' && (
         <PerformanceMonitorView setView={setView} />
@@ -595,7 +636,7 @@ export default function NDLBRecorder() {
       <ConfirmDialog dialog={confirmDialog} onClose={() => setConfirmDialog(null)} />
 
       {isSaving && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100] flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[999] flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
           <div className="relative">
              <div className="w-24 h-24 bg-blue-600/10 rounded-full border border-blue-500/20 animate-ping absolute inset-0" />
              <div className="w-24 h-24 bg-blue-600/20 rounded-full border border-blue-500/20 animate-pulse relative flex items-center justify-center">
@@ -611,39 +652,61 @@ export default function NDLBRecorder() {
         <EditSessionModal
           session={editingSession}
           onClose={() => setEditingSession(null)}
-          onSave={(updatedVehicle) => {
+          onSave={async (updatedVehicle) => {
             setIsSaving(true);
-            fetch(`${API_BASE}/test-sessions/${editingSession.id}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ vehicle: updatedVehicle, results: null })
-            })
-              .then(res => res.json())
-              .then(() => {
-                setToast({ message: '记录已更新', type: 'success' });
-                setEditingSession(null);
-                // Refresh history list
-                fetch(`${API_BASE}/test-sessions`)
-                  .then(r => r.json())
-                  .then(data => { if (Array.isArray(data)) setHistorySessions(data); })
-                  .catch(() => {});
-              })
-              .catch(err => setToast({ message: '更新失败: ' + err.message, type: 'error' }))
-              .finally(() => setIsSaving(false));
+            try {
+              const res = await fetch(`${API_BASE}/test-sessions/${editingSession.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ vehicle: updatedVehicle, results: null })
+              });
+              
+              if (!res.ok) {
+                 const errText = await res.text();
+                 throw new Error(errText || `HTTP ${res.status}`);
+              }
+
+              // ✅ 保存成功：立即更新本地缓存（乐观更新），消除网络延迟感
+              setHistorySessions(prev => 
+                prev.map(s => s.id === editingSession.id ? { ...s, ...updatedVehicle } : s)
+              );
+
+              setIsSaving(false);
+              setEditingSession(null);
+              setView('history');
+              setToast({ message: '记录已更新', type: 'success' });
+
+              // 后台静默刷新历史列表（确保数据一致性）
+              fetchGlobalData();
+
+            } catch (err) {
+              setIsSaving(false);
+              setToast({ message: '更新失败: ' + err.message, type: 'error' });
+            }
           }}
-          onDelete={(sessionId) => {
-            setEditingSession(null);
+          onDelete={async (sessionId) => {
             setIsSaving(true);
-            fetch(`${API_BASE}/test-sessions/${sessionId}`, { method: 'DELETE' })
-              .then(() => {
-                setToast({ message: '记录已删除', type: 'success' });
-                fetch(`${API_BASE}/test-sessions`)
-                  .then(r => r.json())
-                  .then(data => { if (Array.isArray(data)) setHistorySessions(data); })
-                  .catch(() => {});
-              })
-              .catch(err => setToast({ message: '删除失败: ' + err.message, type: 'error' }))
-              .finally(() => setIsSaving(false));
+            try {
+              const delRes = await fetch(`${API_BASE}/test-sessions/${sessionId}`, { method: 'DELETE' });
+              if (!delRes.ok) throw new Error(`HTTP ${delRes.status}`);
+
+              // ✅ 删除成功：立即更新本地缓存（乐观更新），消除网络延迟感
+              setHistorySessions(prev => prev.filter(s => s.id !== sessionId));
+
+              setIsSaving(false);
+              setEditingSession(null);
+              setView('history');
+              setToast({ message: '记录已删除', type: 'success' });
+
+              // 后台静默刷新历史列表
+              fetchGlobalData();
+
+            } catch (err) {
+              setIsSaving(false);
+              setToast({ message: '删除失败: ' + err.message, type: 'error' });
+            } finally {
+              setIsSaving(false);
+            }
           }}
         />
       )}

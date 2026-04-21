@@ -56,8 +56,8 @@ export default function HomeView({
         <div className="flex gap-[8px] w-full">
           <div className="flex-[46] bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
             <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
-              <Calendar size={26} className="text-[#8e8e93] p-[2px] shrink-0" strokeWidth={1.5} />
-              <span className="text-[13px] sm:text-[14px] font-[600] text-slate-100 whitespace-nowrap">生产年份</span>
+              <Calendar size={26} className="text-white p-[2px] shrink-0" strokeWidth={1.5} />
+              <span className="text-[13px] sm:text-[14px] font-[600] text-[#94a3b8] whitespace-nowrap">生产年份</span>
             </div>
             <input
               type="text"
@@ -65,21 +65,21 @@ export default function HomeView({
               value={modelYear}
               onChange={(e) => setModelYear(e.target.value.replace(/\D/g, ''))}
               placeholder=""
-              className="bg-transparent text-right outline-none text-slate-200 font-semibold text-[13px] sm:text-[14px] flex-1 min-w-0 ml-2 placeholder:text-slate-600 placeholder:font-normal"
+              className="bg-transparent text-right outline-none text-white font-[700] text-[13px] sm:text-[14px] flex-1 min-w-0 ml-2 placeholder:text-slate-600 placeholder:font-normal"
             />
           </div>
 
           <div className="flex-[54] bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
             <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
-              <Code size={26} className="text-[#8e8e93] p-[2px] shrink-0" strokeWidth={1.5} />
-              <span className="text-[13px] sm:text-[14px] font-[600] text-slate-100 whitespace-nowrap">工程代码</span>
+              <Code size={26} className="text-white p-[2px] shrink-0" strokeWidth={1.5} />
+              <span className="text-[13px] sm:text-[14px] font-[600] text-[#94a3b8] whitespace-nowrap">工程代码</span>
             </div>
             <input
               type="text"
               value={vehicleModel}
               onChange={(e) => setVehicleModel(e.target.value.toUpperCase())}
               placeholder=""
-              className="bg-transparent text-right outline-none text-slate-200 font-semibold text-[13px] sm:text-[14px] flex-1 min-w-0 ml-2 placeholder:text-slate-600 placeholder:font-normal uppercase"
+              className="bg-transparent text-right outline-none text-white font-[700] text-[13px] sm:text-[14px] flex-1 min-w-0 ml-2 placeholder:text-slate-600 placeholder:font-normal uppercase"
             />
           </div>
         </div>
@@ -87,8 +87,8 @@ export default function HomeView({
         {/* Row 2: VIN */}
         <div className="bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
           <div className="flex items-center gap-[14px] shrink-0">
-            <Car size={26} className="text-[#8e8e93] p-[2px]" strokeWidth={1.5} />
-            <span className="text-[14px] font-[600] text-slate-100">VIN</span>
+            <Car size={26} className="text-white p-[2px]" strokeWidth={1.5} />
+            <span className="text-[14px] font-[600] text-[#94a3b8]">VIN</span>
           </div>
           <input
             type="text"
@@ -100,7 +100,7 @@ export default function HomeView({
               if (decodedYear) setModelYear(decodedYear);
             }}
             placeholder=""
-            className="bg-transparent text-right outline-none text-slate-200 font-semibold text-[14px] flex-1 min-w-0 ml-4 placeholder:text-slate-600 placeholder:font-normal uppercase"
+            className="bg-transparent text-right outline-none text-white font-[700] text-[14px] flex-1 min-w-0 ml-4 placeholder:text-slate-600 placeholder:font-normal uppercase"
           />
         </div>
 
@@ -108,8 +108,8 @@ export default function HomeView({
         <div className="flex gap-[8px] w-full">
           <div className="flex-[46] bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
             <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
-              <Layers size={26} className="text-[#8e8e93] p-[2px] shrink-0" strokeWidth={1.5} />
-              <span className="text-[13px] sm:text-[14px] font-[600] text-slate-100 whitespace-nowrap">生产阶段</span>
+              <Layers size={26} className="text-white p-[2px] shrink-0" strokeWidth={1.5} />
+              <span className="text-[13px] sm:text-[14px] font-[600] text-[#94a3b8] whitespace-nowrap">生产阶段</span>
             </div>
             <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-[2px]">
               <CustomSelect
@@ -117,14 +117,15 @@ export default function HomeView({
                 onChange={setProductionStage}
                 options={['PPV', 'NS', 'VDC', 'S', 'STC']}
                 className="w-full h-full"
+                textColor="text-white font-[700] text-[13px] sm:text-[14px]"
               />
             </div>
           </div>
 
           <div className="flex-[54] bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
             <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
-              <Gauge size={26} className="text-[#8e8e93] p-[2px] shrink-0" strokeWidth={1.5} />
-              <span className="text-[13px] sm:text-[14px] font-[600] text-slate-100 whitespace-nowrap">总里程数</span>
+              <Gauge size={26} className="text-white p-[2px] shrink-0" strokeWidth={1.5} />
+              <span className="text-[13px] sm:text-[14px] font-[600] text-[#94a3b8] whitespace-nowrap">总里程数</span>
             </div>
             <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-2">
               <input
@@ -133,7 +134,7 @@ export default function HomeView({
                 value={mileage}
                 onChange={(e) => setMileage(e.target.value.replace(/\D/g, ''))}
                 placeholder=""
-                className="bg-transparent text-right outline-none text-slate-200 font-semibold text-[13px] sm:text-[14px] min-w-0 flex-1 placeholder:text-slate-600 placeholder:font-normal"
+                className="bg-transparent text-right outline-none text-white font-[700] text-[13px] sm:text-[14px] min-w-0 flex-1 placeholder:text-slate-600 placeholder:font-normal"
               />
               {mileage && <span className="text-[#64748b] text-[12px] font-[500] shrink-0">km</span>}
             </div>
@@ -144,8 +145,8 @@ export default function HomeView({
         <div className="flex gap-[8px] w-full">
           <div className="flex-[46] bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
             <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
-              <Monitor size={26} className="text-[#8e8e93] p-[2px] shrink-0" strokeWidth={1.5} />
-              <span className="text-[13px] sm:text-[14px] font-[600] text-slate-100 whitespace-nowrap">测试环境</span>
+              <Monitor size={26} className="text-white p-[2px] shrink-0" strokeWidth={1.5} />
+              <span className="text-[13px] sm:text-[14px] font-[600] text-[#94a3b8] whitespace-nowrap">测试环境</span>
             </div>
             <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-[2px]">
               <CustomSelect
@@ -153,21 +154,22 @@ export default function HomeView({
                 onChange={setTestEnv}
                 options={['生产', '测试']}
                 className="w-full h-full"
+                textColor="text-white font-[700] text-[13px] sm:text-[14px]"
               />
             </div>
           </div>
 
           <div className="flex-[54] bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
             <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
-              <User size={26} className="text-[#8e8e93] p-[2px] shrink-0" strokeWidth={1.5} />
-              <span className="text-[13px] sm:text-[14px] font-[600] text-slate-100 whitespace-nowrap">测试人员</span>
+              <User size={26} className="text-white p-[2px] shrink-0" strokeWidth={1.5} />
+              <span className="text-[13px] sm:text-[14px] font-[600] text-[#94a3b8] whitespace-nowrap">测试人员</span>
             </div>
             <input
               type="text"
               value={tester}
               onChange={(e) => setTester(e.target.value)}
               placeholder=""
-              className="bg-transparent text-right outline-none text-slate-200 font-semibold text-[13px] sm:text-[14px] flex-1 min-w-0 ml-2 placeholder:text-slate-600 placeholder:font-normal"
+              className="bg-transparent text-right outline-none text-white font-[700] text-[13px] sm:text-[14px] flex-1 min-w-0 ml-2 placeholder:text-slate-600 placeholder:font-normal"
             />
           </div>
         </div>
@@ -175,23 +177,23 @@ export default function HomeView({
         {/* Row 4: 测试地址 */}
         <div className="bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
           <div className="flex items-center gap-[14px] shrink-0">
-            <MapPin size={26} className="text-[#8e8e93] p-[2px]" strokeWidth={1.5} />
-            <span className="text-[14px] font-[600] text-slate-100">测试地址</span>
+            <MapPin size={26} className="text-white p-[2px]" strokeWidth={1.5} />
+            <span className="text-[14px] font-[600] text-[#94a3b8]">测试地址</span>
           </div>
           <input
             type="text"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder=""
-            className="bg-transparent text-right outline-none text-slate-200 font-semibold text-[14px] flex-1 min-w-0 ml-4 placeholder:text-slate-600 placeholder:font-normal"
+            className="bg-transparent text-right outline-none text-white font-[700] text-[14px] flex-1 min-w-0 ml-4 placeholder:text-slate-600 placeholder:font-normal"
           />
         </div>
 
         {/* Row 7: 总线架构 */}
         <div className="bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
           <div className="flex items-center gap-[14px] shrink-0">
-            <Network size={26} className="text-[#8e8e93] p-[2px]" strokeWidth={1.5} />
-            <span className="text-[14px] font-[600] text-slate-100">总线架构</span>
+            <Network size={26} className="text-white p-[2px]" strokeWidth={1.5} />
+            <span className="text-[14px] font-[600] text-[#94a3b8]">总线架构</span>
           </div>
           <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-4">
             <CustomSelect
@@ -199,6 +201,7 @@ export default function HomeView({
               onChange={setArchitecture}
               options={ARCHITECTURES}
               className="w-full h-full"
+              textColor="text-white font-[700] text-[14px]"
             />
           </div>
         </div>
@@ -206,8 +209,8 @@ export default function HomeView({
         {/* Row 8: 娱乐系统 */}
         <div className="bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
           <div className="flex items-center gap-[14px] shrink-0">
-            <Music size={26} className="text-[#8e8e93] p-[2px]" strokeWidth={1.5} />
-            <span className="text-[14px] font-[600] text-slate-100">娱乐系统</span>
+            <Music size={26} className="text-white p-[2px]" strokeWidth={1.5} />
+            <span className="text-[14px] font-[600] text-[#94a3b8]">娱乐系统</span>
           </div>
           <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-4">
             <CustomSelect
@@ -215,6 +218,7 @@ export default function HomeView({
               onChange={setIviModule}
               options={IVI_MODULES}
               className="w-full h-full"
+              textColor="text-white font-[700] text-[14px]"
             />
           </div>
         </div>
@@ -222,8 +226,8 @@ export default function HomeView({
         {/* Row 9: 通讯模块 */}
         <div className="bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
           <div className="flex items-center gap-[14px] shrink-0">
-            <Radio size={26} className="text-[#8e8e93] p-[2px]" strokeWidth={1.5} />
-            <span className="text-[14px] font-[600] text-slate-100">通讯模块</span>
+            <Radio size={26} className="text-white p-[2px]" strokeWidth={1.5} />
+            <span className="text-[14px] font-[600] text-[#94a3b8]">通讯模块</span>
           </div>
           <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-4">
             <CustomSelect
@@ -231,6 +235,7 @@ export default function HomeView({
               onChange={setCommModule}
               options={COMM_MODULES}
               className="w-full h-full"
+              textColor="text-white font-[700] text-[14px]"
             />
           </div>
         </div>
@@ -239,14 +244,14 @@ export default function HomeView({
         <div className="bg-[#111827] rounded-[16px] flex flex-col gap-[10px] pt-[10px] pb-[14px]">
           <div className="flex items-center justify-between px-[16px]">
             <div className="flex items-center gap-[14px] shrink-0">
-              <Camera size={26} className="text-[#8e8e93] p-[2px]" strokeWidth={1.5} />
-              <span className="text-[14px] font-[600] text-slate-100">现场环境照片</span>
+              <Camera size={26} className="text-white p-[2px]" strokeWidth={1.5} />
+              <span className="text-[14px] font-[600] text-[#94a3b8]">现场环境照片</span>
             </div>
             <button 
               onClick={() => handleAddMedia('env')}
               className="w-[32px] h-[32px] rounded-md border border-[#3c3c43] bg-[#1c1c1e] flex items-center justify-center hover:bg-[#2c2c2e] transition-colors active:scale-95"
             >
-              <CameraIcon size={18} className="text-[#8e8e93]" strokeWidth={2} />
+              <CameraIcon size={18} className="text-white" strokeWidth={2} />
             </button>
           </div>
           {envPhotos && envPhotos.length > 0 && (

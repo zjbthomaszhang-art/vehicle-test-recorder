@@ -171,7 +171,7 @@ function setColWidths(ws, widths) {
 router.post('/excel', async (req, res) => {
   try {
     const { cases = [], caseResults = [], bugs = [], vehicle = {} } = req.body;
-    const { vehicleModel, modelYear, vin, address, architecture, iviModule, commModule, tester, mileage } = vehicle;
+    const { vehicleModel, modelYear, vin, productionStage, address, architecture, iviModule, commModule, testEnv, tester, mileage } = vehicle;
 
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Vehicle Test Recorder';
@@ -213,8 +213,10 @@ router.post('/excel', async (req, res) => {
     // 2. Info Block (Airier table)
     const infoRows = [
       ['YEAR / MODEL / VIN', `${modelYear ? 'MY' + modelYear : ''} / ${vehicleModel || ''} / ${vin || ''}`],
+      ['PRODUCTION STAGE',   productionStage || 'PPV'],
       ['SYSTEM ARCH CONFIG', architecture || 'GA - INFO - TCP'],
       ['TESTING ADDRESS',    address || 'sh'],
+      ['TEST ENVIRONMENT',   testEnv || '测试'],
       ['TESTER',             tester || 'tester'],
     ];
     infoRows.forEach((pair, idx) => {

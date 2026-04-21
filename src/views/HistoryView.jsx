@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Edit3, Car, ChevronDown } from 'lucide-react';
+import CustomSelect from '../components/CustomSelect.jsx';
 import MobileNavigator from '../components/MobileNavigator.jsx';
-import { API_BASE } from '../constants.js';
+import { API_BASE, ARCHITECTURES } from '../constants.js';
 
 export default function HistoryView({
   historySessions,
@@ -14,8 +15,12 @@ export default function HistoryView({
   const [filterEndDate, setFilterEndDate] = useState('');
   const [filterCode, setFilterCode] = useState('');
   const [filterArch, setFilterArch] = useState('');
+  const [displayedCount, setDisplayedCount] = useState(20);
 
-  // historySessions is fetched and managed by App.jsx; no local fetch needed here.
+  useEffect(() => {
+    // Reset displayed count when filters change
+    setDisplayedCount(20);
+  }, [filterStartDate, filterEndDate, filterCode, filterArch, historySessions]);
 
   const filteredSessions = historySessions.filter(session => {
     let match = true;
@@ -39,9 +44,17 @@ export default function HistoryView({
     return match;
   });
 
-  // Load all vehicle fields from a session into App state, then navigate to test
   const handleContinueTest = (sess) => onContinueSession(sess);
 
+  const handleScroll = (e) => {
+    const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
+    // Load more when user scrolls near the bottom
+    if (scrollHeight - scrollTop - clientHeight < 300) {
+      if (displayedCount < filteredSessions.length) {
+        setDisplayedCount(prev => prev + 20);
+      }
+    }
+  };
 
   const handleSearch = () => {
     // Just force React to re-compute filteredSessions.
@@ -54,32 +67,35 @@ export default function HistoryView({
         <h1 className="text-[26px] font-[800] text-white leading-none tracking-tight">历史测试记录</h1>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-[24px] pt-[16px] pb-[100px] flex flex-col gap-[12px] custom-scrollbar">
+      <main 
+        className="flex-1 overflow-y-auto px-[24px] pt-[16px] pb-[100px] flex flex-col gap-[12px] custom-scrollbar"
+        onScroll={handleScroll}
+      >
         {/* FilterSection */}
-        <div className="bg-[#121826] border border-[#1e293b] rounded-[20px] p-[16px] flex flex-col gap-[12px]">
+        <div className="bg-[#121826] border border-[#1e293b] rounded-[20px] p-[16px] flex flex-col gap-[12px] shrink-0">
           <span className="text-[12px] font-[900] text-[#94a3b8]">筛选测试记录</span>
           
           <div className="flex gap-[8px] w-full">
-            <div className="flex flex-col gap-[2px] flex-1">
-              <span className="text-[11px] font-[600] text-[#64748b]">测试开始</span>
+            <div className="flex flex-col gap-[2px] flex-1 min-w-0 w-1/2">
+              <span className="text-[11px] font-[600] text-[#64748b] truncate">测试开始</span>
               <input 
                  type="date"
-                 className="bg-[#0f1523] border border-[#1e293b] rounded-[10px] w-full h-[36px] px-[12px] text-[12px] text-[#94a3b8] focus:outline-none focus:border-[#3b82f6] outline-none"
+                 className="bg-[#0f1523] appearance-none border border-[#1e293b] rounded-[10px] w-full min-w-0 h-[36px] px-[6px] text-[11px] text-[#94a3b8] focus:outline-none focus:border-[#3b82f6] outline-none"
                  value={filterStartDate} onChange={e => setFilterStartDate(e.target.value)}
               />
             </div>
-            <div className="flex flex-col gap-[2px] flex-1">
-              <span className="text-[11px] font-[600] text-[#64748b]">测试结束</span>
+            <div className="flex flex-col gap-[2px] flex-1 min-w-0 w-1/2">
+              <span className="text-[11px] font-[600] text-[#64748b] truncate">测试结束</span>
               <input 
                  type="date"
-                 className="bg-[#0f1523] border border-[#1e293b] rounded-[10px] w-full h-[36px] px-[12px] text-[12px] text-[#94a3b8] focus:outline-none focus:border-[#3b82f6] outline-none"
+                 className="bg-[#0f1523] appearance-none border border-[#1e293b] rounded-[10px] w-full min-w-0 h-[36px] px-[6px] text-[11px] text-[#94a3b8] focus:outline-none focus:border-[#3b82f6] outline-none"
                  value={filterEndDate} onChange={e => setFilterEndDate(e.target.value)}
               />
             </div>
           </div>
 
           <div className="flex gap-[8px] w-full">
-            <div className="flex flex-col gap-[2px] flex-1">
+            <div className="flex flex-col gap-[2px] flex-1 min-w-0">
               <span className="text-[11px] font-[600] text-[#64748b]">工程代码</span>
               <input 
                  type="text" placeholder="例如：NDLB"
@@ -87,21 +103,16 @@ export default function HistoryView({
                  value={filterCode} onChange={e => setFilterCode(e.target.value)}
               />
             </div>
-            <div className="flex flex-col gap-[2px] flex-1">
+            <div className="flex flex-col gap-[2px] flex-1 min-w-0">
               <span className="text-[11px] font-[600] text-[#64748b]">总线架构</span>
-              <div className="relative w-full h-[36px]">
-                <select 
-                  className="absolute inset-0 bg-[#0f1523] border border-[#1e293b] rounded-[10px] w-full h-full px-[12px] text-[12px] text-[#94a3b8] appearance-none focus:outline-none focus:border-[#3b82f6] cursor-pointer"
-                  value={filterArch} onChange={e => setFilterArch(e.target.value)}
-                >
-                  <option value="">请选择</option>
-                  <option value="VIP">VIP</option>
-                  <option value="Global B">Global B</option>
-                  <option value="Global A">Global A</option>
-                  <option value="EEA">EEA</option>
-                </select>
-                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748b] pointer-events-none" />
-              </div>
+              <CustomSelect
+                value={filterArch}
+                onChange={setFilterArch}
+                options={['全部', ...ARCHITECTURES]}
+                placeholder="请选择"
+                align="left"
+                className="w-full bg-[#0f1523] border border-[#1e293b] rounded-[10px] h-[36px] px-[12px]"
+              />
             </div>
           </div>
 
@@ -120,7 +131,7 @@ export default function HistoryView({
 
            {filteredSessions.length === 0 ? (
              <div className="text-center py-8 text-[#64748b] text-[12px] font-[800]">No sessions found.</div>
-           ) : filteredSessions.map(sess => {
+           ) : filteredSessions.slice(0, displayedCount).map(sess => {
              const execCount = parseInt(sess.case_count) || 0;
              const passCount = parseInt(sess.pass_count) || 0;
              const execRate = totalCases > 0 ? ((execCount / totalCases) * 100).toFixed(0) : 0;

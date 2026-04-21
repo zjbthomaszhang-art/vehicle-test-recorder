@@ -4,12 +4,8 @@ import { TerminalSquare, UserCircle as LucideUserCircle, TrendingUp as LucideTre
 import { FIELD_LABELS } from '../constants/labels.js';
 import MobileNavigator from '../components/MobileNavigator.jsx';
 
-export default function DashboardView({ API_BASE, cases, bugs, historySessions, setView }) {
-  const [data, setData] = useState([]);
-  const [bugsData, setBugsData] = useState([]);
+export default function DashboardView({ API_BASE, cases, bugs, historySessions, topFailed, setView }) {
   const [casesMap, setCasesMap] = useState({});
-  const [topFailed, setTopFailed] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   // Aggregated States
   const [stats, setStats] = useState({
@@ -44,45 +40,10 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
       });
     }
     setCasesMap(cMap);
-    
-    // UI displays instantly
-    setLoading(false);
 
-    // Asynchronously fetch top-fails in the background
-    fetch(`${API_BASE}/cases/top-fails`)
-      .then(res => res.json())
-      .then(topFailsData => {
-        if (Array.isArray(topFailsData)) {
-          setTopFailed(topFailsData);
-        }
-      })
-      .catch(err => {
-        console.error('Failed to load top fails data', err);
-      });
-
-    // Asynchronously fetch historical sessions for dashboard stats
-    fetch(`${API_BASE}/test-sessions`)
-      .then(res => res.json())
-      .then(sessions => {
-        if (Array.isArray(sessions)) {
-          setData(sessions);
-          processStats(sessions);
-        }
-      })
-      .catch(console.error);
-
-    // Asynchronously fetch global defects for the defect feed
-    fetch(`${API_BASE}/bugs`)
-      .then(res => res.json())
-      .then(defects => {
-        if (Array.isArray(defects)) {
-          const sortedBugs = defects.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
-          setBugsData(sortedBugs);
-        }
-      })
-      .catch(console.error);
-      
-  }, [API_BASE, cases]);
+    // Process stats using historySessions prop directly
+    processStats(historySessions);
+  }, [cases, historySessions]);
 
   const processStats = (sessions) => {
     let tSessions = sessions.length;
@@ -141,31 +102,25 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
     setModelData(pModelStats);
   };
 
-  const handleBarClick = (dataParams) => {
+  const handleBarClick = (historySessionsParams) => {
     let clickedModel = null;
-    if (dataParams && dataParams.model) {
-      clickedModel = dataParams.model; // Active payload directly from <Bar> onClick
-    } else if (dataParams && dataParams.activePayload && dataParams.activePayload.length > 0) {
-      clickedModel = dataParams.activePayload[0].payload.model;
-    } else if (dataParams && dataParams.activeLabel) {
-      clickedModel = dataParams.activeLabel;
+    if (historySessionsParams && historySessionsParams.model) {
+      clickedModel = historySessionsParams.model; // Active payload directly from <Bar> onClick
+    } else if (historySessionsParams && historySessionsParams.activePayload && historySessionsParams.activePayload.length > 0) {
+      clickedModel = historySessionsParams.activePayload[0].payload.model;
+    } else if (historySessionsParams && historySessionsParams.activeLabel) {
+      clickedModel = historySessionsParams.activeLabel;
     }
 
     if (clickedModel) {
-      const filtered = data.filter(s => s.vehicle_model === clickedModel);
+      const filtered = historySessions.filter(s => s.vehicle_model === clickedModel);
       filtered.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
       setSelectedModel(clickedModel);
       setModelSessions(filtered);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#0f1523] flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-[#3b82f6] border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
+
 
   const overallPassRate = stats.totalCases > 0 
     ? ((stats.totalPassed / stats.totalCases) * 100).toFixed(1) 
@@ -387,7 +342,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
              <span className="text-[11px] font-[900] text-[#ef4444] italic">最新缺陷动态</span>
            </div>
 
-           {bugsData.length > 0 ? bugsData.slice(0, 2).map((bug, i) => {
+           {bugs.length > 0 ? bugs.slice(0, 2).map((bug, i) => {
              const linkedCase = casesMap[bug.case_id];
              return (
                <div key={bug.id || i} className="flex gap-[8px] w-full">
@@ -505,12 +460,12 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
               </div>
               <div className="flex-1 w-full ml-[-20px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={modelData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }} onClick={(data) => data && data.activePayload && handleBarClick(data.activePayload[0].payload)}>
+                  <BarChart data={modelData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }} onClick={(historySessions) => historySessions && historySessions.activePayload && handleBarClick(historySessions.activePayload[0].payload)}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
                     <XAxis dataKey="model" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} dx={-10} />
                     <Tooltip cursor={{ fill: '#1e293b' }} contentStyle={{ backgroundColor: '#0f1523', border: '1px solid #1e293b', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold' }} />
-                    <Bar dataKey="passRate" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={24} onClick={(data) => handleBarClick(data)} cursor="pointer" />
+                    <Bar dataKey="passRate" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={24} onClick={(historySessions) => handleBarClick(historySessions)} cursor="pointer" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -586,7 +541,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
                </div>
 
                <div className="flex-1 flex flex-col gap-[16px] overflow-y-auto pr-[4px]">
-               {bugsData.length > 0 ? bugsData.slice(0, 4).map((bug, i) => {
+               {bugs.length > 0 ? bugs.slice(0, 4).map((bug, i) => {
                  const linkedCase = casesMap[bug.case_id];
                  return (
                    <div key={bug.id || i} className="flex gap-[12px] w-full items-start">

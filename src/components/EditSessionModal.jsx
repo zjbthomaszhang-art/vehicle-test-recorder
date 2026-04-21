@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { ChevronDown, X, Code, Calendar, Car, User, Gauge, MapPin, Network, Music, Radio, Camera, Save, Trash2, Image as ImageIcon, CameraIcon } from 'lucide-react';
+import { X, Code, Calendar, Car, User, Gauge, MapPin, Network, Music, Radio, Camera, Save, Trash2, Image as ImageIcon, CameraIcon, Layers, Monitor } from 'lucide-react';
+import CustomSelect from './CustomSelect.jsx';
 import { ARCHITECTURES, IVI_MODULES, COMM_MODULES } from '../constants.js';
 import { decodeModelYearFromVin } from '../utils/vinDecoder.js';
 import { uploadPhoto } from '../utils/photoUpload.js';
@@ -7,7 +8,7 @@ import { uploadPhoto } from '../utils/photoUpload.js';
 // Row wrapper — matches HomeView row style exactly
 function FieldRow({ children, tall }) {
   return (
-    <div className={`bg-[#121826] rounded-[16px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all ${tall ? 'py-[10px]' : 'h-[54px]'}`}>
+    <div className={`bg-[#1e293b]/50 border border-[#334155]/60 rounded-[16px] px-[16px] flex items-center justify-between group focus-within:border-[#3b82f6] transition-all ${tall ? 'py-[10px]' : 'h-[54px]'}`}>
       {children}
     </div>
   );
@@ -31,6 +32,8 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
     vehicleModel: session.vehicle_model || '',
     model_year:   session.model_year || '',
     vin:          session.vin || '',
+    productionStage: session.production_stage || '',
+    testEnv:      session.test_env || '',
     address:      session.address || session.test_location || '',
     architecture: session.architecture || session.vehicle_architecture || '',
     iviModule:    session.ivi_module || '',
@@ -71,17 +74,6 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
         {/* Scrollable Fields */}
         <div className="flex-1 overflow-y-auto px-[16px] pt-[8px] pb-[16px] flex flex-col gap-[8px] edit-modal-scroll">
 
-          {/* 工程代码 — uppercase */}
-          <FieldRow>
-            <FieldLabel icon={Code} label="工程代码" />
-            <input
-              type="text"
-              value={formData.vehicleModel}
-              onChange={set('vehicleModel', v => v.toUpperCase())}
-              className={`${inputCls} uppercase`}
-            />
-          </FieldRow>
-
           {/* 生产年份 — digits only */}
           <FieldRow>
             <FieldLabel icon={Calendar} label="生产年份" />
@@ -91,6 +83,17 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
               value={formData.model_year}
               onChange={set('model_year', v => v.replace(/\D/g, ''))}
               className={inputCls}
+            />
+          </FieldRow>
+
+          {/* 工程代码 — uppercase */}
+          <FieldRow>
+            <FieldLabel icon={Code} label="工程代码" />
+            <input
+              type="text"
+              value={formData.vehicleModel}
+              onChange={set('vehicleModel', v => v.toUpperCase())}
+              className={`${inputCls} uppercase`}
             />
           </FieldRow>
 
@@ -113,14 +116,16 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
             />
           </FieldRow>
 
-          {/* 测试人员 */}
+          {/* 生产阶段 */}
           <FieldRow>
-            <FieldLabel icon={User} label="测试人员" />
-            <input
-              type="text"
-              value={formData.tester}
-              onChange={set('tester')}
-              className={inputCls}
+            <FieldLabel icon={Layers} label="生产阶段" />
+            <CustomSelect
+              value={formData.productionStage}
+              onChange={(val) => setFormData(prev => ({ ...prev, productionStage: val }))}
+              options={['PPV', 'NS', 'VDC', 'S', 'STC']}
+              placeholder="选择"
+              align="right"
+              className="w-1/2"
             />
           </FieldRow>
 
@@ -139,6 +144,30 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
             </div>
           </FieldRow>
 
+          {/* 测试环境 */}
+          <FieldRow>
+            <FieldLabel icon={Monitor} label="测试环境" />
+            <CustomSelect
+              value={formData.testEnv}
+              onChange={(val) => setFormData(prev => ({ ...prev, testEnv: val }))}
+              options={['生产', '测试']}
+              placeholder="选择"
+              align="right"
+              className="w-1/2"
+            />
+          </FieldRow>
+
+          {/* 测试人员 */}
+          <FieldRow>
+            <FieldLabel icon={User} label="测试人员" />
+            <input
+              type="text"
+              value={formData.tester}
+              onChange={set('tester')}
+              className={inputCls}
+            />
+          </FieldRow>
+
           {/* 测试地址 */}
           <FieldRow>
             <FieldLabel icon={MapPin} label="测试地址" />
@@ -153,53 +182,44 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
           {/* 总线架构 */}
           <FieldRow>
             <FieldLabel icon={Network} label="总线架构" />
-            <div className="relative flex items-center justify-end w-1/2">
-              <select
-                value={formData.architecture}
-                onChange={set('architecture')}
-                className={selectCls}
-              >
-                <option value="" className="bg-[#0f1523] text-slate-500"></option>
-                {ARCHITECTURES.map(v => <option key={v} value={v} className="bg-[#0f1523]">{v}</option>)}
-              </select>
-              {!formData.architecture && <ChevronDown size={16} className="text-[#64748b] pointer-events-none shrink-0" />}
-            </div>
+            <CustomSelect
+              value={formData.architecture}
+              onChange={(val) => setFormData(prev => ({ ...prev, architecture: val }))}
+              options={ARCHITECTURES}
+              placeholder="选择"
+              align="right"
+              className="w-1/2"
+            />
           </FieldRow>
 
           {/* 娱乐系统 */}
           <FieldRow>
             <FieldLabel icon={Music} label="娱乐系统" />
-            <div className="relative flex items-center justify-end w-1/2">
-              <select
-                value={formData.iviModule}
-                onChange={set('iviModule')}
-                className={selectCls}
-              >
-                <option value="" className="bg-[#0f1523] text-slate-500"></option>
-                {IVI_MODULES.map(v => <option key={v} value={v} className="bg-[#0f1523]">{v}</option>)}
-              </select>
-              {!formData.iviModule && <ChevronDown size={16} className="text-[#64748b] pointer-events-none shrink-0" />}
-            </div>
+            <CustomSelect
+              value={formData.iviModule}
+              onChange={(val) => setFormData(prev => ({ ...prev, iviModule: val }))}
+              options={IVI_MODULES}
+              placeholder="选择"
+              align="right"
+              className="w-1/2"
+            />
           </FieldRow>
 
           {/* 通讯模块 */}
           <FieldRow>
             <FieldLabel icon={Radio} label="通讯模块" />
-            <div className="relative flex items-center justify-end w-1/2">
-              <select
-                value={formData.commModule}
-                onChange={set('commModule')}
-                className={selectCls}
-              >
-                <option value="" className="bg-[#0f1523] text-slate-500"></option>
-                {COMM_MODULES.map(v => <option key={v} value={v} className="bg-[#0f1523]">{v}</option>)}
-              </select>
-              {!formData.commModule && <ChevronDown size={16} className="text-[#64748b] pointer-events-none shrink-0" />}
-            </div>
+            <CustomSelect
+              value={formData.commModule}
+              onChange={(val) => setFormData(prev => ({ ...prev, commModule: val }))}
+              options={COMM_MODULES}
+              placeholder="选择"
+              align="right"
+              className="w-1/2"
+            />
           </FieldRow>
 
           {/* 现场环境照片 — matches HomeView photo row exactly */}
-          <div className="bg-[#121826] rounded-[16px] flex flex-col gap-[10px] pt-[10px] pb-[14px]">
+          <div className="bg-[#1e293b]/50 border border-[#334155]/60 rounded-[16px] flex flex-col gap-[10px] pt-[10px] pb-[14px]">
             <div className="flex items-center justify-between px-[16px]">
               <div className="flex items-center gap-[14px] shrink-0">
                 <Camera size={32} className="text-[#8e8e93] p-1" strokeWidth={1.5} />

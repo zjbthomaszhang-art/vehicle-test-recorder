@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, ChevronDown, User, Bug, Plus, ShieldAlert, ArrowLeft, UserCircle as LucideUserCircle, AlertTriangle, Calendar, Hash, Car, Gauge, MapPin } from 'lucide-react';
+import CustomSelect from '../components/CustomSelect.jsx';
 import { API_BASE } from '../constants.js';
 import { FIELD_LABELS } from '../constants/labels.js';
 import MobileNavigator from '../components/MobileNavigator.jsx';
@@ -11,11 +12,9 @@ const STAGES = [
   { id: 'Act', label: '已解决', color: 'text-[#10b981]', bg: 'bg-[#10b981]/10', border: 'border-[#10b981]/50' }
 ];
 
-export default function DefectsView({ setView }) {
-  const [bugs, setBugs] = useState([]);
+export default function DefectsView({ setView, bugs, setAllBugs, cases, historySessions, API_BASE }) {
   const [casesMap, setCasesMap] = useState({});
   const [sessionsMap, setSessionsMap] = useState({});
-  const [loading, setLoading] = useState(true);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,42 +31,14 @@ export default function DefectsView({ setView }) {
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    const cMap = {};
+    if (Array.isArray(cases)) cases.forEach(c => cMap[c.id] = c);
+    setCasesMap(cMap);
 
-  const fetchData = () => {
-    setLoading(true);
-    Promise.all([
-      fetch(`${API_BASE}/bugs`).then(res => res.json()),
-      fetch(`${API_BASE}/cases`).then(res => res.json()),
-      fetch(`${API_BASE}/test-sessions`).then(res => res.json())
-    ]).then(([bugsData, casesData, sessionsData]) => {
-      const cMap = {};
-      if (Array.isArray(casesData)) {
-        casesData.forEach(c => cMap[c.id] = c);
-      }
-      setCasesMap(cMap);
-
-      const sMap = {};
-      if (Array.isArray(sessionsData)) {
-        sessionsData.forEach(s => sMap[s.id] = s);
-      }
-      setSessionsMap(sMap);
-
-      if (Array.isArray(bugsData)) {
-        bugsData.sort((a, b) => {
-          const strA = String(a.timestamp || '');
-          const strB = String(b.timestamp || '');
-          return strB.localeCompare(strA);
-        });
-        setBugs(bugsData);
-      }
-      setLoading(false);
-    }).catch(err => {
-      console.error(err);
-      setLoading(false);
-    });
-  };
+    const sMap = {};
+    if (Array.isArray(historySessions)) historySessions.forEach(s => sMap[s.id] = s);
+    setSessionsMap(sMap);
+  }, [cases, historySessions]);
 
   const handleStatusChange = async (bugId, newStatus) => {
     try {
@@ -79,7 +50,7 @@ export default function DefectsView({ setView }) {
         body: JSON.stringify({ status: newStatus })
       });
       if (res.ok) {
-        setBugs(bugs.map(b => b.id === bugId ? { ...b, status: newStatus } : b));
+        setAllBugs(bugs.map(b => b.id === bugId ? { ...b, status: newStatus } : b));
       }
     } catch (err) {
       console.error('Failed to update status', err);
@@ -112,21 +83,10 @@ export default function DefectsView({ setView }) {
     else if (s === 'Act') resolvedCount++;
   });
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#0f1523] flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-[#3b82f6] border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
   const renderMobile = () => (
     <div className="min-h-screen bg-[#0f1523] text-slate-100 flex flex-col font-sans">
       <header className="px-[24px] pt-[44px] pb-[8px] flex justify-between items-center w-full z-10 shrink-0">
         <div className="flex items-center gap-[12px]">
-          <button onClick={() => setView('home')} className="flex items-center justify-center w-[32px] h-[32px] bg-[#1e293b] rounded-full hover:bg-[#334155] transition-colors">
-            <ArrowLeft size={16} strokeWidth={2.5} className="text-[#94a3b8]" />
-          </button>
           <span className="text-[26px] font-[900] text-[#f8fafc] leading-none tracking-tight">缺陷管理</span>
         </div>
       </header>
@@ -158,43 +118,25 @@ export default function DefectsView({ setView }) {
 
         {/* Filters Segment */}
         <div className="flex flex-col gap-[12px]">
-           <div className="w-full bg-[#111827] border border-[#1e293b] rounded-[12px] py-[12px] px-[16px] flex items-center gap-[8px] focus-within:border-[#3b82f6] transition-colors">
-              <Search size={16} strokeWidth={2.5} className="text-[#64748b]" />
-              <input 
-                type="text" 
-                placeholder="搜索缺陷..." 
-                className="bg-transparent border-none outline-none text-[13px] text-white placeholder:text-[#94a3b8] w-full"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+           <div className="flex items-center gap-[8px] w-full">
+              <div className="flex-1 bg-[#111827] border border-[#1e293b] rounded-[8px] py-[10px] px-[12px] flex items-center gap-[8px] focus-within:border-[#3b82f6] transition-colors">
+                 <Search size={16} strokeWidth={2.5} className="text-[#64748b]" />
+                   <input
+                     type="text"
+                     placeholder="搜索缺陷..."
+                     className="bg-transparent border-none outline-none text-[12px] text-white placeholder:text-[#94a3b8] w-full"
+                     value={searchQuery}
+                     onChange={(e) => setSearchQuery(e.target.value)}
+                   />
+              </div>
+              <CustomSelect
+               value={filterStatus}
+               onChange={setFilterStatus}
+               options={[{value:'',label:'全部状态'}, ...STAGES.map(s=>({value:s.id,label:s.label}))]}
+               placeholder="全部状态"
+               align="left"
+               className="w-[120px] shrink-0 bg-[#111827] border border-[#1e293b] rounded-[8px] px-[12px] py-[10px]"
               />
-           </div>
-
-           <div className="flex gap-[12px] w-full">
-              <div className="flex-1 bg-[#111827] border border-[#1e293b] rounded-[8px] p-[10px] px-[12px] flex justify-between items-center relative">
-                 <select 
-                   value={filterStatus}
-                   onChange={(e) => setFilterStatus(e.target.value)}
-                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                 >
-                   <option value="" className="bg-[#111827] text-[#f8fafc]">全部状态</option>
-                   {STAGES.map(s => <option key={s.id} value={s.id} className="bg-[#111827] text-[#f8fafc]">{s.label}</option>)}
-                 </select>
-                 <span className="text-[12px] font-[600] text-[#f8fafc] pointer-events-none">{filterStatus ? STAGES.find(s => s.id === filterStatus)?.label : '全部状态'}</span>
-                 <ChevronDown size={14} className="text-[#64748b] pointer-events-none" />
-              </div>
-              <div className="flex-1 bg-[#111827] border border-[#1e293b] rounded-[8px] p-[10px] px-[12px] flex justify-between items-center relative">
-                 <select 
-                   value={filterPriority}
-                   onChange={(e) => setFilterPriority(e.target.value)}
-                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                 >
-                   <option value="" className="bg-[#111827] text-[#f8fafc]">所有优先级</option>
-                   <option value="high" className="bg-[#111827] text-[#f8fafc]">高优先级(P0/P1)</option>
-                   <option value="low" className="bg-[#111827] text-[#f8fafc]">低优先级(P2/P3)</option>
-                 </select>
-                 <span className="text-[12px] font-[600] text-[#f8fafc] pointer-events-none">{filterPriority === 'high' ? '高优先级(P0/P1)' : filterPriority === 'low' ? '低优先级(P2/P3)' : '所有优先级'}</span>
-                 <ChevronDown size={14} className="text-[#64748b] pointer-events-none" />
-              </div>
            </div>
         </div>
 
@@ -212,9 +154,9 @@ export default function DefectsView({ setView }) {
                const currentStatus = STAGES.find(s => s.id === (bug.status || 'Plan')) || STAGES[0];
                
                return (
-                 <div key={bug.id || idx} className="bg-[#111827] border border-[#1e293b] rounded-[16px] flex flex-col overflow-hidden transition-transform active:scale-[0.98] shadow-lg">
+                 <div key={bug.id || idx} className="bg-[#111827] border border-[#1e293b] rounded-[16px] flex flex-col transition-transform active:scale-[0.98] shadow-lg">
                     {/* Header: Status bar & ID */}
-                    <div className="flex justify-between items-center w-full px-[16px] py-[12px] bg-[#1e293b]/30 border-b border-[#1e293b]">
+                    <div className="flex justify-between items-center w-full px-[16px] py-[12px] bg-[#1e293b]/30 border-b border-[#1e293b] rounded-t-[16px]">
                        <div className="flex items-center gap-[10px]">
                          <Bug size={16} className={currentStatus.color} strokeWidth={2.5} />
                          <span className="text-[14px] font-[900] text-white">#{bug.id || `BUG-${idx + 1024}`}</span>
@@ -275,19 +217,16 @@ export default function DefectsView({ setView }) {
                     </div>
 
                     {/* Footer: Action/Status */}
-                    <div className="px-[16px] py-[12px] bg-[#1e293b]/20 border-t border-[#1e293b] flex justify-between items-center">
+                    <div className="px-[16px] py-[12px] bg-[#1e293b]/20 border-t border-[#1e293b] flex justify-between items-center rounded-b-[16px]">
                        <span className="text-[11px] font-[800] text-[#64748b]">当前处理状态</span>
                        <div className={`rounded-[6px] border relative ${currentStatus.bg} ${currentStatus.border}`}>
-                          <select 
+                          <CustomSelect 
                             value={bug.status || 'Plan'}
-                            onChange={(e) => handleStatusChange(bug.id, e.target.value)}
-                            className={`appearance-none bg-transparent pl-[10px] pr-[26px] py-[4px] text-[12px] font-[900] outline-none cursor-pointer text-center w-full ${currentStatus.color}`}
-                          >
-                            {STAGES.map(s => (
-                              <option key={s.id} value={s.id} className="bg-[#111827] text-slate-100">{s.label}</option>
-                            ))}
-                          </select>
-                          <ChevronDown size={14} strokeWidth={3} className={`absolute right-[8px] top-1/2 -translate-y-1/2 pointer-events-none ${currentStatus.color}`} />
+                            onChange={(val) => handleStatusChange(bug.id, val)}
+                            options={STAGES.map(s => ({value:s.id,label:s.label}))}
+                            className={`w-[100px] h-[30px] px-[8px]`}
+                            textColor={`${currentStatus.color} font-[900]`}
+                          />
                        </div>
                     </div>
 
@@ -358,43 +297,26 @@ export default function DefectsView({ setView }) {
 
         {/* Filters */}
         <div className="flex justify-between items-center w-full gap-[20px]">
-           <div className="w-[300px] bg-[#111827] border border-[#1e293b] rounded-[8px] py-[10px] px-[16px] flex items-center gap-[8px] focus-within:border-[#3b82f6] transition-colors shrink-0">
+           <div className="w-[300px] bg-[#111827] border border-[#1e293b] rounded-[8px] py-[10px] px-[12px] flex items-center gap-[8px] focus-within:border-[#3b82f6] transition-colors shrink-0">
               <Search size={16} strokeWidth={2.5} className="text-[#64748b]" />
               <input 
                 type="text" 
                 placeholder="搜索缺陷..." 
-                className="bg-transparent border-none outline-none text-[13px] text-white placeholder:text-[#94a3b8] w-full"
+                className="bg-transparent border-none outline-none text-[12px] text-white placeholder:text-[#94a3b8] w-full"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
            </div>
 
-           <div className="flex gap-[16px] flex-1 max-w-[400px]">
-              <div className="flex-1 bg-[#111827] border border-[#1e293b] rounded-[8px] p-[10px] px-[16px] flex justify-between items-center relative">
-                 <select 
-                   value={filterStatus}
-                   onChange={(e) => setFilterStatus(e.target.value)}
-                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                 >
-                   <option value="" className="bg-[#111827] text-[#f8fafc]">全部状态</option>
-                   {STAGES.map(s => <option key={s.id} value={s.id} className="bg-[#111827] text-[#f8fafc]">{s.label}</option>)}
-                 </select>
-                 <span className="text-[12px] font-[600] text-[#f8fafc] pointer-events-none">{filterStatus ? STAGES.find(s => s.id === filterStatus)?.label : '全部状态'}</span>
-                 <ChevronDown size={14} className="text-[#64748b] pointer-events-none" />
-              </div>
-              <div className="flex-1 bg-[#111827] border border-[#1e293b] rounded-[8px] p-[10px] px-[16px] flex justify-between items-center relative">
-                 <select 
-                   value={filterPriority}
-                   onChange={(e) => setFilterPriority(e.target.value)}
-                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                 >
-                   <option value="" className="bg-[#111827] text-[#f8fafc]">所有优先级</option>
-                   <option value="high" className="bg-[#111827] text-[#f8fafc]">高优先级(P0/P1)</option>
-                   <option value="low" className="bg-[#111827] text-[#f8fafc]">低优先级(P2/P3)</option>
-                 </select>
-                 <span className="text-[12px] font-[600] text-[#f8fafc] pointer-events-none">{filterPriority === 'high' ? '高优先级(P0/P1)' : filterPriority === 'low' ? '低优先级(P2/P3)' : '所有优先级'}</span>
-                 <ChevronDown size={14} className="text-[#64748b] pointer-events-none" />
-              </div>
+           <div className="flex gap-[16px] flex-1 max-w-[300px]">
+              <CustomSelect
+                value={filterStatus}
+                onChange={setFilterStatus}
+                options={[{value:'',label:'全部状态'}, ...STAGES.map(s=>({value:s.id,label:s.label}))]}
+                placeholder="全部状态"
+                align="left"
+                className="flex-1 bg-[#111827] border border-[#1e293b] rounded-[8px] px-[12px] py-[10px]"
+              />
            </div>
         </div>
 
@@ -446,17 +368,14 @@ export default function DefectsView({ setView }) {
                           <div className="text-[12px] text-[#cbd5e1] truncate">{caseDef?.function_category || caseDef?.category || '-'}</div>
                           <div className="text-[13px] font-[600] text-[#f8fafc] truncate">{caseDef?.function || '-'}</div>
                           <div className="text-[12px] text-[#94a3b8] italic truncate">"{bug.description || ''}"</div>
-                          <div className="relative inline-flex items-center justify-center min-w-[70px]">
-                            <select 
+                          <div className={`relative inline-flex items-center justify-center min-w-[90px] rounded-[6px] border border-solid ${currentStatus.bg} ${currentStatus.border}`}>
+                            <CustomSelect 
                               value={bug.status || 'Plan'}
-                              onChange={(e) => handleStatusChange(bug.id, e.target.value)}
-                              className={`appearance-none w-full rounded-[6px] pl-[8px] pr-[20px] py-[4px] border border-solid text-[10px] font-[800] outline-none cursor-pointer text-center ${currentStatus.bg} ${currentStatus.border} ${currentStatus.color}`}
-                            >
-                              {STAGES.map(s => (
-                                <option key={s.id} value={s.id} className="bg-[#111827] text-slate-100">{s.label}</option>
-                              ))}
-                            </select>
-                            <ChevronDown size={12} className={`absolute right-[6px] pointer-events-none ${currentStatus.color}`} />
+                              onChange={(val) => handleStatusChange(bug.id, val)}
+                              options={STAGES.map(s => ({value:s.id,label:s.label}))}
+                              className={`w-full h-[26px] px-[8px]`}
+                              textColor={`${currentStatus.color} font-[800]`}
+                            />
                           </div>
                         </div>
                       );

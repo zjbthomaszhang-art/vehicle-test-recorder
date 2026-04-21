@@ -9,6 +9,7 @@ const sessionsRouter = require('./routes/sessions.cjs');
 const bugsRouter = require('./routes/bugs.cjs');
 const dbViewerRouter = require('./routes/dbViewer.cjs');
 const exportRouter = require('./routes/export.cjs');
+const uploadRouter = require('./routes/upload.cjs');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -22,6 +23,8 @@ app.use('/api/cases', casesRouter);
 app.use('/api/test-sessions', sessionsRouter);
 app.use('/api/bugs', bugsRouter);
 app.use('/api/export', exportRouter);
+app.use('/api/upload', uploadRouter);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/db-api', dbViewerRouter);
 // /db-viewer redirects to /db-api/viewer for backwards compatibility
 app.get('/db-viewer', (req, res) => res.redirect('/db-api/viewer'));
