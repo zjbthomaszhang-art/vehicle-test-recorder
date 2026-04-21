@@ -323,10 +323,10 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
         {/* PC Table */}
         <div className="bg-[#111827] border border-[#1e293b] rounded-[16px] flex w-full overflow-hidden flex-1 min-h-[300px]">
            <div className="flex-1 overflow-x-auto flex flex-col custom-scrollbar">
-             <div className="flex flex-col min-w-[1400px] w-full flex-1 h-full"> 
+             <div className="flex flex-col min-w-[1100px] w-full flex-1 h-full"> 
                <div 
                  className="grid bg-[#0f172a] px-[24px] py-[16px] text-[#94a3b8] text-[11px] font-[800] border-b border-[#1e293b] shrink-0"
-                 style={{ gridTemplateColumns: '60px 180px 100px 160px 80px 80px 140px 120px minmax(140px, 1fr) minmax(140px, 1fr) 60px', gap: '12px' }}
+                 style={{ gridTemplateColumns: '50px 100px 80px 145px 70px 60px 130px 90px minmax(120px, 1fr) minmax(120px, 1.5fr) 100px', gap: '12px' }}
                >
                  <div>ID</div>
                  <div>车型年款</div>
@@ -356,7 +356,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                         <div 
                           key={bug.id || idx} 
                           className="grid px-[24px] py-[14px] items-center hover:bg-[#1e293b]/50 border-b border-[#1e293b] transition-colors"
-                          style={{ gridTemplateColumns: '60px 180px 100px 160px 80px 80px 140px 120px minmax(140px, 1fr) minmax(140px, 1fr) 60px', gap: '12px' }}
+                          style={{ gridTemplateColumns: '50px 100px 80px 145px 70px 60px 130px 90px minmax(120px, 1fr) minmax(120px, 1.5fr) 100px', gap: '12px' }}
                         >
                           <div className="text-[12px] font-[800] bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent truncate">#{bug.id || `BUG-${idx + 1024}`}</div>
                           <div className="text-[12px] text-[#cbd5e1] truncate">{session ? `MY${session.model_year} ${session.vehicle_model}` : '-'}</div>
