@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { ChevronLeft, Activity, Server, HardDrive, Terminal } from 'lucide-react';
+import { ChevronLeft, Activity, Server, HardDrive, Terminal, Globe } from 'lucide-react';
 
 export default function PerformanceMonitorView({ setView }) {
   // Real Data Engine State
@@ -8,8 +8,17 @@ export default function PerformanceMonitorView({ setView }) {
   const [diskData, setDiskData] = useState({ total: 100, used: 0 });
   const [ramTotal, setRamTotal] = useState(8);
   const [systemInfo, setSystemInfo] = useState({ uptime: 0, loadavg: [0,0,0], type: '', release: '', arch: '' });
+  const [rxData, setRxData] = useState(Array(60).fill(0));
+  const [txData, setTxData] = useState(Array(60).fill(0));
+  const [timeRange, setTimeRange] = useState('realtime');
+
+  // Realtime scalars for KPIs
+  const [currentCpu, setCurrentCpu] = useState(0);
+  const [currentRam, setCurrentRam] = useState(0);
+  const [currentRx, setCurrentRx] = useState(0);
+  const [currentTx, setCurrentTx] = useState(0);
   
-  // Polling Loop
+  // Polling Loop for Realtime Stats
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
@@ -17,21 +26,33 @@ export default function PerformanceMonitorView({ setView }) {
         if (!response.ok) return;
         const data = await response.json();
         
-        setCpuData(prev => {
-          const next = [...prev.slice(1)];
-          next.push(data.cpu || 0);
-          return next;
-        });
-
-        setRamData(prev => {
-          const next = [...prev.slice(1)];
-          next.push(data.ram?.used || 0);
-          return next;
-        });
+        setCurrentCpu(data.cpu || 0);
+        setCurrentRam(data.ram?.used || 0);
+        setCurrentRx(data.network?.rxKbps || 0);
+        setCurrentTx(data.network?.txKbps || 0);
 
         if (data.ram?.total) setRamTotal(data.ram.total);
         if (data.disk) setDiskData(data.disk);
         if (data.system) setSystemInfo(data.system);
+
+        if (timeRange === 'realtime') {
+          setCpuData(prev => {
+            const next = [...prev.slice(1)];
+            next.push(data.cpu || 0);
+            return next;
+          });
+
+          setRamData(prev => {
+            const next = [...prev.slice(1)];
+            next.push(data.ram?.used || 0);
+            return next;
+          });
+
+          if (data.network) {
+            setRxData(prev => { const next = [...prev.slice(1)]; next.push(data.network.rxKbps || 0); return next; });
+            setTxData(prev => { const next = [...prev.slice(1)]; next.push(data.network.txKbps || 0); return next; });
+          }
+        }
       } catch (err) {
         console.error("Failed to fetch metrics", err);
       }
@@ -40,10 +61,45 @@ export default function PerformanceMonitorView({ setView }) {
     fetchMetrics();
     const interval = setInterval(fetchMetrics, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [timeRange]);
 
-  const currentCpu = cpuData[cpuData.length - 1];
-  const currentRam = ramData[ramData.length - 1];
+  // History Fetcher
+  useEffect(() => {
+    if (timeRange === 'realtime') {
+      setCpuData(Array(60).fill(0));
+      setRamData(Array(60).fill(0));
+      setRxData(Array(60).fill(0));
+      setTxData(Array(60).fill(0));
+      return;
+    }
+    
+    const fetchHistory = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/metrics/history?range=${timeRange}`);
+        if (!response.ok) return;
+        const data = await response.json();
+        
+        if (data.cpuData && data.cpuData.length > 0) {
+            setCpuData(data.cpuData);
+            setRamData(data.ramData);
+            setRxData(data.rxData);
+            setTxData(data.txData);
+            if (data.ramTotal) setRamTotal(data.ramTotal);
+        } else {
+            setCpuData(Array(60).fill(0));
+            setRamData(Array(60).fill(0));
+            setRxData(Array(60).fill(0));
+            setTxData(Array(60).fill(0));
+        }
+      } catch (e) {
+        console.error('Failed to fetch history', e);
+      }
+    };
+    
+    fetchHistory();
+    const interval = setInterval(fetchHistory, 10000);
+    return () => clearInterval(interval);
+  }, [timeRange]);
 
   // SVG Path Generator (Smooth Bezier Curve)
   const generateSmoothPath = useCallback((data, maxVal, width, height) => {
@@ -78,6 +134,35 @@ export default function PerformanceMonitorView({ setView }) {
 
   const cpuPath = useMemo(() => generateSmoothPath(cpuData, 100, 800, 160), [cpuData, generateSmoothPath]);
   const ramPath = useMemo(() => generateSmoothPath(ramData, ramTotal, 800, 160), [ramData, ramTotal, generateSmoothPath]);
+  
+  const maxNet = Math.max(100, ...rxData, ...txData);
+  const rxPath = useMemo(() => generateSmoothPath(rxData, maxNet, 400, 80), [rxData, maxNet, generateSmoothPath]);
+  const txPath = useMemo(() => generateSmoothPath(txData, maxNet, 400, 80), [txData, maxNet, generateSmoothPath]);
+
+  // Dynamic Labels
+  const getXAxisLabels = () => {
+    switch (timeRange) {
+      case '1h': return ['-1小时', '当前'];
+      case '1d': return ['-1天', '当前'];
+      case '1w': return ['-1周', '当前'];
+      case '1m': return ['-1月', '当前'];
+      case 'realtime':
+      default: return ['-60s', '0s'];
+    }
+  };
+  const [xStart, xEnd] = getXAxisLabels();
+
+  const getChartTitlePrefix = () => {
+    switch (timeRange) {
+      case '1h': return '1小时历史';
+      case '1d': return '1天历史';
+      case '1w': return '1周历史';
+      case '1m': return '1月历史';
+      case 'realtime':
+      default: return '实时';
+    }
+  };
+  const titlePrefix = getChartTitlePrefix();
 
   return (
     <div className="h-screen bg-[#0f1523] text-slate-200 flex flex-col font-sans overflow-hidden antialiased">
@@ -99,6 +184,31 @@ export default function PerformanceMonitorView({ setView }) {
             <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> 返回主页
           </button>
         </header>
+
+        {/* Toolbar */}
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="flex gap-1 bg-[#111827]/80 p-1 border border-[#1e293b] rounded-lg">
+            {[
+              { id: 'realtime', label: '实时 (60s)' },
+              { id: '1h', label: '1小时' },
+              { id: '1d', label: '1天' },
+              { id: '1w', label: '1周' },
+              { id: '1m', label: '1月' }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setTimeRange(tab.id)}
+                className={`px-4 py-1.5 rounded-md text-[11px] font-[800] transition-colors ${
+                  timeRange === tab.id
+                    ? 'bg-[#3b82f6] text-white shadow-md'
+                    : 'text-[#64748b] hover:bg-[#1e293b] hover:text-slate-200'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Top KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-[24px] shrink-0">
@@ -143,7 +253,7 @@ export default function PerformanceMonitorView({ setView }) {
             
             {/* CPU Chart */}
             <div className="flex-1 bg-[#111827]/80 backdrop-blur-xl border border-[#1e293b] rounded-[1rem] p-[24px] shadow-2xl flex flex-col relative min-h-0">
-              <h2 className="text-sm font-black italic text-slate-300 mb-4 shrink-0">实时 CPU 负载趋势</h2>
+              <h2 className="text-sm font-black italic text-slate-300 mb-4 shrink-0">{titlePrefix} CPU 负载趋势</h2>
               
               <div className="flex-1 relative flex min-h-0">
                 {/* Y Axis */}
@@ -172,14 +282,14 @@ export default function PerformanceMonitorView({ setView }) {
 
               {/* X Axis */}
               <div className="flex justify-between pl-[40px] text-[10px] text-[#64748b] font-mono mt-2 shrink-0 font-bold">
-                <span>-60s</span>
-                <span>0s</span>
+                <span>{xStart}</span>
+                <span>{xEnd}</span>
               </div>
             </div>
 
             {/* RAM Chart */}
             <div className="flex-1 bg-[#111827]/80 backdrop-blur-xl border border-[#1e293b] rounded-[1rem] p-[24px] shadow-2xl flex flex-col relative min-h-0">
-              <h2 className="text-sm font-black italic text-slate-300 mb-4 shrink-0">实时内存 (RAM) 负载趋势</h2>
+              <h2 className="text-sm font-black italic text-slate-300 mb-4 shrink-0">{titlePrefix}内存 (RAM) 负载趋势</h2>
               
               <div className="flex-1 relative flex min-h-0">
                 {/* Y Axis */}
@@ -208,8 +318,8 @@ export default function PerformanceMonitorView({ setView }) {
 
               {/* X Axis */}
               <div className="flex justify-between pl-[40px] text-[10px] text-[#64748b] font-mono mt-2 shrink-0 font-bold">
-                <span>-60s</span>
-                <span>0s</span>
+                <span>{xStart}</span>
+                <span>{xEnd}</span>
               </div>
             </div>
 
@@ -250,21 +360,41 @@ export default function PerformanceMonitorView({ setView }) {
               </div>
             </div>
 
-            {/* Log Stream */}
-            <div className="flex-1 bg-[#111827]/80 backdrop-blur-xl border border-[#1e293b] rounded-[1rem] p-[24px] shadow-2xl flex flex-col min-h-0">
-              <h2 className="text-sm font-black italic text-slate-300 mb-4 flex items-center gap-2 shrink-0">
-                <Terminal size={16} /> 系统日志流 (Tail)
-              </h2>
-              <div className="flex-1 font-mono text-[11px] font-bold text-[#34d399] bg-[#0f1523] p-[16px] rounded-[8px] border border-[#1e293b]/50 overflow-hidden relative break-words leading-[1.6]">
-                <p className="mb-2">[2026-04-14 16:55:02] INFO: Session synced successfully</p>
-                <p className="text-[#94a3b8] mb-2">[2026-04-14 16:55:00] INFO: API Request fast-sessions [200 OK]</p>
-                <p className="text-[#fb923c] mb-2">[2026-04-14 16:54:49] WARN: Memory usage peak detected &gt; 50%</p>
+            {/* Network Stream */}
+            <div className="flex-1 bg-[#111827]/80 backdrop-blur-xl border border-[#1e293b] rounded-[1rem] p-[24px] shadow-2xl flex flex-col min-h-0 relative">
+              <div className="flex justify-between items-center mb-4 shrink-0">
+                <h2 className="text-sm font-black italic text-slate-300 flex items-center gap-2">
+                  <Globe size={16} /> {titlePrefix}网络带宽趋势
+                </h2>
+                <div className="flex items-center gap-3 text-[10px] font-bold">
+                  <span className="flex items-center gap-1 text-[#34d399]"><div className="w-2 h-2 rounded-full bg-[#34d399]"></div>入网: {currentRx.toFixed(1)} Kbps</span>
+                  <span className="flex items-center gap-1 text-[#818cf8]"><div className="w-2 h-2 rounded-full bg-[#818cf8]"></div>出网: {currentTx.toFixed(1)} Kbps</span>
+                </div>
+              </div>
+
+              <div className="flex-1 relative flex min-h-0">
+                {/* Y Axis */}
+                <div className="flex flex-col justify-between text-[10px] text-[#64748b] font-mono pr-2 min-w-[40px] font-bold py-1">
+                  <span>{(maxNet / 1000).toFixed(1)}M</span>
+                  <span>0</span>
+                </div>
                 
-                {/* Fake pulsing log */}
-                {Math.random() > 0.5 && (
-                  <p className="animate-pulse">[2026-04-14 16:55:xx] DEBUG: WS frame heartbeat req sent...</p>
-                )}
-                <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#0f1523] to-transparent pointer-events-none"></div>
+                {/* Chart Area */}
+                <div className="flex-1 relative">
+                  <svg className="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 80">
+                    <path d={`${rxPath} L 400 80 L 0 80 Z`} fill="rgba(52, 211, 153, 0.1)" />
+                    <path d={rxPath} fill="none" stroke="#34d399" strokeWidth="2" strokeLinecap="round" />
+                    
+                    <path d={`${txPath} L 400 80 L 0 80 Z`} fill="rgba(129, 140, 248, 0.1)" />
+                    <path d={txPath} fill="none" stroke="#818cf8" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* X Axis */}
+              <div className="flex justify-between pl-[40px] text-[10px] text-[#64748b] font-mono mt-2 shrink-0 font-bold">
+                <span>{xStart}</span>
+                <span>{xEnd}</span>
               </div>
             </div>
             

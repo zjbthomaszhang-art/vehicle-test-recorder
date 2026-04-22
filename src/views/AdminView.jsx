@@ -8,6 +8,7 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCat, setFilterCat] = useState('');
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -70,6 +71,7 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
     fetch(`${API_BASE}/cases/${id}`, { method: 'DELETE' })
       .then(() => {
          setCases(cases.filter(c => c.id !== id));
+         setDeleteConfirmId(null);
          if (typeof setToast === 'function') setToast({ message: '删除成功', type: 'success' });
       });
   };
@@ -276,7 +278,7 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
                     <button onClick={() => handleEdit(c)} className="p-2 -mr-2 text-[#475569] hover:text-white transition-colors">
                        <Edit3 size={18} />
                     </button>
-                    <button onClick={() => handleDelete(c.id)} className="p-2 -mr-2 text-[#ef4444] hover:text-red-400 transition-colors">
+                    <button onClick={() => setDeleteConfirmId(c.id)} className="p-2 -mr-2 text-[#ef4444] hover:text-red-400 transition-colors">
                        <X size={20} />
                     </button>
                  </div>
@@ -286,6 +288,32 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
       </main>
 
       <MobileNavigator currentView="admin" setView={setView} />
+
+      {/* Custom Confirm Dialog for Deletion */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000080] backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-[#121826] border border-[#1e293b] rounded-[16px] p-[20px] w-full max-w-[320px] shadow-2xl flex flex-col gap-[16px]">
+            <div className="flex flex-col gap-[8px]">
+              <span className="text-[18px] font-[900] text-white">确认删除案例？</span>
+              <span className="text-[13px] font-[500] text-[#94a3b8] leading-snug">此操作不可恢复。案例的删除可能会影响相关历史执行记录的数据关联。</span>
+            </div>
+            <div className="flex justify-end gap-[12px] mt-[8px]">
+              <button 
+                onClick={() => setDeleteConfirmId(null)}
+                className="px-[16px] py-[8px] rounded-[10px] bg-[#1e293b] hover:bg-[#334155] text-[13px] font-[800] text-[#cbd5e1] transition-colors"
+              >
+                取消
+              </button>
+              <button 
+                onClick={() => handleDelete(deleteConfirmId)}
+                className="px-[16px] py-[8px] rounded-[10px] bg-[#ef4444] hover:bg-red-500 text-[13px] font-[900] text-white shadow-[0_0_10px_rgba(239,68,68,0.3)] transition-colors"
+              >
+                确认删除
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }

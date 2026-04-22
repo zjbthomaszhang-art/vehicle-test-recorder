@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import {
-  Camera, Bug, ChevronLeft, ChevronRight, Clock, CheckCircle2, XCircle,
+  Camera, Bug, ChevronLeft, ChevronRight, ChevronDown, Clock, CheckCircle2, XCircle,
   Menu, X, MinusCircle, Info, Database, FileText, Home, FastForward, BadgeCheck,
   Send, Link
 } from 'lucide-react';
@@ -22,6 +22,35 @@ export default function TestView({
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showBugList, setShowBugList] = useState(false);
+  
+  const allCategories = React.useMemo(() => {
+    const cats = new Set();
+    cases.forEach(c => {
+      let cat = c.category || '未分类';
+      const funcCat = c.function_category || c.functionCategory || '';
+      if (cat === '手机应用' || cat === '手机APP') {
+        if (funcCat.match(/iOS/i)) cat = '手机应用-iOS';
+        else if (funcCat.match(/Android|安卓/i)) cat = '手机应用-Android';
+      }
+      cats.add(cat);
+    });
+    return Array.from(cats);
+  }, [cases]);
+
+  const [hiddenCategories, setHiddenCategories] = useState(new Set());
+  const toggleFilter = (cat) => {
+    setHiddenCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(cat)) {
+        next.delete(cat);
+      } else {
+        if (allCategories.length - next.size <= 1) return prev;
+        next.add(cat);
+      }
+      return next;
+    });
+  };
+
   const activeCaseRef = useRef(null);
 
   useEffect(() => {
@@ -35,6 +64,31 @@ export default function TestView({
   const [touchEnd, setTouchEnd] = useState(null);
   const minSwipeDistance = 70;
 
+  const validateTimeFields = () => {
+    if (activeCase.type === 'query') {
+      if (!currentData.appFeedbackTime) {
+        setToast({ message: '请先记录 App 反馈时间', type: 'error' });
+        return false;
+      }
+    } else if (activeCase.type === 'timing') {
+      if (!activeCase.hideCarExec && !currentData.carExecTime) {
+        setToast({ message: '请先记录车辆执行时间', type: 'error' });
+        return false;
+      }
+      if (!currentData.appFeedbackTime) {
+        setToast({ message: '请先记录 App 反馈时间', type: 'error' });
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleNextClick = () => {
+    if (validateTimeFields()) {
+      nextCase();
+    }
+  };
+
   const handleTouchStart = (e) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
@@ -43,7 +97,7 @@ export default function TestView({
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
-    if (distance > minSwipeDistance) nextCase();
+    if (distance > minSwipeDistance) handleNextClick();
     if (distance < -minSwipeDistance) prevCase();
   };
 
@@ -253,23 +307,23 @@ export default function TestView({
             <Bug size={24} className="text-[#ef4444]" />
             <span className="text-[11px] font-[800] text-[#ef4444] whitespace-nowrap leading-none">提报问题</span>
           </button>
+
+          <button onClick={prevCase} className="flex flex-col items-center justify-center w-[72px] gap-[6px] transition-all">
+            <ChevronLeft size={24} className="text-[#64748b]" />
+            <span className="text-[11px] font-[800] text-[#64748b] whitespace-nowrap leading-none">上一个</span>
+          </button>
           
           {currentCaseIndex === cases.length - 1 ? (
-            <button onClick={() => setView('report')} className="flex flex-col items-center justify-center w-[64px] gap-[6px] transition-all">
+            <button onClick={handleNextClick} className="flex flex-col items-center justify-center w-[64px] gap-[6px] transition-all">
               <CheckCircle2 size={24} className="text-[#10b981]" />
               <span className="text-[11px] font-[800] text-[#10b981] whitespace-nowrap leading-none">完成</span>
             </button>
           ) : (
-            <button onClick={nextCase} className="flex flex-col items-center justify-center w-[64px] gap-[6px] transition-all">
+            <button onClick={handleNextClick} className="flex flex-col items-center justify-center w-[64px] gap-[6px] transition-all">
               <ChevronRight size={24} className="text-[#2563eb]" />
               <span className="text-[11px] font-[800] text-[#2563eb] whitespace-nowrap leading-none">下一个</span>
             </button>
           )}
-          
-          <button onClick={() => setCurrentCaseIndex(cases.length - 1)} className="flex flex-col items-center justify-center w-[72px] gap-[6px] transition-all">
-            <FastForward size={24} className="text-[#64748b]" />
-            <span className="text-[11px] font-[800] text-[#64748b] whitespace-nowrap leading-none">最后一个</span>
-          </button>
         </div>
       </footer>
 
@@ -300,36 +354,82 @@ export default function TestView({
               </button>
             </div>
 
+            {/* Filter Tags */}
+            <div className="px-[16px] pt-[16px] pb-[8px] flex gap-[8px] overflow-x-auto shrink-0 scrollbar-hide">
+              {allCategories.map(cat => {
+                const isActive = !hiddenCategories.has(cat);
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => toggleFilter(cat)}
+                    className={`px-[12px] py-[6px] rounded-[12px] text-[11px] font-[800] whitespace-nowrap transition-all ${isActive ? 'bg-[#3b82f6] text-white border border-[#2563eb]' : 'bg-transparent border border-[#1e293b] text-[#64748b]'}`}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
+
             {/* Case list */}
             <div className="flex-1 overflow-y-auto px-[16px] py-[12px] space-y-[8px] custom-scrollbar">
-              {cases.map((c, i) => (
-                <div
-                  key={c.id}
-                  ref={i === currentCaseIndex ? activeCaseRef : null}
-                  onClick={() => { setCurrentCaseIndex(i); setIsMenuOpen(false); }}
-                  className={`px-[16px] py-[12px] rounded-[16px] border transition-all cursor-pointer flex items-center gap-[12px] active:scale-95 ${i === currentCaseIndex ? 'bg-[#2563eb] border-[#3b82f6]' : 'bg-transparent border-[#1e293b] hover:border-[#334155]'}`}
-                >
-                  {/* Case ID badge */}
-                  <div className={`w-[32px] h-[32px] rounded-[10px] flex items-center justify-center font-[900] text-[12px] shrink-0 ${i === currentCaseIndex ? 'bg-white/20 text-white' : 'bg-[#1e293b] text-[#94a3b8]'}`}>
-                    {c.id}
+              {cases.map((c, i) => {
+                let cat = c.category || '未分类';
+                const funcCat = c.function_category || c.functionCategory || '';
+                
+                if (cat === '手机应用' || cat === '手机APP') {
+                  if (funcCat.match(/iOS/i)) {
+                    cat = '手机应用-iOS';
+                  } else if (funcCat.match(/Android|安卓/i)) {
+                    cat = '手机应用-Android';
+                  }
+                }
+                
+                if (hiddenCategories.has(cat)) return null;
+                
+                let tagBg = 'bg-[#1e3a8a]';
+                let tagText = 'text-[#60a5fa]';
+                
+                if (funcCat.includes('蓝键')) {
+                  tagBg = 'bg-blue-500/20'; tagText = 'text-blue-400';
+                } else if (funcCat.includes('红键')) {
+                  tagBg = 'bg-red-500/20'; tagText = 'text-red-400';
+                } else if (funcCat.includes('白键')) {
+                  tagBg = 'bg-slate-200/20'; tagText = 'text-slate-200';
+                } else if (funcCat.includes('WiFi')) {
+                  tagBg = 'bg-cyan-500/20'; tagText = 'text-cyan-400';
+                } else if (funcCat.match(/iOS/i)) {
+                  tagBg = 'bg-yellow-500/20'; tagText = 'text-yellow-400';
+                } else if (funcCat.match(/Android|安卓/i)) {
+                  tagBg = 'bg-emerald-500/20'; tagText = 'text-emerald-400';
+                } else if (funcCat.includes('APP') || funcCat.includes('手机')) {
+                  tagBg = 'bg-emerald-500/20'; tagText = 'text-emerald-400';
+                }
+
+                return (
+                  <div
+                    key={c.id}
+                    ref={i === currentCaseIndex ? activeCaseRef : null}
+                    onClick={() => { setCurrentCaseIndex(i); setIsMenuOpen(false); }}
+                    className={`px-[16px] py-[12px] rounded-[16px] border transition-all cursor-pointer flex items-center gap-[12px] active:scale-95 ${i === currentCaseIndex ? 'bg-[#2563eb] border-[#3b82f6]' : 'bg-transparent border-[#1e293b] hover:border-[#334155]'}`}
+                  >
+                    <div className={`w-[32px] h-[32px] rounded-[10px] flex items-center justify-center font-[900] text-[12px] shrink-0 ${i === currentCaseIndex ? 'bg-white/20 text-white' : 'bg-[#1e293b] text-[#94a3b8]'}`}>
+                      {c.id}
+                    </div>
+                    <div className="flex-1 min-w-0 flex flex-col gap-[4px]">
+                      {funcCat && (
+                        <span className={`text-[9px] font-[800] px-[6px] py-[2px] rounded-[4px] self-start leading-none ${i === currentCaseIndex ? 'bg-white/20 text-white' : `${tagBg} ${tagText}`}`}>
+                          {funcCat}
+                        </span>
+                      )}
+                      <span className={`text-[13px] font-[900] leading-tight truncate ${i === currentCaseIndex ? 'text-white' : 'text-[#f8fafc]'}`}>{c.function}</span>
+                      <span className={`text-[11px] font-[500] truncate leading-none ${i === currentCaseIndex ? 'text-white/70' : 'text-[#64748b]'}`}>{c.content || c.expected || ''}</span>
+                    </div>
+                    {caseResults[i]?.result === 'Pass' && <CheckCircle2 size={16} className="text-[#10b981] shrink-0" />}
+                    {caseResults[i]?.result === 'Fail' && <XCircle size={16} className="text-[#ef4444] shrink-0" />}
+                    {caseResults[i]?.result === 'N/A' && <div className="w-[8px] h-[8px] rounded-full bg-[#64748b] shrink-0" />}
                   </div>
-                  {/* Text */}
-                  <div className="flex-1 min-w-0 flex flex-col gap-[4px]">
-                    {/* function_category tag */}
-                    {(c.function_category || c.functionCategory) && (
-                      <span className={`text-[9px] font-[800] px-[6px] py-[2px] rounded-[4px] self-start leading-none ${i === currentCaseIndex ? 'bg-white/20 text-white' : 'bg-[#1e3a8a] text-[#60a5fa]'}`}>
-                        {c.function_category || c.functionCategory}
-                      </span>
-                    )}
-                    <span className={`text-[13px] font-[900] leading-tight truncate ${i === currentCaseIndex ? 'text-white' : 'text-[#f8fafc]'}`}>{c.function}</span>
-                    <span className={`text-[11px] font-[500] truncate leading-none ${i === currentCaseIndex ? 'text-white/70' : 'text-[#64748b]'}`}>{c.content || c.expected || ''}</span>
-                  </div>
-                  {/* Result indicator */}
-                  {caseResults[i]?.result === 'Pass' && <CheckCircle2 size={16} className="text-[#10b981] shrink-0" />}
-                  {caseResults[i]?.result === 'Fail' && <XCircle size={16} className="text-[#ef4444] shrink-0" />}
-                  {caseResults[i]?.result === 'N/A' && <div className="w-[8px] h-[8px] rounded-full bg-[#64748b] shrink-0" />}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

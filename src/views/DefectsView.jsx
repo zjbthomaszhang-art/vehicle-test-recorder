@@ -23,6 +23,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
 
   // Responsive UI state
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [expandedBugId, setExpandedBugId] = useState(null);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -55,6 +56,11 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
     } catch (err) {
       console.error('Failed to update status', err);
     }
+  };
+
+  const handleSelectStatus = (bugId, newStatus) => {
+    handleStatusChange(bugId, newStatus);
+    setExpandedBugId(null);
   };
 
   const filteredBugs = bugs.filter(b => {
@@ -219,14 +225,29 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                     {/* Footer: Action/Status */}
                     <div className="px-[16px] py-[12px] bg-[#1e293b]/20 border-t border-[#1e293b] flex justify-between items-center rounded-b-[16px]">
                        <span className="text-[11px] font-[800] text-[#64748b]">当前处理状态</span>
-                       <div className={`rounded-[6px] border relative ${currentStatus.bg} ${currentStatus.border}`}>
-                          <CustomSelect 
-                            value={bug.status || 'Plan'}
-                            onChange={(val) => handleStatusChange(bug.id, val)}
-                            options={STAGES.map(s => ({value:s.id,label:s.label}))}
-                            className={`w-[100px] h-[30px] px-[8px]`}
-                            textColor={`${currentStatus.color} font-[900]`}
-                          />
+                       <div className="relative flex items-center justify-end h-[30px]">
+                          <div 
+                            className={`absolute right-full flex items-center overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${expandedBugId === bug.id ? 'max-w-[300px] opacity-100 pr-[8px]' : 'max-w-0 opacity-0 pr-0'} z-10`}
+                          >
+                            <div className="flex items-center gap-[6px] whitespace-nowrap bg-[#0f1523] rounded-[6px] shadow-[0_0_8px_8px_#0f1523]">
+                              {STAGES.filter(s => s.id !== (bug.status || 'Plan')).map(s => (
+                                 <button
+                                    key={s.id}
+                                    onClick={(e) => { e.stopPropagation(); handleSelectStatus(bug.id, s.id); }}
+                                    className={`px-[10px] h-[30px] rounded-[6px] border ${s.bg} ${s.border} ${s.color} font-[800] text-[11px] active:scale-95 transition-all`}
+                                 >
+                                    {s.label}
+                                 </button>
+                              ))}
+                            </div>
+                          </div>
+                          <button 
+                              onClick={(e) => { e.stopPropagation(); setExpandedBugId(prev => prev === bug.id ? null : bug.id); }}
+                              className={`flex items-center justify-center gap-[4px] px-[12px] h-[30px] rounded-[6px] border transition-all active:scale-95 ${currentStatus.bg} ${currentStatus.border} ${currentStatus.color} font-[900] text-[12px] relative z-20 bg-[#0f1523]`}
+                          >
+                              {currentStatus.label}
+                              <ChevronDown size={14} className={`transition-transform duration-300 ${expandedBugId === bug.id ? 'rotate-90' : ''}`} />
+                          </button>
                        </div>
                     </div>
 
@@ -323,10 +344,10 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
         {/* PC Table */}
         <div className="bg-[#111827] border border-[#1e293b] rounded-[16px] flex w-full overflow-hidden flex-1 min-h-[300px]">
            <div className="flex-1 overflow-x-auto flex flex-col custom-scrollbar">
-             <div className="flex flex-col min-w-[1100px] w-full flex-1 h-full"> 
+             <div className="flex flex-col min-w-[1400px] w-full flex-1 h-full"> 
                <div 
-                 className="grid bg-[#0f172a] px-[24px] py-[16px] text-[#94a3b8] text-[11px] font-[800] border-b border-[#1e293b] shrink-0"
-                 style={{ gridTemplateColumns: '50px 100px 80px 145px 70px 60px 130px 90px minmax(120px, 1fr) minmax(120px, 1.5fr) 100px', gap: '12px' }}
+                 className="grid bg-[#0f172a] px-[24px] py-[16px] text-[#94a3b8] text-[12px] font-[800] border-b border-[#1e293b] shrink-0"
+                 style={{ gridTemplateColumns: '60px 100px 120px 150px 80px 80px 140px 100px minmax(150px, 1fr) minmax(200px, 2fr) 110px', gap: '16px' }}
                >
                  <div>ID</div>
                  <div>车型年款</div>
@@ -356,7 +377,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                         <div 
                           key={bug.id || idx} 
                           className="grid px-[24px] py-[14px] items-center hover:bg-[#1e293b]/50 border-b border-[#1e293b] transition-colors"
-                          style={{ gridTemplateColumns: '50px 100px 80px 145px 70px 60px 130px 90px minmax(120px, 1fr) minmax(120px, 1.5fr) 100px', gap: '12px' }}
+                          style={{ gridTemplateColumns: '60px 100px 120px 150px 80px 80px 140px 100px minmax(150px, 1fr) minmax(200px, 2fr) 110px', gap: '16px' }}
                         >
                           <div className="text-[12px] font-[800] bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent truncate">#{bug.id || `BUG-${idx + 1024}`}</div>
                           <div className="text-[12px] text-[#cbd5e1] truncate">{session ? `MY${session.model_year} ${session.vehicle_model}` : '-'}</div>
@@ -368,14 +389,29 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                           <div className="text-[12px] text-[#cbd5e1] truncate">{caseDef?.function_category || caseDef?.category || '-'}</div>
                           <div className="text-[13px] font-[600] text-[#f8fafc] truncate">{caseDef?.function || '-'}</div>
                           <div className="text-[12px] text-[#94a3b8] italic truncate">"{bug.description || ''}"</div>
-                          <div className={`relative inline-flex items-center justify-center min-w-[90px] rounded-[6px] border border-solid ${currentStatus.bg} ${currentStatus.border}`}>
-                            <CustomSelect 
-                              value={bug.status || 'Plan'}
-                              onChange={(val) => handleStatusChange(bug.id, val)}
-                              options={STAGES.map(s => ({value:s.id,label:s.label}))}
-                              className={`w-full h-[26px] px-[8px]`}
-                              textColor={`${currentStatus.color} font-[800]`}
-                            />
+                          <div className={`relative flex items-center justify-end h-[26px] w-[90px]`}>
+                             <div 
+                               className={`absolute right-full flex items-center overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${expandedBugId === bug.id ? 'max-w-[300px] opacity-100 pr-[8px]' : 'max-w-0 opacity-0 pr-0'} z-10`}
+                             >
+                               <div className="flex items-center gap-[6px] whitespace-nowrap bg-[#0f1523] rounded-[6px] shadow-[0_0_8px_8px_#0f1523]">
+                                 {STAGES.filter(s => s.id !== (bug.status || 'Plan')).map(s => (
+                                    <button
+                                       key={s.id}
+                                       onClick={(e) => { e.stopPropagation(); handleSelectStatus(bug.id, s.id); }}
+                                       className={`px-[10px] h-[26px] rounded-[6px] border ${s.bg} ${s.border} ${s.color} font-[800] text-[11px] active:scale-95 transition-all`}
+                                    >
+                                       {s.label}
+                                    </button>
+                                 ))}
+                               </div>
+                             </div>
+                             <button 
+                                 onClick={(e) => { e.stopPropagation(); setExpandedBugId(prev => prev === bug.id ? null : bug.id); }}
+                                 className={`flex items-center justify-center gap-[4px] w-[90px] h-[26px] rounded-[6px] border transition-all active:scale-95 ${currentStatus.bg} ${currentStatus.border} ${currentStatus.color} font-[900] text-[12px] relative z-20 bg-[#0f1523] hover:brightness-125`}
+                             >
+                                 {currentStatus.label}
+                                 <ChevronDown size={14} className={`transition-transform duration-300 ${expandedBugId === bug.id ? 'rotate-90' : ''}`} />
+                             </button>
                           </div>
                         </div>
                       );

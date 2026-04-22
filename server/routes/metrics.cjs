@@ -1,11 +1,19 @@
 const express = require('express');
 const os = require('os');
 const { exec } = require('child_process');
+const fs = require('fs');
+const { db } = require('../db.cjs');
+const { getBeijingTime } = require('../utils.cjs');
 
 const router = express.Router();
 
 let prevCpus = os.cpus();
 let currentCpuPercent = 0;
+
+let prevRx = 0;
+let prevTx = 0;
+let currentRxKbps = 0;
+let currentTxKbps = 0;
 
 // 周期性计算 CPU 使用率
 setInterval(() => {
@@ -40,6 +48,39 @@ setInterval(() => {
     }
     
     prevCpus = cpus;
+
+    // 计算网络带宽 (Linux)
+    if (os.platform() === 'linux') {
+        try {
+            const netDev = fs.readFileSync('/proc/net/dev', 'utf8');
+            const lines = netDev.split('\n');
+            let totalRx = 0;
+            let totalTx = 0;
+            for (let i = 2; i < lines.length; i++) {
+                const match = lines[i].match(/^\s*([^:]+):\s*(.*)$/);
+                if (match) {
+                    const name = match[1].trim();
+                    if (name === 'lo' || name.startsWith('veth') || name.startsWith('docker') || name.startsWith('br-')) continue;
+                    
+                    const stats = match[2].trim().split(/\s+/);
+                    totalRx += parseInt(stats[0], 10) || 0;
+                    totalTx += parseInt(stats[8], 10) || 0;
+                }
+            }
+            if (prevRx > 0 && prevTx > 0) {
+                currentRxKbps = (totalRx - prevRx) * 8 / 1000;
+                currentTxKbps = (totalTx - prevTx) * 8 / 1000;
+            }
+            prevRx = totalRx;
+            prevTx = totalTx;
+        } catch (e) {
+            // ignore
+        }
+    } else {
+        // Windows/Mac 环境下模拟网速变化
+        currentRxKbps = 10 + Math.random() * 50;
+        currentTxKbps = 5 + Math.random() * 20;
+    }
 }, 1000);
 
 let diskCache = { total: 100, used: 28.5 }; // 默认回退数据
@@ -73,6 +114,102 @@ function fetchDiskUsage() {
     });
 }
 
+// ============================================
+// TSDB Simulator: Background Recording & Cleanup
+// ============================================
+setInterval(async () => {
+    try {
+        const totalMem = os.totalmem() / (1024 * 1024 * 1024);
+        const freeMem = os.freemem() / (1024 * 1024 * 1024);
+        const usedMem = totalMem - freeMem;
+        
+        await db.query(
+            "INSERT INTO metrics_history (timestamp, cpu_percent, ram_used_gb, ram_total_gb, rx_kbps, tx_kbps) VALUES (?, ?, ?, ?, ?, ?)",
+            [getBeijingTime(), currentCpuPercent, usedMem, totalMem, currentRxKbps, currentTxKbps]
+        );
+    } catch (e) {
+        console.error('TSDB Recording Error:', e);
+    }
+}, 10000); // Record every 10 seconds
+
+// Cleanup job: run every hour, delete records older than 30 days
+setInterval(async () => {
+    try {
+        // MySQL DATE_SUB approach to clean old records
+        await db.query("DELETE FROM metrics_history WHERE timestamp < DATE_SUB(NOW(), INTERVAL 30 DAY)");
+    } catch (e) {
+        console.error('TSDB Cleanup Error:', e);
+    }
+}, 3600000);
+
+// ============================================
+// API Endpoints
+// ============================================
+
+router.get('/history', async (req, res) => {
+    try {
+        const range = req.query.range || '1h';
+        let query = '';
+        let params = [];
+        
+        // Use DATE_SUB based on the range to fetch data, and GROUP BY to downsample.
+        // We use UNIX_TIMESTAMP(timestamp) to do the grouping easily.
+        if (range === '1h') {
+            // Raw 10s data for the last 1 hour
+            query = `SELECT timestamp, cpu_percent as cpu, ram_used_gb as ram_used, ram_total_gb as ram_total, rx_kbps as rx, tx_kbps as tx 
+                     FROM metrics_history 
+                     WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 1 HOUR) 
+                     ORDER BY timestamp ASC`;
+        } else if (range === '1d') {
+            // Last 1 day, average per minute (DIV 60)
+            query = `SELECT MIN(timestamp) as timestamp, 
+                            AVG(cpu_percent) as cpu, AVG(ram_used_gb) as ram_used, AVG(ram_total_gb) as ram_total, 
+                            AVG(rx_kbps) as rx, AVG(tx_kbps) as tx 
+                     FROM metrics_history 
+                     WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 1 DAY) 
+                     GROUP BY UNIX_TIMESTAMP(timestamp) DIV 60 
+                     ORDER BY timestamp ASC`;
+        } else if (range === '1w') {
+            // Last 1 week, average per 10 minutes (DIV 600)
+            query = `SELECT MIN(timestamp) as timestamp, 
+                            AVG(cpu_percent) as cpu, AVG(ram_used_gb) as ram_used, AVG(ram_total_gb) as ram_total, 
+                            AVG(rx_kbps) as rx, AVG(tx_kbps) as tx 
+                     FROM metrics_history 
+                     WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 1 WEEK) 
+                     GROUP BY UNIX_TIMESTAMP(timestamp) DIV 600 
+                     ORDER BY timestamp ASC`;
+        } else if (range === '1m') {
+            // Last 1 month, average per 1 hour (DIV 3600)
+            query = `SELECT MIN(timestamp) as timestamp, 
+                            AVG(cpu_percent) as cpu, AVG(ram_used_gb) as ram_used, AVG(ram_total_gb) as ram_total, 
+                            AVG(rx_kbps) as rx, AVG(tx_kbps) as tx 
+                     FROM metrics_history 
+                     WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 1 MONTH) 
+                     GROUP BY UNIX_TIMESTAMP(timestamp) DIV 3600 
+                     ORDER BY timestamp ASC`;
+        } else {
+            return res.status(400).json({ error: 'Invalid range' });
+        }
+        
+        const [rows] = await db.query(query);
+        
+        // Format to arrays that frontend expects
+        const history = {
+            cpuData: rows.map(r => Math.max(0, r.cpu || 0)),
+            ramData: rows.map(r => Math.max(0, r.ram_used || 0)),
+            rxData: rows.map(r => Math.max(0, r.rx || 0)),
+            txData: rows.map(r => Math.max(0, r.tx || 0)),
+            timestamps: rows.map(r => r.timestamp),
+            ramTotal: rows.length > 0 ? rows[rows.length-1].ram_total : 8
+        };
+        
+        res.json(history);
+    } catch (e) {
+        console.error('Metrics History Error:', e);
+        res.status(500).json({ error: 'Failed to fetch metrics history' });
+    }
+});
+
 router.get('/', async (req, res) => {
     try {
         const totalMem = os.totalmem() / (1024 * 1024 * 1024);
@@ -83,6 +220,10 @@ router.get('/', async (req, res) => {
         
         res.json({
             cpu: currentCpuPercent,
+            network: {
+                rxKbps: currentRxKbps,
+                txKbps: currentTxKbps
+            },
             ram: {
                 total: totalMem,
                 used: usedMem

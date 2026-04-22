@@ -90,6 +90,20 @@ async function initializeDatabase() {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         `);
 
+        // Metrics History Table (TSDB Simulator)
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS metrics_history (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                timestamp DATETIME(3),
+                cpu_percent FLOAT,
+                ram_used_gb FLOAT,
+                ram_total_gb FLOAT,
+                rx_kbps FLOAT,
+                tx_kbps FLOAT,
+                INDEX (timestamp)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        `);
+
         // PDCA Columns Auto-migration
         try {
             const [cols] = await db.query("SHOW COLUMNS FROM bugs LIKE 'status'");

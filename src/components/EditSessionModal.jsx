@@ -28,6 +28,7 @@ const inputCls = 'bg-transparent text-right outline-none text-slate-200 font-sem
 const selectCls = 'bg-transparent text-right outline-none text-slate-200 font-semibold text-[15px] w-1/2 appearance-none cursor-pointer';
 
 export default function EditSessionModal({ session, onClose, onSave, onDelete }) {
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [formData, setFormData] = useState({
     vehicleModel: session.vehicle_model || '',
     model_year:   session.model_year || '',
@@ -273,7 +274,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
           </button>
 
           <button
-            onClick={() => onDelete && onDelete(session.id)}
+            onClick={() => setDeleteConfirm(true)}
             className="flex flex-col items-center justify-center gap-[4px] w-[72px] h-[56px] rounded-[16px] text-[#ef4444] hover:bg-[#ef4444]/10 transition-colors shrink-0"
           >
             <Trash2 size={16} />
@@ -282,6 +283,35 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
         </div>
 
         <input type="file" ref={photoInputRef} className="hidden" accept="image/*" onChange={handlePhotoUpload} />
+
+        {/* Custom Confirm Dialog for Deletion */}
+        {deleteConfirm && (
+          <div className="fixed inset-0 z-[400] flex items-center justify-center bg-[#00000080] backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-[#121826] border border-[#1e293b] rounded-[16px] p-[20px] w-full max-w-[320px] shadow-2xl flex flex-col gap-[16px]">
+              <div className="flex flex-col gap-[8px]">
+                <span className="text-[18px] font-[900] text-white">确认删除测试记录？</span>
+                <span className="text-[13px] font-[500] text-[#94a3b8] leading-snug">此操作不可恢复。删除该记录后，与之关联的所有测试数据都将被永久清除。</span>
+              </div>
+              <div className="flex justify-end gap-[12px] mt-[8px]">
+                <button 
+                  onClick={() => setDeleteConfirm(false)}
+                  className="px-[16px] py-[8px] rounded-[10px] bg-[#1e293b] hover:bg-[#334155] text-[13px] font-[800] text-[#cbd5e1] transition-colors"
+                >
+                  取消
+                </button>
+                <button 
+                  onClick={() => {
+                    setDeleteConfirm(false);
+                    onDelete && onDelete(session.id);
+                  }}
+                  className="px-[16px] py-[8px] rounded-[10px] bg-[#ef4444] hover:bg-red-500 text-[13px] font-[900] text-white shadow-[0_0_10px_rgba(239,68,68,0.3)] transition-colors"
+                >
+                  确认删除
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <style>{`
           .edit-modal-scroll::-webkit-scrollbar { width: 4px; }
