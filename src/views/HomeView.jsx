@@ -34,7 +34,7 @@ export default function HomeView({
           <div className="relative inline-block pb-[4px] w-fit overflow-hidden">
             <h1 className="text-3xl sm:text-4xl font-black italic tracking-tighter uppercase whitespace-nowrap relative z-10 px-[4px]">
               {['V','E','H','I','C','L','E'].map((char, i) => (
-                <span key={`v-${i}`} className="animate-cyber-letter" style={{ animationDelay: `${i * 0.05}s` }}>{char}</span>
+                <span key={`v-${i}`} className="animate-cyber-letter text-slate-900 dark:text-white" style={{ animationDelay: `${i * 0.05}s` }}>{char}</span>
               ))}
               <span className="inline-block relative pr-2 pb-1 top-[2px] text-[1.25em] ml-[0.3em]">
                 {['L','A','B'].map((char, i) => (

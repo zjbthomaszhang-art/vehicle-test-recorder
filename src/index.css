@@ -4,19 +4,27 @@
 
 @layer base {
   body {
-    @apply text-slate-200 overflow-x-hidden antialiased;
-    background-color: #0f1523;
+    @apply text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-[#0f1523] overflow-x-hidden antialiased;
   }
 
   /* Inputs sizes are managed by Tailwind utility classes to match titles */
 }
 
 @layer utilities {
+  :root {
+    --cyber-shadow: rgba(59, 130, 246, 0.2);
+    --cyber-shadow-strong: rgba(59, 130, 246, 0.4);
+  }
+  .dark {
+    --cyber-shadow: rgba(56, 189, 248, 0.4);
+    --cyber-shadow-strong: #38bdf8;
+  }
+
   /* Cyberpunk Text Glitch & Reveal */
   @keyframes cyber-reveal {
-    0% { opacity: 0; transform: scaleY(0.1) scaleX(2) translateY(5px); filter: blur(8px) drop-shadow(0 0 20px #38bdf8); }
-    30% { opacity: 1; transform: scaleY(1.2) scaleX(0.9) translateY(-2px); filter: blur(2px) drop-shadow(0 0 10px #38bdf8); }
-    100% { opacity: 1; transform: scaleY(1) scaleX(1) translateY(0); filter: blur(0px) drop-shadow(0 0 4px rgba(56, 189, 248, 0.4)); }
+    0% { opacity: 0; transform: scaleY(0.1) scaleX(2) translateY(5px); filter: blur(8px) drop-shadow(0 0 20px var(--cyber-shadow-strong)); }
+    30% { opacity: 1; transform: scaleY(1.2) scaleX(0.9) translateY(-2px); filter: blur(2px) drop-shadow(0 0 10px var(--cyber-shadow-strong)); }
+    100% { opacity: 1; transform: scaleY(1) scaleX(1) translateY(0); filter: blur(0px) drop-shadow(0 0 4px var(--cyber-shadow)); }
   }
 
   .animate-cyber-letter {
