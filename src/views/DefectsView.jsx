@@ -90,7 +90,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
   });
 
   const renderMobile = () => (
-    <div className="min-h-screen bg-[#0f1523] text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0f1523] text-slate-800 dark:text-slate-100 flex flex-col font-sans">
       <header className="px-[24px] pt-[44px] pb-[8px] flex justify-between items-center w-full z-10 shrink-0">
         <div className="flex items-center gap-[12px]">
           <span className="text-[26px] font-[900] text-[#f8fafc] leading-none tracking-tight">缺陷管理</span>
@@ -101,22 +101,22 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
         {/* KPIs Grid */}
         <div className="flex flex-col gap-[12px]">
           <div className="flex gap-[12px] w-full">
-            <div className="flex-1 bg-[#111827] rounded-[12px] border border-[#1e293b] p-[16px] flex flex-col gap-[4px]">
-               <span className="text-[11px] font-[600] text-[#94a3b8]">总计缺陷</span>
+            <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[12px] border border-slate-200 dark:border-[#1e293b] p-[16px] flex flex-col gap-[4px]">
+               <span className="text-[11px] font-[600] text-slate-500 dark:text-[#94a3b8]">总计缺陷</span>
                <span className="text-[24px] font-[800] text-[#f8fafc] leading-none">{totalDefects}</span>
             </div>
-            <div className="flex-1 bg-[#111827] rounded-[12px] border border-[#1e293b] p-[16px] flex flex-col gap-[4px]">
-               <span className="text-[11px] font-[600] text-[#94a3b8]">未解决</span>
+            <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[12px] border border-slate-200 dark:border-[#1e293b] p-[16px] flex flex-col gap-[4px]">
+               <span className="text-[11px] font-[600] text-slate-500 dark:text-[#94a3b8]">未解决</span>
                <span className="text-[24px] font-[800] text-[#ef4444] leading-none">{unresolvedCount}</span>
             </div>
           </div>
           <div className="flex gap-[12px] w-full">
-            <div className="flex-1 bg-[#111827] rounded-[12px] border border-[#1e293b] p-[16px] flex flex-col gap-[4px]">
-               <span className="text-[11px] font-[600] text-[#94a3b8]">处理中</span>
+            <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[12px] border border-slate-200 dark:border-[#1e293b] p-[16px] flex flex-col gap-[4px]">
+               <span className="text-[11px] font-[600] text-slate-500 dark:text-[#94a3b8]">处理中</span>
                <span className="text-[24px] font-[800] text-[#eab308] leading-none">{inProgressCount}</span>
             </div>
-            <div className="flex-1 bg-[#111827] rounded-[12px] border border-[#1e293b] p-[16px] flex flex-col gap-[4px]">
-               <span className="text-[11px] font-[600] text-[#94a3b8]">已解决</span>
+            <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[12px] border border-slate-200 dark:border-[#1e293b] p-[16px] flex flex-col gap-[4px]">
+               <span className="text-[11px] font-[600] text-slate-500 dark:text-[#94a3b8]">已解决</span>
                <span className="text-[24px] font-[800] text-[#10b981] leading-none">{resolvedCount}</span>
             </div>
           </div>
@@ -125,12 +125,12 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
         {/* Filters Segment */}
         <div className="flex flex-col gap-[12px]">
            <div className="flex items-center gap-[8px] w-full">
-              <div className="flex-1 bg-[#111827] border border-[#1e293b] rounded-[8px] py-[10px] px-[12px] flex items-center gap-[8px] focus-within:border-[#3b82f6] transition-colors">
+              <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent border border-slate-200 dark:border-[#1e293b] rounded-[8px] py-[10px] px-[12px] flex items-center gap-[8px] focus-within:border-[#3b82f6] transition-colors">
                  <Search size={16} strokeWidth={2.5} className="text-[#64748b]" />
                    <input
                      type="text"
                      placeholder="搜索缺陷..."
-                     className="bg-transparent border-none outline-none text-[12px] text-white placeholder:text-[#94a3b8] w-full"
+                     className="bg-transparent border-none outline-none text-[12px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 dark:text-[#94a3b8] w-full"
                      value={searchQuery}
                      onChange={(e) => setSearchQuery(e.target.value)}
                    />
@@ -141,7 +141,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                options={[{value:'',label:'全部状态'}, ...STAGES.map(s=>({value:s.id,label:s.label}))]}
                placeholder="全部状态"
                align="left"
-               className="w-[120px] shrink-0 bg-[#111827] border border-[#1e293b] rounded-[8px] px-[12px] py-[10px]"
+               className="w-[120px] shrink-0 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent border border-slate-200 dark:border-[#1e293b] rounded-[8px] px-[12px] py-[10px]"
               />
            </div>
         </div>
@@ -160,15 +160,15 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                const currentStatus = STAGES.find(s => s.id === (bug.status || 'Plan')) || STAGES[0];
                
                return (
-                 <div key={bug.id || idx} className="bg-[#111827] border border-[#1e293b] rounded-[16px] flex flex-col transition-transform active:scale-[0.98] shadow-lg">
+                 <div key={bug.id || idx} className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent border border-slate-200 dark:border-[#1e293b] rounded-[16px] flex flex-col transition-transform active:scale-[0.98] shadow-lg">
                     {/* Header: Status bar & ID */}
-                    <div className="flex justify-between items-center w-full px-[16px] py-[12px] bg-[#1e293b]/30 border-b border-[#1e293b] rounded-t-[16px]">
+                    <div className="flex justify-between items-center w-full px-[16px] py-[12px] bg-[#1e293b]/30 border-b border-slate-200 dark:border-[#1e293b] rounded-t-[16px]">
                        <div className="flex items-center gap-[10px]">
                          <Bug size={16} className={currentStatus.color} strokeWidth={2.5} />
-                         <span className="text-[14px] font-[900] text-white">#{bug.id || `BUG-${idx + 1024}`}</span>
+                         <span className="text-[14px] font-[900] text-slate-900 dark:text-white">#{bug.id || `BUG-${idx + 1024}`}</span>
                        </div>
                        <div className="flex items-center gap-[8px]">
-                          <span className="text-[10px] font-[600] text-[#94a3b8] bg-[#0f172a] px-[8px] py-[4px] rounded-full border border-[#1e293b] flex items-center gap-[4px]">
+                          <span className="text-[10px] font-[600] text-slate-500 dark:text-[#94a3b8] bg-[#0f172a] px-[8px] py-[4px] rounded-full border border-slate-200 dark:border-[#1e293b] flex items-center gap-[4px]">
                              <Calendar size={10} className="mb-[1px]" />
                              {bug.timestamp ? bug.timestamp.split('.')[0] : 'Unknown'}
                           </span>
@@ -196,7 +196,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
 
                     {/* Metadata Grid */}
                     <div className="px-[16px] pb-[16px] mt-[-4px]">
-                       <div className="bg-[#0f172a] rounded-[10px] border border-[#1e293b]/50 p-[12px] flex flex-col gap-[10px]">
+                       <div className="bg-[#0f172a] rounded-[10px] border border-slate-200 dark:border-[#1e293b]/50 p-[12px] flex flex-col gap-[10px]">
                           <div className="flex items-center justify-between gap-[8px]">
                              <div className="flex items-center gap-[6px] w-[40%]">
                                 <Car size={13} className="text-[#64748b] shrink-0" strokeWidth={2.5} />
@@ -223,13 +223,13 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                     </div>
 
                     {/* Footer: Action/Status */}
-                    <div className="px-[16px] py-[12px] bg-[#1e293b]/20 border-t border-[#1e293b] flex justify-between items-center rounded-b-[16px]">
+                    <div className="px-[16px] py-[12px] bg-[#1e293b]/20 border-t border-slate-200 dark:border-[#1e293b] flex justify-between items-center rounded-b-[16px]">
                        <span className="text-[11px] font-[800] text-[#64748b]">当前处理状态</span>
                        <div className="relative flex items-center justify-end h-[30px]">
                           <div 
                             className={`absolute right-full flex items-center overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${expandedBugId === bug.id ? 'max-w-[300px] opacity-100 pr-[8px]' : 'max-w-0 opacity-0 pr-0'} z-10`}
                           >
-                            <div className="flex items-center gap-[6px] whitespace-nowrap bg-[#0f1523] rounded-[6px] shadow-[0_0_8px_8px_#0f1523]">
+                            <div className="flex items-center gap-[6px] whitespace-nowrap bg-slate-50 dark:bg-[#0f1523] rounded-[6px] shadow-[0_0_8px_8px_#0f1523]">
                               {STAGES.filter(s => s.id !== (bug.status || 'Plan')).map(s => (
                                  <button
                                     key={s.id}
@@ -243,7 +243,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                           </div>
                           <button 
                               onClick={(e) => { e.stopPropagation(); setExpandedBugId(prev => prev === bug.id ? null : bug.id); }}
-                              className={`flex items-center justify-center gap-[4px] px-[12px] h-[30px] rounded-[6px] border transition-all active:scale-95 ${currentStatus.bg} ${currentStatus.border} ${currentStatus.color} font-[900] text-[12px] relative z-20 bg-[#0f1523]`}
+                              className={`flex items-center justify-center gap-[4px] px-[12px] h-[30px] rounded-[6px] border transition-all active:scale-95 ${currentStatus.bg} ${currentStatus.border} ${currentStatus.color} font-[900] text-[12px] relative z-20 bg-slate-50 dark:bg-[#0f1523]`}
                           >
                               {currentStatus.label}
                               <ChevronDown size={14} className={`transition-transform duration-300 ${expandedBugId === bug.id ? 'rotate-90' : ''}`} />
@@ -271,19 +271,19 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
   );
 
   const renderPC = () => (
-    <div className="min-h-screen bg-[#0a0f1e] text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#0a0f1e] text-slate-800 dark:text-slate-100 flex flex-col font-sans">
       <header className="px-[40px] pt-[24px] pb-[24px] flex justify-between items-center w-full z-10 shrink-0">
         <div className="flex items-center gap-[16px]">
           <Bug size={28} strokeWidth={2} className="text-[#ef4444]" />
           <div className="flex flex-col gap-[2px]">
-            <span className="text-[24px] font-[900] text-white leading-none tracking-tight italic">缺陷管理</span>
+            <span className="text-[24px] font-[900] text-slate-900 dark:text-white leading-none tracking-tight italic">缺陷管理</span>
             <span className="text-[10px] font-[800] text-[#64748b]">缺陷生命周期管理</span>
           </div>
         </div>
         <div className="flex items-center gap-[16px]">
           <button 
             onClick={() => setView('home')} 
-            className="flex items-center gap-2 border border-[#1e293b] rounded-[8px] px-[16px] py-[10px] text-[12px] font-[800] text-[#64748b] hover:text-white transition-all"
+            className="flex items-center gap-2 border border-slate-200 dark:border-[#1e293b] rounded-[8px] px-[16px] py-[10px] text-[12px] font-[800] text-[#64748b] hover:text-slate-900 dark:text-white transition-all"
           >
              <ArrowLeft size={14} /> 返回主页
           </button>
@@ -298,32 +298,32 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
       <main className="flex-1 overflow-y-auto px-[40px] pb-[40px] flex flex-col gap-[24px] custom-scrollbar">
         {/* KPIs Grid */}
         <div className="flex gap-[20px] w-full">
-            <div className="flex-1 bg-[#111827] rounded-[16px] border border-[#1e293b] p-[20px] h-[100px] flex flex-col justify-between">
-               <span className="text-[11px] font-[600] text-[#94a3b8]">总计缺陷</span>
+            <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] border border-slate-200 dark:border-[#1e293b] p-[20px] h-[100px] flex flex-col justify-between">
+               <span className="text-[11px] font-[600] text-slate-500 dark:text-[#94a3b8]">总计缺陷</span>
                <span className="text-[32px] font-[900] text-[#f8fafc] leading-none">{totalDefects}</span>
             </div>
-            <div className="flex-1 bg-[#111827] rounded-[16px] border border-[#1e293b] p-[20px] h-[100px] flex flex-col justify-between">
-               <span className="text-[11px] font-[600] text-[#94a3b8]">未解决</span>
+            <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] border border-slate-200 dark:border-[#1e293b] p-[20px] h-[100px] flex flex-col justify-between">
+               <span className="text-[11px] font-[600] text-slate-500 dark:text-[#94a3b8]">未解决</span>
                <span className="text-[32px] font-[900] text-[#ef4444] leading-none">{unresolvedCount}</span>
             </div>
-            <div className="flex-1 bg-[#111827] rounded-[16px] border border-[#1e293b] p-[20px] h-[100px] flex flex-col justify-between">
-               <span className="text-[11px] font-[600] text-[#94a3b8]">处理中</span>
+            <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] border border-slate-200 dark:border-[#1e293b] p-[20px] h-[100px] flex flex-col justify-between">
+               <span className="text-[11px] font-[600] text-slate-500 dark:text-[#94a3b8]">处理中</span>
                <span className="text-[32px] font-[900] text-[#eab308] leading-none">{inProgressCount}</span>
             </div>
-            <div className="flex-1 bg-[#111827] rounded-[16px] border border-[#1e293b] p-[20px] h-[100px] flex flex-col justify-between">
-               <span className="text-[11px] font-[600] text-[#94a3b8]">已解决</span>
+            <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] border border-slate-200 dark:border-[#1e293b] p-[20px] h-[100px] flex flex-col justify-between">
+               <span className="text-[11px] font-[600] text-slate-500 dark:text-[#94a3b8]">已解决</span>
                <span className="text-[32px] font-[900] text-[#10b981] leading-none">{resolvedCount}</span>
             </div>
         </div>
 
         {/* Filters */}
         <div className="flex justify-between items-center w-full gap-[20px]">
-           <div className="w-[300px] bg-[#111827] border border-[#1e293b] rounded-[8px] py-[10px] px-[12px] flex items-center gap-[8px] focus-within:border-[#3b82f6] transition-colors shrink-0">
+           <div className="w-[300px] bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent border border-slate-200 dark:border-[#1e293b] rounded-[8px] py-[10px] px-[12px] flex items-center gap-[8px] focus-within:border-[#3b82f6] transition-colors shrink-0">
               <Search size={16} strokeWidth={2.5} className="text-[#64748b]" />
               <input 
                 type="text" 
                 placeholder="搜索缺陷..." 
-                className="bg-transparent border-none outline-none text-[12px] text-white placeholder:text-[#94a3b8] w-full"
+                className="bg-transparent border-none outline-none text-[12px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 dark:text-[#94a3b8] w-full"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -336,17 +336,17 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                 options={[{value:'',label:'全部状态'}, ...STAGES.map(s=>({value:s.id,label:s.label}))]}
                 placeholder="全部状态"
                 align="left"
-                className="flex-1 bg-[#111827] border border-[#1e293b] rounded-[8px] px-[12px] py-[10px]"
+                className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent border border-slate-200 dark:border-[#1e293b] rounded-[8px] px-[12px] py-[10px]"
               />
            </div>
         </div>
 
         {/* PC Table */}
-        <div className="bg-[#111827] border border-[#1e293b] rounded-[16px] flex w-full overflow-hidden flex-1 min-h-[300px]">
+        <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent border border-slate-200 dark:border-[#1e293b] rounded-[16px] flex w-full overflow-hidden flex-1 min-h-[300px]">
            <div className="flex-1 overflow-x-auto flex flex-col custom-scrollbar">
              <div className="flex flex-col min-w-[1400px] w-full flex-1 h-full"> 
                <div 
-                 className="grid bg-[#0f172a] px-[24px] py-[16px] text-[#94a3b8] text-[12px] font-[800] border-b border-[#1e293b] shrink-0"
+                 className="grid bg-[#0f172a] px-[24px] py-[16px] text-slate-500 dark:text-[#94a3b8] text-[12px] font-[800] border-b border-slate-200 dark:border-[#1e293b] shrink-0"
                  style={{ gridTemplateColumns: '60px 100px 120px 150px 80px 80px 140px 100px minmax(150px, 1fr) minmax(200px, 2fr) 110px', gap: '16px' }}
                >
                  <div>ID</div>
@@ -376,24 +376,24 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                       return (
                         <div 
                           key={bug.id || idx} 
-                          className="grid px-[24px] py-[14px] items-center hover:bg-[#1e293b]/50 border-b border-[#1e293b] transition-colors"
+                          className="grid px-[24px] py-[14px] items-center hover:bg-slate-100 dark:hover:bg-[#1e293b]/50 border-b border-slate-200 dark:border-[#1e293b] transition-colors"
                           style={{ gridTemplateColumns: '60px 100px 120px 150px 80px 80px 140px 100px minmax(150px, 1fr) minmax(200px, 2fr) 110px', gap: '16px' }}
                         >
                           <div className="text-[12px] font-[800] bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent truncate">#{bug.id || `BUG-${idx + 1024}`}</div>
                           <div className="text-[12px] text-[#cbd5e1] truncate">{session ? `MY${session.model_year} ${session.vehicle_model}` : '-'}</div>
                           <div className="text-[12px] text-[#cbd5e1] truncate">{session?.address || '-'}</div>
-                          <div className="text-[11px] font-mono text-[#94a3b8] truncate">{session?.vin || '-'}</div>
+                          <div className="text-[11px] font-mono text-slate-500 dark:text-[#94a3b8] truncate">{session?.vin || '-'}</div>
                           <div className="text-[12px] text-[#cbd5e1] truncate">{session?.mileage || '-'}</div>
                           <div className="text-[12px] text-[#cbd5e1] truncate">{session?.tester || '-'}</div>
-                          <div className="text-[11px] text-[#94a3b8] truncate">{bug.timestamp ? bug.timestamp.split('.')[0] : '-'}</div>
+                          <div className="text-[11px] text-slate-500 dark:text-[#94a3b8] truncate">{bug.timestamp ? bug.timestamp.split('.')[0] : '-'}</div>
                           <div className="text-[12px] text-[#cbd5e1] truncate">{caseDef?.function_category || caseDef?.category || '-'}</div>
                           <div className="text-[13px] font-[600] text-[#f8fafc] truncate">{caseDef?.function || '-'}</div>
-                          <div className="text-[12px] text-[#94a3b8] italic truncate">"{bug.description || ''}"</div>
+                          <div className="text-[12px] text-slate-500 dark:text-[#94a3b8] italic truncate">"{bug.description || ''}"</div>
                           <div className={`relative flex items-center justify-end h-[26px] w-[90px]`}>
                              <div 
                                className={`absolute right-full flex items-center overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${expandedBugId === bug.id ? 'max-w-[300px] opacity-100 pr-[8px]' : 'max-w-0 opacity-0 pr-0'} z-10`}
                              >
-                               <div className="flex items-center gap-[6px] whitespace-nowrap bg-[#0f1523] rounded-[6px] shadow-[0_0_8px_8px_#0f1523]">
+                               <div className="flex items-center gap-[6px] whitespace-nowrap bg-slate-50 dark:bg-[#0f1523] rounded-[6px] shadow-[0_0_8px_8px_#0f1523]">
                                  {STAGES.filter(s => s.id !== (bug.status || 'Plan')).map(s => (
                                     <button
                                        key={s.id}
@@ -407,7 +407,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                              </div>
                              <button 
                                  onClick={(e) => { e.stopPropagation(); setExpandedBugId(prev => prev === bug.id ? null : bug.id); }}
-                                 className={`flex items-center justify-center gap-[4px] w-[90px] h-[26px] rounded-[6px] border transition-all active:scale-95 ${currentStatus.bg} ${currentStatus.border} ${currentStatus.color} font-[900] text-[12px] relative z-20 bg-[#0f1523] hover:brightness-125`}
+                                 className={`flex items-center justify-center gap-[4px] w-[90px] h-[26px] rounded-[6px] border transition-all active:scale-95 ${currentStatus.bg} ${currentStatus.border} ${currentStatus.color} font-[900] text-[12px] relative z-20 bg-slate-50 dark:bg-[#0f1523] hover:brightness-125`}
                              >
                                  {currentStatus.label}
                                  <ChevronDown size={14} className={`transition-transform duration-300 ${expandedBugId === bug.id ? 'rotate-90' : ''}`} />

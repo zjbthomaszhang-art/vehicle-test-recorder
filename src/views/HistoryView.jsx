@@ -62,9 +62,9 @@ export default function HistoryView({
   };
 
   return (
-    <div className="min-h-screen bg-[#0f1523] text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0f1523] text-slate-800 dark:text-slate-100 flex flex-col font-sans">
       <header className="px-[24px] pt-[44px] pb-[8px] w-full z-10 shrink-0">
-        <h1 className="text-[26px] font-[800] text-white leading-none tracking-tight">历史测试记录</h1>
+        <h1 className="text-[26px] font-[800] text-slate-900 dark:text-white leading-none tracking-tight">历史测试记录</h1>
       </header>
 
       <main 
@@ -72,15 +72,15 @@ export default function HistoryView({
         onScroll={handleScroll}
       >
         {/* FilterSection */}
-        <div className="bg-[#121826] border border-[#1e293b] rounded-[20px] p-[16px] flex flex-col gap-[12px] shrink-0">
-          <span className="text-[12px] font-[900] text-[#94a3b8]">筛选测试记录</span>
+        <div className="bg-[#121826] border border-slate-200 dark:border-[#1e293b] rounded-[20px] p-[16px] flex flex-col gap-[12px] shrink-0">
+          <span className="text-[12px] font-[900] text-slate-500 dark:text-[#94a3b8]">筛选测试记录</span>
           
           <div className="flex gap-[8px] w-full">
             <div className="flex flex-col gap-[2px] flex-1 min-w-0 w-1/2">
               <span className="text-[11px] font-[600] text-[#64748b] truncate">测试开始</span>
               <input 
                  type="date"
-                 className="bg-[#0f1523] appearance-none border border-[#1e293b] rounded-[10px] w-full min-w-0 h-[36px] px-[6px] text-[11px] text-[#94a3b8] focus:outline-none focus:border-[#3b82f6] outline-none"
+                 className="bg-slate-50 dark:bg-[#0f1523] appearance-none border border-slate-200 dark:border-[#1e293b] rounded-[10px] w-full min-w-0 h-[36px] px-[6px] text-[11px] text-slate-500 dark:text-[#94a3b8] focus:outline-none focus:border-[#3b82f6] outline-none"
                  value={filterStartDate} onChange={e => setFilterStartDate(e.target.value)}
               />
             </div>
@@ -88,7 +88,7 @@ export default function HistoryView({
               <span className="text-[11px] font-[600] text-[#64748b] truncate">测试结束</span>
               <input 
                  type="date"
-                 className="bg-[#0f1523] appearance-none border border-[#1e293b] rounded-[10px] w-full min-w-0 h-[36px] px-[6px] text-[11px] text-[#94a3b8] focus:outline-none focus:border-[#3b82f6] outline-none"
+                 className="bg-slate-50 dark:bg-[#0f1523] appearance-none border border-slate-200 dark:border-[#1e293b] rounded-[10px] w-full min-w-0 h-[36px] px-[6px] text-[11px] text-slate-500 dark:text-[#94a3b8] focus:outline-none focus:border-[#3b82f6] outline-none"
                  value={filterEndDate} onChange={e => setFilterEndDate(e.target.value)}
               />
             </div>
@@ -99,7 +99,7 @@ export default function HistoryView({
               <span className="text-[11px] font-[600] text-[#64748b]">工程代码</span>
               <input 
                  type="text" placeholder="例如：NDLB"
-                 className="bg-[#0f1523] border border-[#1e293b] rounded-[10px] w-full h-[36px] px-[12px] text-[12px] text-[#94a3b8] placeholder:text-[#94a3b8] focus:outline-none focus:border-[#3b82f6] outline-none"
+                 className="bg-slate-50 dark:bg-[#0f1523] border border-slate-200 dark:border-[#1e293b] rounded-[10px] w-full h-[36px] px-[12px] text-[12px] text-slate-500 dark:text-[#94a3b8] placeholder:text-slate-400 dark:placeholder:text-slate-500 dark:text-[#94a3b8] focus:outline-none focus:border-[#3b82f6] outline-none"
                  value={filterCode} onChange={e => setFilterCode(e.target.value)}
               />
             </div>
@@ -111,7 +111,7 @@ export default function HistoryView({
                 options={['全部', ...ARCHITECTURES]}
                 placeholder="请选择"
                 align="left"
-                className="w-full bg-[#0f1523] border border-[#1e293b] rounded-[10px] h-[36px] px-[12px]"
+                className="w-full bg-slate-50 dark:bg-[#0f1523] border border-slate-200 dark:border-[#1e293b] rounded-[10px] h-[36px] px-[12px]"
               />
             </div>
           </div>
@@ -120,14 +120,14 @@ export default function HistoryView({
             onClick={handleSearch}
             className="w-full h-[40px] bg-[#2563eb] hover:bg-[#1d4ed8] active:scale-95 transition-all rounded-[12px] flex items-center justify-center gap-[8px]"
           >
-            <Search size={14} className="text-white" />
-            <span className="text-[12px] font-[900] text-white">搜索</span>
+            <Search size={14} className="text-slate-900 dark:text-white" />
+            <span className="text-[12px] font-[900] text-slate-900 dark:text-white">搜索</span>
           </button>
         </div>
 
         {/* ListSection */}
         <div className="flex flex-col gap-[12px] w-full pt-[4px]">
-           <span className="text-[12px] font-[900] text-[#94a3b8]">查询结果 ({filteredSessions.length})</span>
+           <span className="text-[12px] font-[900] text-slate-500 dark:text-[#94a3b8]">查询结果 ({filteredSessions.length})</span>
 
            {filteredSessions.length === 0 ? (
              <div className="text-center py-8 text-[#64748b] text-[12px] font-[800]">No sessions found.</div>
@@ -138,7 +138,7 @@ export default function HistoryView({
              const passRate = execCount > 0 ? ((passCount / execCount) * 100).toFixed(0) : 0;
 
              return (
-               <div key={sess.id} className="bg-[#121826] border border-[#1e293b] rounded-[20px] p-[14px] flex flex-col gap-[10px]">
+               <div key={sess.id} className="bg-[#121826] border border-slate-200 dark:border-[#1e293b] rounded-[20px] p-[14px] flex flex-col gap-[10px]">
                   {/* Top Row */}
                   <div className="flex justify-between items-center w-full">
                      <div className="flex gap-[8px] items-center">
@@ -154,11 +154,11 @@ export default function HistoryView({
 
                   {/* Title Row */}
                   <div className="flex justify-between items-center w-full">
-                     <span className="text-[22px] font-[900] text-white italic">
+                     <span className="text-[22px] font-[900] text-slate-900 dark:text-white italic">
                         {sess.model_year ? `MY${sess.model_year}` : ''} {sess.vehicle_model || 'Unknown'}
                      </span>
                      <button onClick={() => setEditingSession(sess)} className="bg-[#1e293b] hover:bg-[#334155] transition-colors rounded-[10px] w-[32px] h-[32px] flex items-center justify-center -mr-1">
-                        <Edit3 size={16} className="text-[#94a3b8]" />
+                        <Edit3 size={16} className="text-slate-500 dark:text-[#94a3b8]" />
                      </button>
                   </div>
 
@@ -187,7 +187,7 @@ export default function HistoryView({
                        onClick={() => handleContinueTest(sess)}
                        className="h-[34px] px-[14px] bg-[#2563eb] hover:bg-[#1d4ed8] active:scale-95 transition-all rounded-[10px] flex items-center justify-center"
                      >
-                       <span className="text-[12px] font-[900] text-white">继续测试</span>
+                       <span className="text-[12px] font-[900] text-slate-900 dark:text-white">继续测试</span>
                      </button>
                   </div>
                </div>

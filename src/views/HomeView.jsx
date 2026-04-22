@@ -1,9 +1,10 @@
 import React from 'react';
-import { Car, Calendar, Info, Layers, Radio, MapPin, ArrowRight, User, Map as MapIcon, Database, Activity, Bug, Code, Gauge, Monitor, Network, Music, ChevronDown, X, Camera, CameraIcon } from 'lucide-react';
+import { Car, Sun, Moon, Calendar, Info, Layers, Radio, MapPin, ArrowRight, User, Map as MapIcon, Database, Activity, Bug, Code, Gauge, Monitor, Network, Music, ChevronDown, X, Camera, CameraIcon } from 'lucide-react';
 import { FIELD_LABELS } from '../constants/labels.js';
 import { ARCHITECTURES, IVI_MODULES, COMM_MODULES } from '../constants.js';
 import { decodeModelYearFromVin } from '../utils/vinDecoder.js';
 import CustomSelect from '../components/CustomSelect.jsx';
+import { useTheme } from '../hooks/useTheme.js';
 
 export default function HomeView({
   vehicleModel, setVehicleModel,
@@ -25,8 +26,9 @@ export default function HomeView({
   setHistorySessions,
   API_BASE,
 }) {
+  const { theme, toggleTheme } = useTheme();
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans p-4 sm:p-8 overflow-y-auto selection:bg-blue-500">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col font-sans p-4 sm:p-8 overflow-y-auto selection:bg-blue-500">
       <header className="mb-8 flex justify-between items-center animate-in fade-in slide-in-from-top duration-500">
         <div>
           <div className="relative inline-block pb-[4px] w-fit overflow-hidden">
@@ -42,11 +44,11 @@ export default function HomeView({
             </h1>
             <div className="scanline-overlay rounded-[4px]"></div>
           </div>
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">{FIELD_LABELS.validationTest}</p>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-0.5">{FIELD_LABELS.validationTest}</p>
         </div>
-        <div className="w-12 h-12 bg-blue-600/10 rounded-2xl flex items-center justify-center border border-blue-500/20">
-          <Car className="text-blue-500" size={28} />
-        </div>
+        <button onClick={toggleTheme} className="w-12 h-12 bg-white dark:bg-[#111827] rounded-2xl flex items-center justify-center border border-slate-200 dark:border-[#1e293b] shadow-sm dark:shadow-none transition-colors active:scale-95">
+          {theme === 'dark' ? <Sun className="text-amber-500" size={26} strokeWidth={1.5} /> : <Moon className="text-slate-600" size={26} strokeWidth={1.5} />}
+        </button>
       </header>
 
       {/* Scrolling Form Container */}
@@ -54,10 +56,10 @@ export default function HomeView({
         
         {/* Group 1: 生产年份 & 工程代码 */}
         <div className="flex gap-[8px] w-full">
-          <div className="flex-[46] bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+          <div className="flex-[46] bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
             <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
-              <Calendar size={26} className="text-white p-[2px] shrink-0" strokeWidth={1.5} />
-              <span className="text-[13px] sm:text-[14px] font-[600] text-[#94a3b8] whitespace-nowrap">生产年份</span>
+              <Calendar size={26} className="text-slate-900 dark:text-white p-[2px] shrink-0" strokeWidth={1.5} />
+              <span className="text-[13px] sm:text-[14px] font-[600] text-slate-500 dark:text-[#94a3b8] whitespace-nowrap">生产年份</span>
             </div>
             <input
               type="text"
@@ -65,30 +67,30 @@ export default function HomeView({
               value={modelYear}
               onChange={(e) => setModelYear(e.target.value.replace(/\D/g, ''))}
               placeholder=""
-              className="bg-transparent text-right outline-none text-white font-[700] text-[13px] sm:text-[14px] flex-1 min-w-0 ml-2 placeholder:text-slate-600 placeholder:font-normal"
+              className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[13px] sm:text-[14px] flex-1 min-w-0 ml-2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal"
             />
           </div>
 
-          <div className="flex-[54] bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+          <div className="flex-[54] bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
             <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
-              <Code size={26} className="text-white p-[2px] shrink-0" strokeWidth={1.5} />
-              <span className="text-[13px] sm:text-[14px] font-[600] text-[#94a3b8] whitespace-nowrap">工程代码</span>
+              <Code size={26} className="text-slate-900 dark:text-white p-[2px] shrink-0" strokeWidth={1.5} />
+              <span className="text-[13px] sm:text-[14px] font-[600] text-slate-500 dark:text-[#94a3b8] whitespace-nowrap">工程代码</span>
             </div>
             <input
               type="text"
               value={vehicleModel}
               onChange={(e) => setVehicleModel(e.target.value.toUpperCase())}
               placeholder=""
-              className="bg-transparent text-right outline-none text-white font-[700] text-[13px] sm:text-[14px] flex-1 min-w-0 ml-2 placeholder:text-slate-600 placeholder:font-normal uppercase"
+              className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[13px] sm:text-[14px] flex-1 min-w-0 ml-2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal uppercase"
             />
           </div>
         </div>
 
         {/* Row 2: VIN */}
-        <div className="bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
+        <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
           <div className="flex items-center gap-[14px] shrink-0">
-            <Car size={26} className="text-white p-[2px]" strokeWidth={1.5} />
-            <span className="text-[14px] font-[600] text-[#94a3b8]">VIN</span>
+            <Car size={26} className="text-slate-900 dark:text-white p-[2px]" strokeWidth={1.5} />
+            <span className="text-[14px] font-[600] text-slate-500 dark:text-[#94a3b8]">VIN</span>
           </div>
           <input
             type="text"
@@ -100,16 +102,16 @@ export default function HomeView({
               if (decodedYear) setModelYear(decodedYear);
             }}
             placeholder=""
-            className="bg-transparent text-right outline-none text-white font-[700] text-[14px] flex-1 min-w-0 ml-4 placeholder:text-slate-600 placeholder:font-normal uppercase"
+            className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[14px] flex-1 min-w-0 ml-4 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal uppercase"
           />
         </div>
 
         {/* Group 2: 生产阶段 & 总里程数 */}
         <div className="flex gap-[8px] w-full">
-          <div className="flex-[46] bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+          <div className="flex-[46] bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
             <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
-              <Layers size={26} className="text-white p-[2px] shrink-0" strokeWidth={1.5} />
-              <span className="text-[13px] sm:text-[14px] font-[600] text-[#94a3b8] whitespace-nowrap">生产阶段</span>
+              <Layers size={26} className="text-slate-900 dark:text-white p-[2px] shrink-0" strokeWidth={1.5} />
+              <span className="text-[13px] sm:text-[14px] font-[600] text-slate-500 dark:text-[#94a3b8] whitespace-nowrap">生产阶段</span>
             </div>
             <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-[2px]">
               <CustomSelect
@@ -117,15 +119,15 @@ export default function HomeView({
                 onChange={setProductionStage}
                 options={['PPV', 'NS', 'VDC', 'S', 'STC']}
                 className="w-full h-full"
-                textColor="text-white font-[700] text-[13px] sm:text-[14px]"
+                textColor="text-slate-900 dark:text-white font-[700] text-[13px] sm:text-[14px]"
               />
             </div>
           </div>
 
-          <div className="flex-[54] bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+          <div className="flex-[54] bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
             <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
-              <Gauge size={26} className="text-white p-[2px] shrink-0" strokeWidth={1.5} />
-              <span className="text-[13px] sm:text-[14px] font-[600] text-[#94a3b8] whitespace-nowrap">总里程数</span>
+              <Gauge size={26} className="text-slate-900 dark:text-white p-[2px] shrink-0" strokeWidth={1.5} />
+              <span className="text-[13px] sm:text-[14px] font-[600] text-slate-500 dark:text-[#94a3b8] whitespace-nowrap">总里程数</span>
             </div>
             <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-2">
               <input
@@ -134,7 +136,7 @@ export default function HomeView({
                 value={mileage}
                 onChange={(e) => setMileage(e.target.value.replace(/\D/g, ''))}
                 placeholder=""
-                className="bg-transparent text-right outline-none text-white font-[700] text-[13px] sm:text-[14px] min-w-0 flex-1 placeholder:text-slate-600 placeholder:font-normal"
+                className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[13px] sm:text-[14px] min-w-0 flex-1 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal"
               />
               {mileage && <span className="text-[#64748b] text-[12px] font-[500] shrink-0">km</span>}
             </div>
@@ -143,10 +145,10 @@ export default function HomeView({
 
         {/* Group 3: 测试环境 & 测试人员 */}
         <div className="flex gap-[8px] w-full">
-          <div className="flex-[46] bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+          <div className="flex-[46] bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
             <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
-              <Monitor size={26} className="text-white p-[2px] shrink-0" strokeWidth={1.5} />
-              <span className="text-[13px] sm:text-[14px] font-[600] text-[#94a3b8] whitespace-nowrap">测试环境</span>
+              <Monitor size={26} className="text-slate-900 dark:text-white p-[2px] shrink-0" strokeWidth={1.5} />
+              <span className="text-[13px] sm:text-[14px] font-[600] text-slate-500 dark:text-[#94a3b8] whitespace-nowrap">测试环境</span>
             </div>
             <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-[2px]">
               <CustomSelect
@@ -154,46 +156,46 @@ export default function HomeView({
                 onChange={setTestEnv}
                 options={['生产', '测试']}
                 className="w-full h-full"
-                textColor="text-white font-[700] text-[13px] sm:text-[14px]"
+                textColor="text-slate-900 dark:text-white font-[700] text-[13px] sm:text-[14px]"
               />
             </div>
           </div>
 
-          <div className="flex-[54] bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+          <div className="flex-[54] bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
             <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
-              <User size={26} className="text-white p-[2px] shrink-0" strokeWidth={1.5} />
-              <span className="text-[13px] sm:text-[14px] font-[600] text-[#94a3b8] whitespace-nowrap">测试人员</span>
+              <User size={26} className="text-slate-900 dark:text-white p-[2px] shrink-0" strokeWidth={1.5} />
+              <span className="text-[13px] sm:text-[14px] font-[600] text-slate-500 dark:text-[#94a3b8] whitespace-nowrap">测试人员</span>
             </div>
             <input
               type="text"
               value={tester}
               onChange={(e) => setTester(e.target.value)}
               placeholder=""
-              className="bg-transparent text-right outline-none text-white font-[700] text-[13px] sm:text-[14px] flex-1 min-w-0 ml-2 placeholder:text-slate-600 placeholder:font-normal"
+              className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[13px] sm:text-[14px] flex-1 min-w-0 ml-2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal"
             />
           </div>
         </div>
 
         {/* Row 4: 测试地址 */}
-        <div className="bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
+        <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
           <div className="flex items-center gap-[14px] shrink-0">
-            <MapPin size={26} className="text-white p-[2px]" strokeWidth={1.5} />
-            <span className="text-[14px] font-[600] text-[#94a3b8]">测试地址</span>
+            <MapPin size={26} className="text-slate-900 dark:text-white p-[2px]" strokeWidth={1.5} />
+            <span className="text-[14px] font-[600] text-slate-500 dark:text-[#94a3b8]">测试地址</span>
           </div>
           <input
             type="text"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder=""
-            className="bg-transparent text-right outline-none text-white font-[700] text-[14px] flex-1 min-w-0 ml-4 placeholder:text-slate-600 placeholder:font-normal"
+            className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[14px] flex-1 min-w-0 ml-4 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal"
           />
         </div>
 
         {/* Row 7: 总线架构 */}
-        <div className="bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
+        <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
           <div className="flex items-center gap-[14px] shrink-0">
-            <Network size={26} className="text-white p-[2px]" strokeWidth={1.5} />
-            <span className="text-[14px] font-[600] text-[#94a3b8]">总线架构</span>
+            <Network size={26} className="text-slate-900 dark:text-white p-[2px]" strokeWidth={1.5} />
+            <span className="text-[14px] font-[600] text-slate-500 dark:text-[#94a3b8]">总线架构</span>
           </div>
           <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-4">
             <CustomSelect
@@ -201,16 +203,16 @@ export default function HomeView({
               onChange={setArchitecture}
               options={ARCHITECTURES}
               className="w-full h-full"
-              textColor="text-white font-[700] text-[14px]"
+              textColor="text-slate-900 dark:text-white font-[700] text-[14px]"
             />
           </div>
         </div>
 
         {/* Row 8: 娱乐系统 */}
-        <div className="bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
+        <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
           <div className="flex items-center gap-[14px] shrink-0">
-            <Music size={26} className="text-white p-[2px]" strokeWidth={1.5} />
-            <span className="text-[14px] font-[600] text-[#94a3b8]">娱乐系统</span>
+            <Music size={26} className="text-slate-900 dark:text-white p-[2px]" strokeWidth={1.5} />
+            <span className="text-[14px] font-[600] text-slate-500 dark:text-[#94a3b8]">娱乐系统</span>
           </div>
           <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-4">
             <CustomSelect
@@ -218,16 +220,16 @@ export default function HomeView({
               onChange={setIviModule}
               options={IVI_MODULES}
               className="w-full h-full"
-              textColor="text-white font-[700] text-[14px]"
+              textColor="text-slate-900 dark:text-white font-[700] text-[14px]"
             />
           </div>
         </div>
 
         {/* Row 9: 通讯模块 */}
-        <div className="bg-[#111827] rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
+        <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] h-[54px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all">
           <div className="flex items-center gap-[14px] shrink-0">
-            <Radio size={26} className="text-white p-[2px]" strokeWidth={1.5} />
-            <span className="text-[14px] font-[600] text-[#94a3b8]">通讯模块</span>
+            <Radio size={26} className="text-slate-900 dark:text-white p-[2px]" strokeWidth={1.5} />
+            <span className="text-[14px] font-[600] text-slate-500 dark:text-[#94a3b8]">通讯模块</span>
           </div>
           <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-4">
             <CustomSelect
@@ -235,23 +237,23 @@ export default function HomeView({
               onChange={setCommModule}
               options={COMM_MODULES}
               className="w-full h-full"
-              textColor="text-white font-[700] text-[14px]"
+              textColor="text-slate-900 dark:text-white font-[700] text-[14px]"
             />
           </div>
         </div>
 
         {/* Row 10: 现场环境照片 */}
-        <div className="bg-[#111827] rounded-[16px] flex flex-col gap-[10px] pt-[10px] pb-[14px]">
+        <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] flex flex-col gap-[10px] pt-[10px] pb-[14px]">
           <div className="flex items-center justify-between px-[16px]">
             <div className="flex items-center gap-[14px] shrink-0">
-              <Camera size={26} className="text-white p-[2px]" strokeWidth={1.5} />
-              <span className="text-[14px] font-[600] text-[#94a3b8]">现场环境照片</span>
+              <Camera size={26} className="text-slate-900 dark:text-white p-[2px]" strokeWidth={1.5} />
+              <span className="text-[14px] font-[600] text-slate-500 dark:text-[#94a3b8]">现场环境照片</span>
             </div>
             <button 
               onClick={() => handleAddMedia('env')}
-              className="w-[32px] h-[32px] rounded-md border border-[#3c3c43] bg-[#1c1c1e] flex items-center justify-center hover:bg-[#2c2c2e] transition-colors active:scale-95"
+              className="w-[32px] h-[32px] rounded-md border border-slate-300 dark:border-[#3c3c43] bg-slate-100 dark:bg-[#1c1c1e] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-[#2c2c2e] transition-colors active:scale-95"
             >
-              <CameraIcon size={18} className="text-white" strokeWidth={2} />
+              <CameraIcon size={18} className="text-slate-900 dark:text-white" strokeWidth={2} />
             </button>
           </div>
           {envPhotos && envPhotos.length > 0 && (
@@ -262,9 +264,9 @@ export default function HomeView({
                     onClick={() => setEnvPhotos(prev => prev.filter((_, i) => i !== idx))}
                     className="w-[16px] h-[16px] rounded-full bg-[#ef4444] flex items-center justify-center"
                   >
-                    <X size={10} className="text-white" strokeWidth={3} />
+                    <X size={10} className="text-slate-900 dark:text-white" strokeWidth={3} />
                   </button>
-                  <div className="w-[48px] h-[40px] rounded-md bg-[#1c1c1e] overflow-hidden border border-[#2c2c2e]/50">
+                  <div className="w-[48px] h-[40px] rounded-md bg-slate-100 dark:bg-[#1c1c1e] overflow-hidden border border-slate-200 dark:border-[#2c2c2e]/50">
                     <img src={photo} className="w-full h-full object-cover" alt={`env ${idx}`} />
                   </div>
                 </div>

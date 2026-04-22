@@ -19,13 +19,13 @@ function FieldLabel({ icon: Icon, label }) {
   return (
     <div className="flex items-center gap-[14px] shrink-0">
       <Icon size={32} className="text-[#8e8e93] p-1" strokeWidth={1.5} />
-      <span className="text-[16px] font-[600] text-slate-100">{label}</span>
+      <span className="text-[16px] font-[600] text-slate-800 dark:text-slate-100">{label}</span>
     </div>
   );
 }
 
-const inputCls = 'bg-transparent text-right outline-none text-slate-200 font-semibold text-[15px] w-1/2 placeholder:text-slate-600 placeholder:font-normal';
-const selectCls = 'bg-transparent text-right outline-none text-slate-200 font-semibold text-[15px] w-1/2 appearance-none cursor-pointer';
+const inputCls = 'bg-transparent text-right outline-none text-slate-800 dark:text-slate-200 font-semibold text-[15px] w-1/2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal';
+const selectCls = 'bg-transparent text-right outline-none text-slate-800 dark:text-slate-200 font-semibold text-[15px] w-1/2 appearance-none cursor-pointer';
 
 export default function EditSessionModal({ session, onClose, onSave, onDelete }) {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -65,7 +65,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
   };
 
   return (
-    <div className="fixed inset-0 z-[300] bg-[#0f1523] flex flex-col animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[300] bg-slate-50 dark:bg-[#0f1523] flex flex-col animate-in fade-in duration-200">
 
         {/* Header — matches HomeView header padding */}
         <div className="px-[24px] pt-[44px] pb-[16px] shrink-0">
@@ -139,7 +139,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
                 inputMode="numeric"
                 value={formData.mileage}
                 onChange={set('mileage', v => v.replace(/\D/g, ''))}
-                className="bg-transparent text-right outline-none text-slate-200 font-semibold text-[15px] min-w-0 placeholder:text-slate-600"
+                className="bg-transparent text-right outline-none text-slate-800 dark:text-slate-200 font-semibold text-[15px] min-w-0 placeholder:text-slate-400 dark:placeholder:text-slate-600"
               />
               {formData.mileage && <span className="text-[#64748b] text-[13px] font-[500] shrink-0">km</span>}
             </div>
@@ -224,11 +224,11 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
             <div className="flex items-center justify-between px-[16px]">
               <div className="flex items-center gap-[14px] shrink-0">
                 <Camera size={32} className="text-[#8e8e93] p-1" strokeWidth={1.5} />
-                <span className="text-[16px] font-[600] text-slate-100">现场环境照片</span>
+                <span className="text-[16px] font-[600] text-slate-800 dark:text-slate-100">现场环境照片</span>
               </div>
               <button
                 onClick={() => photoInputRef.current?.click()}
-                className="w-[32px] h-[32px] rounded-md border border-[#3c3c43] bg-[#1c1c1e] flex items-center justify-center hover:bg-[#2c2c2e] transition-colors active:scale-95"
+                className="w-[32px] h-[32px] rounded-md border border-slate-300 dark:border-[#3c3c43] bg-slate-100 dark:bg-[#1c1c1e] flex items-center justify-center hover:bg-slate-200 dark:bg-[#2c2c2e] transition-colors active:scale-95"
               >
                 <CameraIcon size={18} className="text-[#8e8e93]" strokeWidth={2} />
               </button>
@@ -242,9 +242,9 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
                       onClick={() => setFormData(prev => ({ ...prev, envPhotos: prev.envPhotos.filter((_, i) => i !== idx) }))}
                       className="w-[16px] h-[16px] rounded-full bg-[#ef4444] flex items-center justify-center"
                     >
-                      <X size={10} className="text-white" strokeWidth={3} />
+                      <X size={10} className="text-slate-900 dark:text-white" strokeWidth={3} />
                     </button>
-                    <div className="w-[48px] h-[40px] rounded-md bg-[#1c1c1e] overflow-hidden border border-[#2c2c2e]/50">
+                    <div className="w-[48px] h-[40px] rounded-md bg-slate-100 dark:bg-[#1c1c1e] overflow-hidden border border-slate-300 dark:border-slate-200 dark:border-[#2c2c2e]/50">
                       <img src={photo} className="w-full h-full object-cover" alt={`env ${idx}`} />
                     </div>
                   </div>
@@ -256,10 +256,10 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
         </div>
 
         {/* Footer Buttons */}
-        <div className="flex items-center gap-[8px] px-[16px] py-[16px] pb-[40px] shrink-0 border-t border-[#1e293b]">
+        <div className="flex items-center gap-[8px] px-[16px] py-[16px] pb-[40px] shrink-0 border-t border-slate-200 dark:border-[#1e293b]">
           <button
             onClick={onClose}
-            className="flex flex-col items-center justify-center gap-[4px] w-[72px] h-[56px] rounded-[16px] text-[#64748b] hover:bg-[#1e293b] transition-colors shrink-0"
+            className="flex flex-col items-center justify-center gap-[4px] w-[72px] h-[56px] rounded-[16px] text-[#64748b] hover:bg-slate-100 dark:hover:bg-[#1e293b] transition-colors shrink-0"
           >
             <X size={16} />
             <span className="text-[11px] font-[800]">取消</span>
@@ -269,8 +269,8 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
             onClick={() => onSave(formData)}
             className="flex-1 h-[56px] bg-[#2563eb] hover:bg-[#1d4ed8] active:scale-95 transition-all rounded-[16px] flex items-center justify-center gap-[8px] shadow-lg shadow-blue-600/20"
           >
-            <Save size={16} className="text-white" />
-            <span className="text-[14px] font-[900] text-white">保存修改</span>
+            <Save size={16} className="text-slate-900 dark:text-white" />
+            <span className="text-[14px] font-[900] text-slate-900 dark:text-white">保存修改</span>
           </button>
 
           <button
@@ -287,10 +287,10 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
         {/* Custom Confirm Dialog for Deletion */}
         {deleteConfirm && (
           <div className="fixed inset-0 z-[400] flex items-center justify-center bg-[#00000080] backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-[#121826] border border-[#1e293b] rounded-[16px] p-[20px] w-full max-w-[320px] shadow-2xl flex flex-col gap-[16px]">
+            <div className="bg-[#121826] border border-slate-200 dark:border-[#1e293b] rounded-[16px] p-[20px] w-full max-w-[320px] shadow-2xl flex flex-col gap-[16px]">
               <div className="flex flex-col gap-[8px]">
-                <span className="text-[18px] font-[900] text-white">确认删除测试记录？</span>
-                <span className="text-[13px] font-[500] text-[#94a3b8] leading-snug">此操作不可恢复。删除该记录后，与之关联的所有测试数据都将被永久清除。</span>
+                <span className="text-[18px] font-[900] text-slate-900 dark:text-white">确认删除测试记录？</span>
+                <span className="text-[13px] font-[500] text-slate-500 dark:text-[#94a3b8] leading-snug">此操作不可恢复。删除该记录后，与之关联的所有测试数据都将被永久清除。</span>
               </div>
               <div className="flex justify-end gap-[12px] mt-[8px]">
                 <button 
@@ -304,7 +304,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
                     setDeleteConfirm(false);
                     onDelete && onDelete(session.id);
                   }}
-                  className="px-[16px] py-[8px] rounded-[10px] bg-[#ef4444] hover:bg-red-500 text-[13px] font-[900] text-white shadow-[0_0_10px_rgba(239,68,68,0.3)] transition-colors"
+                  className="px-[16px] py-[8px] rounded-[10px] bg-[#ef4444] hover:bg-red-500 text-[13px] font-[900] text-slate-900 dark:text-white shadow-[0_0_10px_rgba(239,68,68,0.3)] transition-colors"
                 >
                   确认删除
                 </button>

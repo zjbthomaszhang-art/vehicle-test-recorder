@@ -160,35 +160,35 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f1523] text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0f1523] text-slate-800 dark:text-slate-100 flex flex-col font-sans">
       <header className="px-[24px] pt-[44px] pb-[8px] w-full z-10 shrink-0">
-        <h1 className="text-[26px] font-[800] text-white leading-none tracking-tight">案例管理</h1>
+        <h1 className="text-[26px] font-[800] text-slate-900 dark:text-white leading-none tracking-tight">案例管理</h1>
       </header>
 
       <main id="admin-main-scroll" className="flex-1 overflow-y-auto px-[24px] pt-[16px] pb-[100px] flex flex-col gap-[12px] custom-scrollbar">
         
         {/* Add Form DAuOP -> mWXyC */}
         <div className="bg-[#1e293b] border border-[#334155] rounded-[16px] p-[12px] flex flex-col gap-[8px]">
-          <span className="text-[12px] font-[900] text-[#94a3b8] px-[4px]">{isEditing ? '修改案例' : '新增案例'}</span>
+          <span className="text-[12px] font-[900] text-slate-500 dark:text-[#94a3b8] px-[4px]">{isEditing ? '修改案例' : '新增案例'}</span>
           
           <div className="flex gap-[8px] w-full items-center">
             <input 
-              placeholder="ID" className="w-[50px] shrink-0 bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] text-[12px] text-white focus:outline-none focus:border-[#3b82f6]"
+              placeholder="ID" className="w-[50px] shrink-0 bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] text-[12px] text-slate-900 dark:text-white focus:outline-none focus:border-[#3b82f6]"
               value={formData.id} onChange={e => setFormData({...formData, id: e.target.value})}
             />
             <input 
-              placeholder="业务场景" className="flex-1 min-w-0 bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] text-[12px] text-white focus:outline-none focus:border-[#3b82f6]"
+              placeholder="业务场景" className="flex-1 min-w-0 bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] text-[12px] text-slate-900 dark:text-white focus:outline-none focus:border-[#3b82f6]"
               value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}
             />
             <input 
-              placeholder="功能大类" className="w-[110px] shrink-0 bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] text-[12px] text-white focus:outline-none focus:border-[#3b82f6]"
+              placeholder="功能大类" className="w-[110px] shrink-0 bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] text-[12px] text-slate-900 dark:text-white focus:outline-none focus:border-[#3b82f6]"
               value={formData.functionCategory} onChange={e => setFormData({...formData, functionCategory: e.target.value})}
             />
           </div>
 
           <div className="flex gap-[8px] w-full">
              <input 
-              placeholder="功能" className="flex-1 min-w-0 bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] text-[12px] text-white focus:outline-none focus:border-[#3b82f6]"
+              placeholder="功能" className="flex-1 min-w-0 bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] text-[12px] text-slate-900 dark:text-white focus:outline-none focus:border-[#3b82f6]"
               value={formData.function} onChange={e => setFormData({...formData, function: e.target.value})}
              />
              <CustomSelect
@@ -207,14 +207,14 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
 
           <div className="w-full">
              <input 
-              placeholder="测试内容" className="w-full bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] text-[12px] text-white focus:outline-none focus:border-[#3b82f6]"
+              placeholder="测试内容" className="w-full bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] text-[12px] text-slate-900 dark:text-white focus:outline-none focus:border-[#3b82f6]"
               value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})}
              />
           </div>
 
           <div className="w-full">
              <input 
-              placeholder="期望结果" className="w-full bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] text-[12px] text-white focus:outline-none focus:border-[#3b82f6]"
+              placeholder="期望结果" className="w-full bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] text-[12px] text-slate-900 dark:text-white focus:outline-none focus:border-[#3b82f6]"
               value={formData.expected} onChange={e => setFormData({...formData, expected: e.target.value})}
              />
           </div>
@@ -222,13 +222,13 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
             onClick={handleAdd} 
             className={`w-full ${isEditing ? 'bg-[#10b981] hover:bg-[#059669]' : 'bg-[#3b82f6] hover:bg-[#2563eb]'} transition-colors rounded-[12px] p-[10px] flex justify-center items-center mt-[4px]`}
           >
-             <span className="text-[12px] font-[900] text-white">{isEditing ? '保存修改' : '添加案例'}</span>
+             <span className="text-[12px] font-[900] text-slate-900 dark:text-white">{isEditing ? '保存修改' : '添加案例'}</span>
           </button>
         </div>
 
         {/* List Header */}
         <div className="flex justify-between items-center w-full mt-[12px]">
-           <span className="text-[12px] font-[900] text-[#94a3b8]">当前案例数 ({cases.length})</span>
+           <span className="text-[12px] font-[900] text-slate-500 dark:text-[#94a3b8]">当前案例数 ({cases.length})</span>
            <input type="file" accept=".xlsx,.xls" ref={fileRef} onChange={handleImport} className="hidden" />
            <button onClick={() => fileRef.current?.click()} className="flex items-center gap-[4px] bg-[#059669]/20 border border-[#10b981]/30 hover:bg-[#059669]/30 transition-colors rounded-[12px] px-[12px] py-[6px]">
               <FolderOpen size={14} className="text-[#34d399]" />
@@ -238,7 +238,7 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
 
         {/* Search Bar */}
         <div className="bg-[#1e293b] border border-[#334155] rounded-[20px] p-[16px] flex flex-col gap-[12px]">
-           <span className="text-[10px] font-[900] text-[#94a3b8]">筛选用例</span>
+           <span className="text-[10px] font-[900] text-slate-500 dark:text-[#94a3b8]">筛选用例</span>
            <div className="flex gap-[8px] w-full">
               <CustomSelect
                 value={filterCat}
@@ -249,7 +249,7 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
                 className="flex-1 min-w-0 w-1/2 bg-[#0f172a] border border-[#334155] rounded-[8px] px-[12px] py-[8px]"
               />
               <input 
-                placeholder="搜索功能名称..." className="flex-1 min-w-0 w-1/2 bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] px-[12px] text-[12px] text-white focus:outline-none"
+                placeholder="搜索功能名称..." className="flex-1 min-w-0 w-1/2 bg-[#0f172a] border border-[#334155] rounded-[8px] p-[8px] px-[12px] text-[12px] text-slate-900 dark:text-white focus:outline-none"
                 value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
               />
            </div>
@@ -258,7 +258,7 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
         {/* Cases List */}
         <div className="flex flex-col gap-[8px]">
            {filteredCases.map(c => (
-              <div key={c.id} className="bg-[#121826] border border-[#1e293b] rounded-[14px] p-[10px] px-[14px] flex justify-between items-center transition-transform active:scale-[0.98]">
+              <div key={c.id} className="bg-[#121826] border border-slate-200 dark:border-[#1e293b] rounded-[14px] p-[10px] px-[14px] flex justify-between items-center transition-transform active:scale-[0.98]">
                  <div className="flex flex-col gap-[4px] flex-1 min-w-0 pr-4">
                     <div className="flex items-center gap-[6px] h-[16px]">
                        <div className="bg-[#3b82f6]/20 px-[6px] h-[16px] flex items-center justify-center rounded border border-[#3b82f6]/30">
@@ -269,13 +269,13 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
                        </span>
                     </div>
                     <div className="flex items-center gap-[6px] mt-0 overflow-hidden flex-wrap sm:flex-nowrap">
-                       <span className="text-[13px] font-[900] text-white shrink-0">{c.function}</span>
+                       <span className="text-[13px] font-[900] text-slate-900 dark:text-white shrink-0">{c.function}</span>
                        {c.content && <span className="text-[11px] font-[500] text-[#cbd5e1] truncate shrink">- {c.content}</span>}
                        <span className="text-[10px] font-[normal] text-[#64748b] shrink-0">| {c.type}</span>
                     </div>
                  </div>
                  <div className="flex items-center gap-[12px]">
-                    <button onClick={() => handleEdit(c)} className="p-2 -mr-2 text-[#475569] hover:text-white transition-colors">
+                    <button onClick={() => handleEdit(c)} className="p-2 -mr-2 text-[#475569] hover:text-slate-900 dark:text-white transition-colors">
                        <Edit3 size={18} />
                     </button>
                     <button onClick={() => setDeleteConfirmId(c.id)} className="p-2 -mr-2 text-[#ef4444] hover:text-red-400 transition-colors">
@@ -292,10 +292,10 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
       {/* Custom Confirm Dialog for Deletion */}
       {deleteConfirmId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000080] backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-[#121826] border border-[#1e293b] rounded-[16px] p-[20px] w-full max-w-[320px] shadow-2xl flex flex-col gap-[16px]">
+          <div className="bg-[#121826] border border-slate-200 dark:border-[#1e293b] rounded-[16px] p-[20px] w-full max-w-[320px] shadow-2xl flex flex-col gap-[16px]">
             <div className="flex flex-col gap-[8px]">
-              <span className="text-[18px] font-[900] text-white">确认删除案例？</span>
-              <span className="text-[13px] font-[500] text-[#94a3b8] leading-snug">此操作不可恢复。案例的删除可能会影响相关历史执行记录的数据关联。</span>
+              <span className="text-[18px] font-[900] text-slate-900 dark:text-white">确认删除案例？</span>
+              <span className="text-[13px] font-[500] text-slate-500 dark:text-[#94a3b8] leading-snug">此操作不可恢复。案例的删除可能会影响相关历史执行记录的数据关联。</span>
             </div>
             <div className="flex justify-end gap-[12px] mt-[8px]">
               <button 
@@ -306,7 +306,7 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
               </button>
               <button 
                 onClick={() => handleDelete(deleteConfirmId)}
-                className="px-[16px] py-[8px] rounded-[10px] bg-[#ef4444] hover:bg-red-500 text-[13px] font-[900] text-white shadow-[0_0_10px_rgba(239,68,68,0.3)] transition-colors"
+                className="px-[16px] py-[8px] rounded-[10px] bg-[#ef4444] hover:bg-red-500 text-[13px] font-[900] text-slate-900 dark:text-white shadow-[0_0_10px_rgba(239,68,68,0.3)] transition-colors"
               >
                 确认删除
               </button>

@@ -165,7 +165,7 @@ export default function PerformanceMonitorView({ setView }) {
   const titlePrefix = getChartTitlePrefix();
 
   return (
-    <div className="h-screen bg-[#0f1523] text-slate-200 flex flex-col font-sans overflow-hidden antialiased">
+    <div className="h-screen bg-slate-50 dark:bg-[#0f1523] text-slate-800 dark:text-slate-200 flex flex-col font-sans overflow-hidden antialiased">
       <div className="flex-1 w-full flex flex-col px-[40px] pt-[32px] pb-[24px] gap-[24px]">
         
         {/* Header */}
@@ -173,13 +173,13 @@ export default function PerformanceMonitorView({ setView }) {
           <div className="flex items-center gap-4">
             <Activity size={32} className="text-[#3b82f6]" />
             <div className="flex flex-col">
-              <h1 className="text-2xl font-[900] italic tracking-tighter text-slate-100">系统性能监控</h1>
+              <h1 className="text-2xl font-[900] italic tracking-tighter text-slate-800 dark:text-slate-100">系统性能监控</h1>
               <span className="text-[10px] font-[800] text-[#64748b] uppercase tracking-widest">Performance Monitor</span>
             </div>
           </div>
           <button 
             onClick={() => setView('home')}
-            className="flex items-center gap-2 border border-[#1e293b] rounded-[8px] px-[16px] py-[10px] text-[12px] font-[800] text-[#64748b] hover:text-white transition-all bg-[#0f1523]"
+            className="flex items-center gap-2 border border-slate-200 dark:border-[#1e293b] rounded-[8px] px-[16px] py-[10px] text-[12px] font-[800] text-[#64748b] hover:text-slate-900 dark:text-white transition-all bg-slate-50 dark:bg-[#0f1523]"
           >
             <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> 返回主页
           </button>
@@ -187,7 +187,7 @@ export default function PerformanceMonitorView({ setView }) {
 
         {/* Toolbar */}
         <div className="flex items-center gap-3 shrink-0">
-          <div className="flex gap-1 bg-[#111827]/80 p-1 border border-[#1e293b] rounded-lg">
+          <div className="flex gap-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent/80 p-1 border border-slate-200 dark:border-[#1e293b] rounded-lg">
             {[
               { id: 'realtime', label: '实时 (60s)' },
               { id: '1h', label: '1小时' },
@@ -200,8 +200,8 @@ export default function PerformanceMonitorView({ setView }) {
                 onClick={() => setTimeRange(tab.id)}
                 className={`px-4 py-1.5 rounded-md text-[11px] font-[800] transition-colors ${
                   timeRange === tab.id
-                    ? 'bg-[#3b82f6] text-white shadow-md'
-                    : 'text-[#64748b] hover:bg-[#1e293b] hover:text-slate-200'
+                    ? 'bg-[#3b82f6] text-slate-900 dark:text-white shadow-md'
+                    : 'text-[#64748b] hover:bg-slate-100 dark:hover:bg-[#1e293b] hover:text-slate-800 dark:text-slate-200'
                 }`}
               >
                 {tab.label}
@@ -213,33 +213,33 @@ export default function PerformanceMonitorView({ setView }) {
         {/* Top KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-[24px] shrink-0">
           {/* CPU KPI */}
-          <div className="bg-[#111827]/80 backdrop-blur-xl border border-[#1e293b] rounded-[1rem] p-[20px] shadow-2xl flex flex-col justify-between h-[110px]">
+          <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent/80 backdrop-blur-xl border border-slate-200 dark:border-[#1e293b] rounded-[1rem] p-[20px] shadow-2xl flex flex-col justify-between h-[110px]">
             <span className="text-[11px] font-[800] text-[#64748b] uppercase tracking-widest flex items-center gap-2">
               <Server size={14} /> CPU 使用率
             </span>
-            <div className="text-slate-200 flex items-baseline">
+            <div className="text-slate-800 dark:text-slate-200 flex items-baseline">
               <span className="text-4xl font-black italic tracking-tighter bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent leading-none pb-1 pr-1">{currentCpu.toFixed(1)}</span>
               <span className="text-lg font-bold text-[#60a5fa] ml-1 leading-none">%</span>
             </div>
           </div>
 
           {/* RAM KPI */}
-          <div className="bg-[#111827]/80 backdrop-blur-xl border border-[#1e293b] rounded-[1rem] p-[20px] shadow-2xl flex flex-col justify-between h-[110px]">
+          <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent/80 backdrop-blur-xl border border-slate-200 dark:border-[#1e293b] rounded-[1rem] p-[20px] shadow-2xl flex flex-col justify-between h-[110px]">
             <span className="text-[11px] font-[800] text-[#64748b] uppercase tracking-widest flex items-center gap-2">
               <Activity size={14} /> 内存 (RAM) 使用
             </span>
-            <div className="text-slate-200 flex items-baseline leading-none">
+            <div className="text-slate-800 dark:text-slate-200 flex items-baseline leading-none">
               <span className="text-4xl font-black italic tracking-tighter text-[#a855f7] leading-none">{currentRam.toFixed(1)}</span>
               <span className="text-lg font-bold text-[#c084fc] ml-1 leading-none">GB <span className="text-xs text-[#64748b]">/ {ramTotal.toFixed(1)}GB</span></span>
             </div>
           </div>
 
           {/* DISK KPI */}
-          <div className="bg-[#111827]/80 backdrop-blur-xl border border-[#1e293b] rounded-[1rem] p-[20px] shadow-2xl flex flex-col justify-between h-[110px]">
+          <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent/80 backdrop-blur-xl border border-slate-200 dark:border-[#1e293b] rounded-[1rem] p-[20px] shadow-2xl flex flex-col justify-between h-[110px]">
             <span className="text-[11px] font-[800] text-[#64748b] uppercase tracking-widest flex items-center gap-2">
               <HardDrive size={14} /> 存储空间 (SSD)
             </span>
-            <div className="text-slate-200 flex items-baseline leading-none">
+            <div className="text-slate-800 dark:text-slate-200 flex items-baseline leading-none">
               <span className="text-4xl font-black italic tracking-tighter text-[#f97316] leading-none">{diskData.used.toFixed(1)}</span>
               <span className="text-lg font-bold text-[#fb923c] ml-1 leading-none">GB <span className="text-xs text-[#64748b]">/ {diskData.total.toFixed(0)}GB</span></span>
             </div>
@@ -252,8 +252,8 @@ export default function PerformanceMonitorView({ setView }) {
           <div className="flex-1 flex flex-col gap-[24px] min-w-0 h-full">
             
             {/* CPU Chart */}
-            <div className="flex-1 bg-[#111827]/80 backdrop-blur-xl border border-[#1e293b] rounded-[1rem] p-[24px] shadow-2xl flex flex-col relative min-h-0">
-              <h2 className="text-sm font-black italic text-slate-300 mb-4 shrink-0">{titlePrefix} CPU 负载趋势</h2>
+            <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent/80 backdrop-blur-xl border border-slate-200 dark:border-[#1e293b] rounded-[1rem] p-[24px] shadow-2xl flex flex-col relative min-h-0">
+              <h2 className="text-sm font-black italic text-slate-700 dark:text-slate-300 mb-4 shrink-0">{titlePrefix} CPU 负载趋势</h2>
               
               <div className="flex-1 relative flex min-h-0">
                 {/* Y Axis */}
@@ -288,8 +288,8 @@ export default function PerformanceMonitorView({ setView }) {
             </div>
 
             {/* RAM Chart */}
-            <div className="flex-1 bg-[#111827]/80 backdrop-blur-xl border border-[#1e293b] rounded-[1rem] p-[24px] shadow-2xl flex flex-col relative min-h-0">
-              <h2 className="text-sm font-black italic text-slate-300 mb-4 shrink-0">{titlePrefix}内存 (RAM) 负载趋势</h2>
+            <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent/80 backdrop-blur-xl border border-slate-200 dark:border-[#1e293b] rounded-[1rem] p-[24px] shadow-2xl flex flex-col relative min-h-0">
+              <h2 className="text-sm font-black italic text-slate-700 dark:text-slate-300 mb-4 shrink-0">{titlePrefix}内存 (RAM) 负载趋势</h2>
               
               <div className="flex-1 relative flex min-h-0">
                 {/* Y Axis */}
@@ -328,8 +328,8 @@ export default function PerformanceMonitorView({ setView }) {
           {/* Right Area - Sidebar */}
           <div className="w-[450px] flex flex-col gap-[24px] shrink-0 h-full">
             {/* System Runtime Status */}
-            <div className="flex-1 bg-[#111827]/80 backdrop-blur-xl border border-[#1e293b] rounded-[1rem] p-[24px] shadow-2xl flex flex-col min-h-0">
-              <h2 className="text-sm font-black italic text-slate-300 mb-6 shrink-0">系统运行状态</h2>
+            <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent/80 backdrop-blur-xl border border-slate-200 dark:border-[#1e293b] rounded-[1rem] p-[24px] shadow-2xl flex flex-col min-h-0">
+              <h2 className="text-sm font-black italic text-slate-700 dark:text-slate-300 mb-6 shrink-0">系统运行状态</h2>
               <div className="flex-1 flex flex-col justify-around">
                 <div>
                   <div className="flex justify-between items-center text-sm font-bold text-[#64748b] mb-1">
@@ -361,9 +361,9 @@ export default function PerformanceMonitorView({ setView }) {
             </div>
 
             {/* Network Stream */}
-            <div className="flex-1 bg-[#111827]/80 backdrop-blur-xl border border-[#1e293b] rounded-[1rem] p-[24px] shadow-2xl flex flex-col min-h-0 relative">
+            <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent/80 backdrop-blur-xl border border-slate-200 dark:border-[#1e293b] rounded-[1rem] p-[24px] shadow-2xl flex flex-col min-h-0 relative">
               <div className="flex justify-between items-center mb-4 shrink-0">
-                <h2 className="text-sm font-black italic text-slate-300 flex items-center gap-2">
+                <h2 className="text-sm font-black italic text-slate-700 dark:text-slate-300 flex items-center gap-2">
                   <Globe size={16} /> {titlePrefix}网络带宽趋势
                 </h2>
                 <div className="flex items-center gap-3 text-[10px] font-bold">

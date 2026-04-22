@@ -67,13 +67,13 @@ export default function ReportView({
   };
 
   return (
-    <div className="min-h-screen bg-[#0f1523] text-slate-100 flex flex-col font-sans" ref={reportRef}>
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0f1523] text-slate-800 dark:text-slate-100 flex flex-col font-sans" ref={reportRef}>
       <div className="flex-1 overflow-y-auto w-full">
 
         {/* TitleBlock */}
         <div className="px-[24px] pt-[44px] pb-[12px] flex flex-col gap-[4px] w-full overflow-hidden">
           <div className="relative inline-block pb-[4px] w-fit">
-            <h1 className="text-[32px] sm:text-[36px] font-black font-sans tracking-tighter text-white leading-none uppercase whitespace-nowrap relative z-10 drop-shadow-2xl">
+            <h1 className="text-[32px] sm:text-[36px] font-black font-sans tracking-tighter text-slate-900 dark:text-white leading-none uppercase whitespace-nowrap relative z-10 drop-shadow-2xl">
               {['M','I','S','S','I','O','N'].map((char, i) => (
                 <span key={`1-${i}`} className="animate-cyber-letter" style={{ animationDelay: `${i * 0.08}s` }}>{char}</span>
               ))}
@@ -92,9 +92,9 @@ export default function ReportView({
 
         {/* Summary */}
         <div className="px-[24px] py-[24px] w-full">
-          <div className="bg-[#121826] border border-[#1e293b] rounded-[20px] p-[24px] flex justify-between items-center gap-[16px] w-full">
+          <div className="bg-[#121826] border border-slate-200 dark:border-[#1e293b] rounded-[20px] p-[24px] flex justify-between items-center gap-[16px] w-full">
             <div className="flex flex-col gap-[16px]">
-              <span className="text-[22px] font-[900] text-white leading-none">
+              <span className="text-[22px] font-[900] text-slate-900 dark:text-white leading-none">
                 MY{modelYear || '2X'} {vehicleModel || 'BEV'}
               </span>
               <span className="text-[12px] font-bold text-[#3b82f6]">
@@ -113,8 +113,8 @@ export default function ReportView({
         {/* StatsRow */}
         <div className="px-[24px] pb-[16px] w-full flex gap-[12px]">
           <div className="flex-1 bg-[#1e293b] rounded-[16px] h-[100px] flex flex-col justify-center items-center gap-[4px]">
-            <span className="text-[36px] font-[900] text-white leading-none">{stats.completed}</span>
-            <span className="text-[12px] font-normal text-[#94a3b8]">已完成</span>
+            <span className="text-[36px] font-[900] text-slate-900 dark:text-white leading-none">{stats.completed}</span>
+            <span className="text-[12px] font-normal text-slate-500 dark:text-[#94a3b8]">已完成</span>
           </div>
           {/* 缺陷 — clickable, opens bug sheet */}
           <button
@@ -130,24 +130,24 @@ export default function ReportView({
         <div className="px-[24px] pb-[24px] w-full flex gap-[8px]">
           <div className="flex-1 bg-[#1e293b] rounded-[12px] h-[64px] flex flex-col justify-center items-center gap-[2px]">
             <span className="text-[20px] font-bold text-[#22c55e] leading-none">{stats.passed}</span>
-            <span className="text-[11px] font-normal text-[#94a3b8] leading-none">通过</span>
+            <span className="text-[11px] font-normal text-slate-500 dark:text-[#94a3b8] leading-none">通过</span>
           </div>
           <div className="flex-1 bg-[#1e293b] rounded-[12px] h-[64px] flex flex-col justify-center items-center gap-[2px]">
             <span className="text-[20px] font-bold text-[#ef4444] leading-none">{stats.failed}</span>
-            <span className="text-[11px] font-normal text-[#94a3b8] leading-none">失败</span>
+            <span className="text-[11px] font-normal text-slate-500 dark:text-[#94a3b8] leading-none">失败</span>
           </div>
           <div className="flex-1 bg-[#1e293b] rounded-[12px] h-[64px] flex flex-col justify-center items-center gap-[2px]">
-            <span className="text-[20px] font-bold text-[#94a3b8] leading-none">{stats.na}</span>
-            <span className="text-[11px] font-normal text-[#94a3b8] leading-none">不适用</span>
+            <span className="text-[20px] font-bold text-slate-500 dark:text-[#94a3b8] leading-none">{stats.na}</span>
+            <span className="text-[11px] font-normal text-slate-500 dark:text-[#94a3b8] leading-none">不适用</span>
           </div>
         </div>
 
         {/* Findings — 失败记录明细：每个 fail case 一张卡 */}
         <div className="px-[24px] pb-[32px] w-full flex flex-col gap-[12px]">
-          <span className="text-[12px] font-[600] text-[#94a3b8]">失败记录明细</span>
+          <span className="text-[12px] font-[600] text-slate-500 dark:text-[#94a3b8]">失败记录明细</span>
 
           {stats.failedCases.length === 0 ? (
-            <div className="border border-[#1e293b] rounded-[16px] p-[24px] text-center">
+            <div className="border border-slate-200 dark:border-[#1e293b] rounded-[16px] p-[24px] text-center">
               <span className="text-[14px] font-bold text-[#22c55e]">没有任何缺陷记录！</span>
             </div>
           ) : (
@@ -168,18 +168,18 @@ export default function ReportView({
       </div>
 
       {/* Footer */}
-      <div className="w-full bg-[#0f1523] border-t border-[#1e293b]/50 h-[88px] px-[16px] pt-[6px] pb-[20px] flex gap-[10px] items-center shrink-0">
+      <div className="w-full bg-slate-50 dark:bg-[#0f1523] border-t border-slate-200 dark:border-[#1e293b]/50 h-[88px] px-[16px] pt-[6px] pb-[20px] flex gap-[10px] items-center shrink-0">
         <button onClick={() => setView('test')} className="w-[100px] h-[60px] bg-[#1e293b] rounded-[16px] flex flex-col justify-center items-center gap-[4px] active:scale-95 transition-all">
-          <Undo2 size={24} className="text-[#94a3b8]" />
-          <span className="text-[11px] font-[800] text-[#94a3b8]">返回修改</span>
+          <Undo2 size={24} className="text-slate-500 dark:text-[#94a3b8]" />
+          <span className="text-[11px] font-[800] text-slate-500 dark:text-[#94a3b8]">返回修改</span>
         </button>
         <button onClick={handleExportPDF} disabled={isExporting} className="flex-1 h-[60px] bg-[#2563eb] rounded-[16px] flex flex-col justify-center items-center gap-[4px] shadow-[0_4px_12px_rgba(37,99,235,0.38)] active:scale-95 transition-all disabled:opacity-60">
-          <Upload size={24} className="text-white" />
-          <span className="text-[11px] font-[900] text-white">{isExporting ? '导出中...' : '导出报告'}</span>
+          <Upload size={24} className="text-slate-900 dark:text-white" />
+          <span className="text-[11px] font-[900] text-slate-900 dark:text-white">{isExporting ? '导出中...' : '导出报告'}</span>
         </button>
         <button onClick={handleFinish} className="w-[100px] h-[60px] bg-[#1e293b] rounded-[16px] flex flex-col justify-center items-center gap-[4px] active:scale-95 transition-all">
-          <CheckCircle2 size={24} className="text-[#94a3b8]" />
-          <span className="text-[11px] font-[800] text-[#94a3b8]">结束测试</span>
+          <CheckCircle2 size={24} className="text-slate-500 dark:text-[#94a3b8]" />
+          <span className="text-[11px] font-[800] text-slate-500 dark:text-[#94a3b8]">结束测试</span>
         </button>
       </div>
 
@@ -187,7 +187,7 @@ export default function ReportView({
       {showBugSheet && (
         <div className="fixed inset-0 z-[100]" style={{ background: '#00000099' }}>
           <div
-            className="absolute bottom-0 left-0 right-0 bg-[#0f1523] rounded-t-[32px] flex flex-col overflow-hidden"
+            className="absolute bottom-0 left-0 right-0 bg-slate-50 dark:bg-[#0f1523] rounded-t-[32px] flex flex-col overflow-hidden"
             style={{ maxHeight: '85vh', paddingTop: 24 }}
           >
             {/* Header */}
@@ -197,7 +197,7 @@ export default function ReportView({
                 onClick={() => setShowBugSheet(false)}
                 className="w-[40px] h-[40px] rounded-[20px] bg-[#1e293b] flex items-center justify-center active:scale-90 transition-all"
               >
-                <X size={20} className="text-[#94a3b8]" />
+                <X size={20} className="text-slate-500 dark:text-[#94a3b8]" />
               </button>
             </div>
 
@@ -222,7 +222,7 @@ export default function ReportView({
                   }
                 }
                 return (
-                  <div key={bug.id || idx} className="bg-[#111827] rounded-[20px] border border-[#1e293b] flex flex-col" style={{ padding: 20, gap: 16 }}>
+                  <div key={bug.id || idx} className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[20px] border border-slate-200 dark:border-[#1e293b] flex flex-col" style={{ padding: 20, gap: 16 }}>
                     <div className="flex justify-between items-center">
                       <span className="text-[14px] font-[900] text-[#f1f5f9]">#BUG-{bugNum}</span>
                       <div className="w-[32px] h-[32px] rounded-[16px] bg-[#1e293b] flex items-center justify-center">
@@ -231,7 +231,7 @@ export default function ReportView({
                     </div>
                     <div className="flex items-center gap-[8px]">
                       <Link size={16} className="text-[#64748b] shrink-0" />
-                      <span className="text-[12px] font-[600] text-[#94a3b8]">关联用例：Case {bug.case_id} - {linkedCase?.function || '未知'}</span>
+                      <span className="text-[12px] font-[600] text-slate-500 dark:text-[#94a3b8]">关联用例：Case {bug.case_id} - {linkedCase?.function || '未知'}</span>
                     </div>
                     <span className="text-[14px] font-[600] text-[#cbd5e1] break-words leading-relaxed">{bug.description}</span>
                     {bug.media && bug.media.length > 0 && (

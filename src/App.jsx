@@ -636,15 +636,15 @@ export default function NDLBRecorder() {
       <ConfirmDialog dialog={confirmDialog} onClose={() => setConfirmDialog(null)} />
 
       {isSaving && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[999] flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
+        <div className="fixed inset-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md z-[999] flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
           <div className="relative">
              <div className="w-24 h-24 bg-blue-600/10 rounded-full border border-blue-500/20 animate-ping absolute inset-0" />
              <div className="w-24 h-24 bg-blue-600/20 rounded-full border border-blue-500/20 animate-pulse relative flex items-center justify-center">
                 <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
              </div>
           </div>
-          <p className="mt-12 text-2xl font-black text-white italic tracking-tighter uppercase animate-pulse">{FIELD_LABELS.syncingData}</p>
-          <p className="mt-2 text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">{FIELD_LABELS.processingTelemetry}</p>
+          <p className="mt-12 text-2xl font-black text-slate-900 dark:text-white italic tracking-tighter uppercase animate-pulse">{FIELD_LABELS.syncingData}</p>
+          <p className="mt-2 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px]">{FIELD_LABELS.processingTelemetry}</p>
         </div>
       )}
 

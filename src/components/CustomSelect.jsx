@@ -48,8 +48,8 @@ export default function CustomSelect({
           'block flex-1 min-w-0 truncate text-[12px]',
           isLeft ? 'text-left' : 'text-right',
           displayLabel
-            ? (textColor || 'text-slate-200 font-semibold')
-            : isLeft ? 'text-[#94a3b8] font-normal' : 'text-slate-600 font-normal',
+            ? (textColor || 'text-slate-800 dark:text-slate-200 font-semibold')
+            : isLeft ? 'text-slate-500 dark:text-[#94a3b8] font-normal' : 'text-slate-600 font-normal',
         ].join(' ')}>
           {displayLabel || placeholder}
         </span>
@@ -61,7 +61,7 @@ export default function CustomSelect({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className={`absolute top-[calc(100%+8px)] ${isLeft ? 'left-0 origin-top-left' : 'right-0 origin-top-right'} w-[200px] sm:w-[240px] z-[100] bg-[#1c1c1e]/95 backdrop-blur-xl border border-[#2c2c2e] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200`}>
+        <div className={`absolute top-[calc(100%+8px)] ${isLeft ? 'left-0 origin-top-left' : 'right-0 origin-top-right'} w-[200px] sm:w-[240px] z-[100] bg-slate-100 dark:bg-[#1c1c1e]/95 backdrop-blur-xl border border-slate-300 dark:border-[#2c2c2e] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200`}>
           <div className="max-h-[260px] overflow-y-auto custom-scrollbar py-2">
             {options.map((opt) => {
               const optValue = typeof opt === 'string' ? opt : opt.value;
@@ -70,10 +70,10 @@ export default function CustomSelect({
               return (
                 <div
                   key={optValue ?? '__empty__'}
-                  className={`px-4 py-3 sm:py-3.5 flex items-center justify-between cursor-pointer transition-colors active:bg-[#2c2c2e] ${isSelected ? 'bg-blue-600/10' : 'hover:bg-[#2c2c2e]/50'}`}
+                  className={`px-4 py-3 sm:py-3.5 flex items-center justify-between cursor-pointer transition-colors active:bg-slate-200 dark:bg-[#2c2c2e] ${isSelected ? 'bg-blue-600/10' : 'hover:bg-slate-200 dark:bg-[#2c2c2e]/50'}`}
                   onClick={() => { onChange(optValue); setIsOpen(false); }}
                 >
-                  <span className={`text-[15px] sm:text-base ${isSelected ? 'text-blue-500 font-bold' : optLabel ? 'text-slate-200 font-medium' : 'text-[#94a3b8] font-normal'}`}>
+                  <span className={`text-[15px] sm:text-base ${isSelected ? 'text-blue-500 font-bold' : optLabel ? 'text-slate-800 dark:text-slate-200 font-medium' : 'text-slate-500 dark:text-[#94a3b8] font-normal'}`}>
                     {optLabel || placeholder}
                   </span>
                   {isSelected && optValue && <Check size={16} className="text-blue-500 shrink-0" strokeWidth={3} />}
