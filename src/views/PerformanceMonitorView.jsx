@@ -201,7 +201,7 @@ export default function PerformanceMonitorView({ setView }) {
                 className={`px-4 py-1.5 rounded-md text-[11px] font-[800] transition-colors ${
                   timeRange === tab.id
                     ? 'bg-[#3b82f6] text-slate-900 dark:text-white shadow-md'
-                    : 'text-[#64748b] hover:bg-slate-100 dark:hover:bg-[#1e293b] hover:text-slate-800 dark:text-slate-200'
+                    : 'text-[#64748b] hover:bg-slate-100 dark:hover:bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none hover:text-slate-800 dark:text-slate-200'
                 }`}
               >
                 {tab.label}
@@ -335,7 +335,7 @@ export default function PerformanceMonitorView({ setView }) {
                   <div className="flex justify-between items-center text-sm font-bold text-[#64748b] mb-1">
                     <span>平均负载 (1m, 5m, 15m)</span>
                   </div>
-                  <div className="text-[#cbd5e1] font-mono text-lg">
+                  <div className="text-slate-700 dark:text-[#cbd5e1] font-mono text-lg">
                     {systemInfo.loadavg.map(v => v.toFixed(2)).join(' / ')}
                   </div>
                 </div>
@@ -344,7 +344,7 @@ export default function PerformanceMonitorView({ setView }) {
                   <div className="flex justify-between items-center text-sm font-bold text-[#64748b] mb-1">
                     <span>已运行时间 (Uptime)</span>
                   </div>
-                  <div className="text-[#cbd5e1] font-mono text-lg">
+                  <div className="text-slate-700 dark:text-[#cbd5e1] font-mono text-lg">
                     {Math.floor(systemInfo.uptime / 86400)}天 {Math.floor((systemInfo.uptime % 86400) / 3600)}小时 {Math.floor((systemInfo.uptime % 3600) / 60)}分钟
                   </div>
                 </div>
@@ -353,7 +353,7 @@ export default function PerformanceMonitorView({ setView }) {
                   <div className="flex justify-between items-center text-sm font-bold text-[#64748b] mb-1">
                     <span>系统内核</span>
                   </div>
-                  <div className="text-[#cbd5e1] font-mono text-[13px] truncate">
+                  <div className="text-slate-700 dark:text-[#cbd5e1] font-mono text-[13px] truncate">
                     {systemInfo.type} {systemInfo.release} ({systemInfo.arch})
                   </div>
                 </div>

@@ -111,7 +111,7 @@ export default function TestView({
       {/* Header HD1 */}
       <header className="px-[24px] flex justify-between items-center w-full z-10 shrink-0">
         <div className="flex items-baseline gap-[0.25em]">
-            <span className="text-[20px] font-black italic tracking-tighter uppercase text-[#f8fafc] select-none">VEHICLE</span>
+            <span className="text-[20px] font-black italic tracking-tighter uppercase text-slate-900 dark:text-[#f8fafc] select-none">VEHICLE</span>
             <span className="text-[25px] font-black italic tracking-tighter uppercase bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent select-none pr-[6px]">LAB</span>
           </div>
         <div className="flex gap-[12px] items-center">
@@ -128,7 +128,7 @@ export default function TestView({
 
       {/* System Bar sbarBoxD */}
       <div className="px-[24px] shrink-0 mt-[16px]">
-        <div className={`inline-flex rounded-[16px] border px-[12px] py-[4px] gap-[8px] items-center ${isOnline ? 'bg-[#d1fae5]/10 border-[#059669]/30' : 'bg-[#1e293b] border-[#334155]'}`}>
+        <div className={`inline-flex rounded-[16px] border px-[12px] py-[4px] gap-[8px] items-center ${isOnline ? 'bg-[#d1fae5]/10 border-[#059669]/30' : 'bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border-slate-200 dark:border-[#334155]'}`}>
            <div className={`w-[6px] h-[6px] rounded-[3px] ${isOnline ? 'bg-[#10b981]' : 'bg-[#64748b]'}`}></div>
            <span className={`text-[9px] font-[800] ${isOnline ? 'text-[#10b981]' : 'text-slate-500 dark:text-[#94a3b8]'}`}>
              {isOnline ? (pendingSyncCount > 0 ? `数据同步中(${pendingSyncCount})` : '数据已同步') : '当前离线记录'}
@@ -159,7 +159,7 @@ export default function TestView({
         </div>
 
         {/* Title */}
-        <h2 className="text-[20px] font-[900] text-[#f8fafc] mt-[16px]">{activeCase.function}</h2>
+        <h2 className="text-[20px] font-[900] text-slate-900 dark:text-[#f8fafc] mt-[16px]">{activeCase.function}</h2>
         {/* Expected result in quotes */}
         <p className="text-[12px] font-[600] text-slate-500 dark:text-[#94a3b8] mt-[8px]">"{activeCase.content || FIELD_LABELS.noExpectedCriteria}"</p>
 
@@ -167,21 +167,21 @@ export default function TestView({
         {activeCase.expected && (
           <div className="mt-[16px] w-full rounded-[12px] bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent border border-slate-200 dark:border-[#1e293b] p-[16px] flex gap-[12px]">
             <Info size={16} className="text-[#3b82f6] shrink-0 mt-[1px]" />
-            <span className="text-[11px] font-[500] text-[#cbd5e1] leading-relaxed break-words whitespace-pre-wrap">{activeCase.expected}</span>
+            <span className="text-[11px] font-[500] text-slate-700 dark:text-[#cbd5e1] leading-relaxed break-words whitespace-pre-wrap">{activeCase.expected}</span>
           </div>
         )}
 
         {/* Timing Header tTitleD */}
         <div className="mt-[24px] flex items-center gap-[8px]">
           <Clock size={14} className="text-[#64748b]" />
-          <span className="text-[10px] font-[800] text-[#475569]">时间捕获</span>
+          <span className="text-[10px] font-[800] text-slate-500 dark:text-[#475569]">时间捕获</span>
         </div>
 
         {/* Timing Content tRwd */}
         <div className={`mt-[16px] w-full flex ${(activeCase.type === 'Simple' || activeCase.type === 'simple') ? 'justify-center' : ((activeCase.hideCarExec && activeCase.type !== 'query') ? 'justify-between px-[40px]' : (activeCase.type === 'query' ? 'justify-around' : 'justify-between px-[0px]'))}`}>
           {/* Block 01 */}
            <button onClick={() => handleTimeClick('start')} className="flex flex-col items-center gap-[6px] active:scale-95">
-             <div className={`w-[40px] h-[40px] rounded-[20px] flex items-center justify-center ${currentData.startTime ? 'bg-[#2563eb]' : 'bg-[#1e293b]'}`}>
+             <div className={`w-[40px] h-[40px] rounded-[20px] flex items-center justify-center ${currentData.startTime ? 'bg-[#2563eb]' : 'bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none'}`}>
                 <span className={`text-[14px] font-[900] ${currentData.startTime ? 'text-slate-900 dark:text-white' : 'text-[#64748b]'}`}>01</span>
              </div>
              <span className="text-[8px] font-[800] text-[#64748b]">开始</span>
@@ -193,7 +193,7 @@ export default function TestView({
           {/* Block 02 */}
           {!activeCase.hideCarExec && activeCase.type === 'timing' && (
              <button onClick={() => handleTimeClick('car')} className="flex flex-col items-center gap-[6px] active:scale-95">
-               <div className={`w-[40px] h-[40px] rounded-[20px] flex items-center justify-center ${currentData.carExecTime ? 'bg-[#d97706]' : 'bg-[#1e293b]'}`}>
+               <div className={`w-[40px] h-[40px] rounded-[20px] flex items-center justify-center ${currentData.carExecTime ? 'bg-[#d97706]' : 'bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none'}`}>
                   <span className={`text-[14px] font-[900] ${currentData.carExecTime ? 'text-slate-900 dark:text-white' : 'text-[#64748b]'}`}>02</span>
                </div>
                <span className="text-[8px] font-[800] text-[#64748b]">车辆执行</span>
@@ -206,7 +206,7 @@ export default function TestView({
           {/* Block 03 */}
           {(activeCase.type === 'timing' || activeCase.type === 'query') && (
             <button onClick={() => handleTimeClick('app')} className="flex flex-col items-center gap-[6px] active:scale-95">
-              <div className={`w-[40px] h-[40px] rounded-[20px] flex items-center justify-center ${currentData.appFeedbackTime ? 'bg-[#10b981]' : 'bg-[#1e293b]'}`}>
+              <div className={`w-[40px] h-[40px] rounded-[20px] flex items-center justify-center ${currentData.appFeedbackTime ? 'bg-[#10b981]' : 'bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none'}`}>
                  <span className={`text-[14px] font-[900] ${currentData.appFeedbackTime ? 'text-slate-900 dark:text-white' : 'text-[#64748b]'}`}>
                    {(activeCase.hideCarExec || activeCase.type === 'query') ? '02' : '03'}
                  </span>
@@ -225,7 +225,7 @@ export default function TestView({
           {activeCase.type === 'timing' && (
           <div className="flex-1 h-[72px] rounded-[12px] border border-slate-200 dark:border-[#1e293b] py-[12px] px-[16px] flex flex-col justify-between">
              <span className="text-[9px] font-[800] text-[#64748b]">车辆耗时</span>
-             <span className="text-[18px] font-[900] text-[#f8fafc]">
+             <span className="text-[18px] font-[900] text-slate-900 dark:text-[#f8fafc]">
                {(currentData.startTime && currentData.carExecTime) ? ((currentData.carExecTime - currentData.startTime) / 1000).toFixed(2) + 's' : '--'}
              </span>
           </div>
@@ -242,7 +242,7 @@ export default function TestView({
         {/* Result Judgement Header vTitleD */}
         <div className="mt-[24px] flex items-center gap-[8px]">
           <BadgeCheck size={14} className="text-[#64748b]" />
-          <span className="text-[10px] font-[800] text-[#475569]">结果判定</span>
+          <span className="text-[10px] font-[800] text-slate-500 dark:text-[#475569]">结果判定</span>
         </div>
 
         {/* Buttons vRowD */}
@@ -264,10 +264,10 @@ export default function TestView({
         {/* Notes Header nTitleD */}
         <div className="mt-[24px] flex justify-between items-center w-full">
           <div className="flex items-center gap-[8px]">
-            <FileText size={14} className="text-[#475569]" />
-            <span className="text-[10px] font-[800] text-[#475569]">备注详情</span>
+            <FileText size={14} className="text-slate-500 dark:text-[#475569]" />
+            <span className="text-[10px] font-[800] text-slate-500 dark:text-[#475569]">备注详情</span>
           </div>
-          <button onClick={() => handleAddMedia()} className="w-[24px] h-[24px] rounded-[6px] border border-slate-200 dark:border-[#1e293b] flex items-center justify-center active:scale-90 transition-all hover:bg-slate-100 dark:hover:bg-[#1e293b] shrink-0">
+          <button onClick={() => handleAddMedia()} className="w-[24px] h-[24px] rounded-[6px] border border-slate-200 dark:border-[#1e293b] flex items-center justify-center active:scale-90 transition-all hover:bg-slate-100 dark:hover:bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none shrink-0">
             <Camera size={14} className="text-[#64748b]" />
           </button>
         </div>
@@ -333,11 +333,11 @@ export default function TestView({
           <div className="absolute inset-0 bg-black/70" onClick={() => setIsMenuOpen(false)} />
           <div className="relative w-[85%] max-w-[360px] ml-auto bg-slate-50 dark:bg-[#0f1523] h-full shadow-[-20px_0_40px_rgba(0,0,0,0.5)] flex flex-col">
             {/* Header — fill: #0f172a, padding: [40,24,16,24] */}
-            <div className="bg-[#0f172a] flex justify-between items-center pt-[40px] px-[24px] pb-[16px] shrink-0">
-              <span className="text-[26px] font-[800] text-[#f8fafc]">用例导航</span>
+            <div className="bg-slate-100 dark:bg-[#0f172a] flex justify-between items-center pt-[40px] px-[24px] pb-[16px] shrink-0">
+              <span className="text-[26px] font-[800] text-slate-900 dark:text-[#f8fafc]">用例导航</span>
               <button
                 onClick={() => setIsMenuOpen(false)}
-                className="w-[40px] h-[40px] rounded-[20px] bg-[#1e293b] flex items-center justify-center active:scale-90 transition-all"
+                className="w-[40px] h-[40px] rounded-[20px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none flex items-center justify-center active:scale-90 transition-all"
               >
                 <X size={20} className="text-slate-500 dark:text-[#94a3b8]" />
               </button>
@@ -410,9 +410,9 @@ export default function TestView({
                     key={c.id}
                     ref={i === currentCaseIndex ? activeCaseRef : null}
                     onClick={() => { setCurrentCaseIndex(i); setIsMenuOpen(false); }}
-                    className={`px-[16px] py-[12px] rounded-[16px] border transition-all cursor-pointer flex items-center gap-[12px] active:scale-95 ${i === currentCaseIndex ? 'bg-[#2563eb] border-[#3b82f6]' : 'bg-transparent border-slate-200 dark:border-[#1e293b] hover:border-[#334155]'}`}
+                    className={`px-[16px] py-[12px] rounded-[16px] border transition-all cursor-pointer flex items-center gap-[12px] active:scale-95 ${i === currentCaseIndex ? 'bg-[#2563eb] border-[#3b82f6]' : 'bg-transparent border-slate-200 dark:border-[#1e293b] hover:border-slate-200 dark:border-[#334155]'}`}
                   >
-                    <div className={`w-[32px] h-[32px] rounded-[10px] flex items-center justify-center font-[900] text-[12px] shrink-0 ${i === currentCaseIndex ? 'bg-white/20 text-slate-900 dark:text-white' : 'bg-[#1e293b] text-slate-500 dark:text-[#94a3b8]'}`}>
+                    <div className={`w-[32px] h-[32px] rounded-[10px] flex items-center justify-center font-[900] text-[12px] shrink-0 ${i === currentCaseIndex ? 'bg-white/20 text-slate-900 dark:text-white' : 'bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none text-slate-500 dark:text-[#94a3b8]'}`}>
                       {c.id}
                     </div>
                     <div className="flex-1 min-w-0 flex flex-col gap-[4px]">
@@ -421,7 +421,7 @@ export default function TestView({
                           {funcCat}
                         </span>
                       )}
-                      <span className={`text-[13px] font-[900] leading-tight truncate ${i === currentCaseIndex ? 'text-slate-900 dark:text-white' : 'text-[#f8fafc]'}`}>{c.function}</span>
+                      <span className={`text-[13px] font-[900] leading-tight truncate ${i === currentCaseIndex ? 'text-slate-900 dark:text-white' : 'text-slate-900 dark:text-[#f8fafc]'}`}>{c.function}</span>
                       <span className={`text-[11px] font-[500] truncate leading-none ${i === currentCaseIndex ? 'text-slate-900 dark:text-white/70' : 'text-[#64748b]'}`}>{c.content || c.expected || ''}</span>
                     </div>
                     {caseResults[i]?.result === 'Pass' && <CheckCircle2 size={16} className="text-[#10b981] shrink-0" />}
@@ -447,7 +447,7 @@ export default function TestView({
               <span className="text-[18px] font-[900] italic text-[#ef4444]">缺陷中心</span>
               <button
                 onClick={() => setShowBugList(false)}
-                className="w-[40px] h-[40px] rounded-[20px] bg-[#1e293b] flex items-center justify-center active:scale-90 transition-all"
+                className="w-[40px] h-[40px] rounded-[20px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none flex items-center justify-center active:scale-90 transition-all"
               >
                 <X size={20} className="text-slate-500 dark:text-[#94a3b8]" />
               </button>
@@ -495,7 +495,7 @@ export default function TestView({
                               setShowBugList(false);
                             }
                           }}
-                          className="w-[32px] h-[32px] rounded-[16px] bg-[#1e293b] flex items-center justify-center active:scale-90 transition-all"
+                          className="w-[32px] h-[32px] rounded-[16px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none flex items-center justify-center active:scale-90 transition-all"
                         >
                           <Send size={14} className="text-[#60a5fa]" />
                         </button>
@@ -506,7 +506,7 @@ export default function TestView({
                         <span className="text-[12px] font-[600] text-slate-500 dark:text-[#94a3b8]">关联用例：Case {bug.case_id} - {linkedCase?.function || '未知'}</span>
                       </div>
                       {/* txt: description */}
-                      <span className="text-[14px] font-[600] text-[#cbd5e1] break-words leading-relaxed">{bug.description}</span>
+                      <span className="text-[14px] font-[600] text-slate-700 dark:text-[#cbd5e1] break-words leading-relaxed">{bug.description}</span>
                       {/* pRow: only show when there's media */}
                       {bug.media && bug.media.length > 0 && (
                         <div className="flex gap-[8px] flex-wrap">

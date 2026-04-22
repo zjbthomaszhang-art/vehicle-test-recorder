@@ -164,10 +164,10 @@ export default function PDCAView({ API_BASE, setView }) {
                       draggable
                       onDragStart={(e) => handleDragStart(e, bug.id)}
                       onClick={() => openBugModal(bug)}
-                      className={`bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent border border-[#334155]/50 hover:border-slate-500 p-3 rounded-lg cursor-grab active:cursor-grabbing hover:shadow-lg transition-all group`}
+                      className={`bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent border border-slate-200 dark:border-[#334155]/50 hover:border-slate-500 p-3 rounded-lg cursor-grab active:cursor-grabbing hover:shadow-lg transition-all group`}
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 bg-[#1e293b] px-1.5 py-0.5 rounded">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none px-1.5 py-0.5 rounded">
                           BUG {bug.id}
                         </span>
                         <span className="text-[9px] text-slate-500 font-bold">
@@ -210,7 +210,7 @@ export default function PDCAView({ API_BASE, setView }) {
       {/* Editor Modal */}
       {selectedBug && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent border border-[#334155] w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+          <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent border border-slate-200 dark:border-[#334155] w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
             {/* Modal Header */}
             <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-[#1e293b] flex justify-between items-center bg-slate-50 dark:bg-[#0f1523]/50">
               <div className="flex items-center gap-3">
@@ -298,7 +298,7 @@ export default function PDCAView({ API_BASE, setView }) {
             <div className="p-4 sm:p-5 border-t border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent flex justify-end gap-3">
               <button 
                 onClick={() => setSelectedBug(null)}
-                className="px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-xs border border-[#334155] hover:bg-slate-100 dark:hover:bg-[#1e293b] transition-colors"
+                className="px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-xs border border-slate-200 dark:border-[#334155] hover:bg-slate-100 dark:hover:bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none transition-colors"
               >
                 Cancel
               </button>

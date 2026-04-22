@@ -72,7 +72,7 @@ export default function HistoryView({
         onScroll={handleScroll}
       >
         {/* FilterSection */}
-        <div className="bg-[#121826] border border-slate-200 dark:border-[#1e293b] rounded-[20px] p-[16px] flex flex-col gap-[12px] shrink-0">
+        <div className="bg-white dark:bg-[#121826] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#1e293b] rounded-[20px] p-[16px] flex flex-col gap-[12px] shrink-0">
           <span className="text-[12px] font-[900] text-slate-500 dark:text-[#94a3b8]">筛选测试记录</span>
           
           <div className="flex gap-[8px] w-full">
@@ -138,12 +138,12 @@ export default function HistoryView({
              const passRate = execCount > 0 ? ((passCount / execCount) * 100).toFixed(0) : 0;
 
              return (
-               <div key={sess.id} className="bg-[#121826] border border-slate-200 dark:border-[#1e293b] rounded-[20px] p-[14px] flex flex-col gap-[10px]">
+               <div key={sess.id} className="bg-white dark:bg-[#121826] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#1e293b] rounded-[20px] p-[14px] flex flex-col gap-[10px]">
                   {/* Top Row */}
                   <div className="flex justify-between items-center w-full">
                      <div className="flex gap-[8px] items-center">
-                        <div className="bg-[#1e293b] rounded-[6px] h-[24px] px-[8px] flex items-center">
-                           <span className="text-[10px] font-[800] text-[#cbd5e1]">#{sess.id}</span>
+                        <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none rounded-[6px] h-[24px] px-[8px] flex items-center">
+                           <span className="text-[10px] font-[800] text-slate-700 dark:text-[#cbd5e1]">#{sess.id}</span>
                         </div>
                         <span className="text-[11px] font-[600] text-[#3b82f6]">
                            {sess.timestamp ? String(sess.timestamp).substring(0, 16).replace(/-/g, '/') : ''}
@@ -157,18 +157,18 @@ export default function HistoryView({
                      <span className="text-[22px] font-[900] text-slate-900 dark:text-white italic">
                         {sess.model_year ? `MY${sess.model_year}` : ''} {sess.vehicle_model || 'Unknown'}
                      </span>
-                     <button onClick={() => setEditingSession(sess)} className="bg-[#1e293b] hover:bg-[#334155] transition-colors rounded-[10px] w-[32px] h-[32px] flex items-center justify-center -mr-1">
+                     <button onClick={() => setEditingSession(sess)} className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none hover:bg-slate-100 dark:hover:bg-[#334155] transition-colors rounded-[10px] w-[32px] h-[32px] flex items-center justify-center -mr-1">
                         <Edit3 size={16} className="text-slate-500 dark:text-[#94a3b8]" />
                      </button>
                   </div>
 
                   {/* Info Row */}
                   <div className="flex gap-[12px] items-center w-full">
-                     <div className="bg-[#1e293b] rounded-[10px] w-[36px] h-[36px] flex items-center justify-center shrink-0">
+                     <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none rounded-[10px] w-[36px] h-[36px] flex items-center justify-center shrink-0">
                         <Car size={18} className="text-[#64748b]" />
                      </div>
                      <div className="flex flex-col gap-[2px] min-w-0 flex-1">
-                        <span className="text-[12px] font-[normal] text-[#cbd5e1] truncate">VIN: {sess.vin || 'N/A'}</span>
+                        <span className="text-[12px] font-[normal] text-slate-700 dark:text-[#cbd5e1] truncate">VIN: {sess.vin || 'N/A'}</span>
                         <span className="text-[11px] font-[normal] text-[#64748b] truncate">
                            {(sess.vehicle_architecture || sess.architecture) || 'N/A'} • {sess.test_location || sess.address || 'N/A'} • {sess.tester || 'N/A'}
                         </span>

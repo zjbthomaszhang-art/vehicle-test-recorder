@@ -93,7 +93,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
     <div className="min-h-screen bg-slate-50 dark:bg-[#0f1523] text-slate-800 dark:text-slate-100 flex flex-col font-sans">
       <header className="px-[24px] pt-[44px] pb-[8px] flex justify-between items-center w-full z-10 shrink-0">
         <div className="flex items-center gap-[12px]">
-          <span className="text-[26px] font-[900] text-[#f8fafc] leading-none tracking-tight">缺陷管理</span>
+          <span className="text-[26px] font-[900] text-slate-900 dark:text-[#f8fafc] leading-none tracking-tight">缺陷管理</span>
         </div>
       </header>
 
@@ -103,7 +103,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
           <div className="flex gap-[12px] w-full">
             <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[12px] border border-slate-200 dark:border-[#1e293b] p-[16px] flex flex-col gap-[4px]">
                <span className="text-[11px] font-[600] text-slate-500 dark:text-[#94a3b8]">总计缺陷</span>
-               <span className="text-[24px] font-[800] text-[#f8fafc] leading-none">{totalDefects}</span>
+               <span className="text-[24px] font-[800] text-slate-900 dark:text-[#f8fafc] leading-none">{totalDefects}</span>
             </div>
             <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[12px] border border-slate-200 dark:border-[#1e293b] p-[16px] flex flex-col gap-[4px]">
                <span className="text-[11px] font-[600] text-slate-500 dark:text-[#94a3b8]">未解决</span>
@@ -150,7 +150,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
         {filteredBugs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-[40px] text-center gap-[12px]">
              <ShieldAlert size={48} className="text-[#1e293b]" strokeWidth={1} />
-             <span className="text-[12px] font-[800] text-[#475569] uppercase tracking-widest">暂无缺陷动态</span>
+             <span className="text-[12px] font-[800] text-slate-500 dark:text-[#475569] uppercase tracking-widest">暂无缺陷动态</span>
           </div>
         ) : (
           <div className="flex flex-col gap-[12px]">
@@ -162,13 +162,13 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                return (
                  <div key={bug.id || idx} className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent border border-slate-200 dark:border-[#1e293b] rounded-[16px] flex flex-col transition-transform active:scale-[0.98] shadow-lg">
                     {/* Header: Status bar & ID */}
-                    <div className="flex justify-between items-center w-full px-[16px] py-[12px] bg-[#1e293b]/30 border-b border-slate-200 dark:border-[#1e293b] rounded-t-[16px]">
+                    <div className="flex justify-between items-center w-full px-[16px] py-[12px] bg-slate-50 dark:bg-[#1e293b]/30 border-b border-slate-200 dark:border-[#1e293b] rounded-t-[16px]">
                        <div className="flex items-center gap-[10px]">
                          <Bug size={16} className={currentStatus.color} strokeWidth={2.5} />
                          <span className="text-[14px] font-[900] text-slate-900 dark:text-white">#{bug.id || `BUG-${idx + 1024}`}</span>
                        </div>
                        <div className="flex items-center gap-[8px]">
-                          <span className="text-[10px] font-[600] text-slate-500 dark:text-[#94a3b8] bg-[#0f172a] px-[8px] py-[4px] rounded-full border border-slate-200 dark:border-[#1e293b] flex items-center gap-[4px]">
+                          <span className="text-[10px] font-[600] text-slate-500 dark:text-[#94a3b8] bg-slate-100 dark:bg-[#0f172a] px-[8px] py-[4px] rounded-full border border-slate-200 dark:border-[#1e293b] flex items-center gap-[4px]">
                              <Calendar size={10} className="mb-[1px]" />
                              {bug.timestamp ? bug.timestamp.split('.')[0] : 'Unknown'}
                           </span>
@@ -181,7 +181,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                           <span className="text-[10px] font-[800] bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent uppercase tracking-widest leading-none">
                              {caseDef?.function_category || caseDef?.category || 'Unknown Category'}
                           </span>
-                          <span className="text-[15px] font-[800] text-[#f8fafc] leading-tight mt-[4px]">
+                          <span className="text-[15px] font-[800] text-slate-900 dark:text-[#f8fafc] leading-tight mt-[4px]">
                              {caseDef?.function || 'Unknown Function Name'}
                           </span>
                        </div>
@@ -196,26 +196,26 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
 
                     {/* Metadata Grid */}
                     <div className="px-[16px] pb-[16px] mt-[-4px]">
-                       <div className="bg-[#0f172a] rounded-[10px] border border-slate-200 dark:border-[#1e293b]/50 p-[12px] flex flex-col gap-[10px]">
+                       <div className="bg-slate-100 dark:bg-[#0f172a] rounded-[10px] border border-slate-200 dark:border-[#1e293b]/50 p-[12px] flex flex-col gap-[10px]">
                           <div className="flex items-center justify-between gap-[8px]">
                              <div className="flex items-center gap-[6px] w-[40%]">
                                 <Car size={13} className="text-[#64748b] shrink-0" strokeWidth={2.5} />
-                                <span className="text-[11px] font-[700] text-[#cbd5e1] truncate">{session ? `MY${session.model_year} ${session.vehicle_model}` : '-'}</span>
+                                <span className="text-[11px] font-[700] text-slate-700 dark:text-[#cbd5e1] truncate">{session ? `MY${session.model_year} ${session.vehicle_model}` : '-'}</span>
                              </div>
                              <div className="flex items-center gap-[6px] w-[60%] justify-end">
                                 <Hash size={13} className="text-[#64748b] shrink-0" strokeWidth={2.5} />
-                                <span className="text-[11px] font-mono font-[700] text-[#cbd5e1] truncate">{session?.vin || '-'}</span>
+                                <span className="text-[11px] font-mono font-[700] text-slate-700 dark:text-[#cbd5e1] truncate">{session?.vin || '-'}</span>
                              </div>
                           </div>
-                          <div className="w-full h-[1px] bg-[#1e293b]/60"></div>
+                          <div className="w-full h-[1px] bg-slate-200 dark:bg-[#1e293b]/60"></div>
                           <div className="flex items-center justify-between gap-[8px]">
                              <div className="flex items-center gap-[6px] w-[40%]">
                                 <Gauge size={13} className="text-[#64748b] shrink-0" strokeWidth={2.5} />
-                                <span className="text-[11px] font-[700] text-[#cbd5e1] truncate">{session?.mileage || '-'}</span>
+                                <span className="text-[11px] font-[700] text-slate-700 dark:text-[#cbd5e1] truncate">{session?.mileage || '-'}</span>
                              </div>
                              <div className="flex items-center gap-[6px] w-[60%] justify-end">
                                 <User size={13} className="text-[#64748b] shrink-0" strokeWidth={2.5} />
-                                <span className="text-[11px] font-[700] text-[#cbd5e1] truncate">{session?.tester || '-'}</span>
+                                <span className="text-[11px] font-[700] text-slate-700 dark:text-[#cbd5e1] truncate">{session?.tester || '-'}</span>
                              </div>
                           </div>
 
@@ -223,7 +223,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                     </div>
 
                     {/* Footer: Action/Status */}
-                    <div className="px-[16px] py-[12px] bg-[#1e293b]/20 border-t border-slate-200 dark:border-[#1e293b] flex justify-between items-center rounded-b-[16px]">
+                    <div className="px-[16px] py-[12px] bg-slate-50 dark:bg-[#1e293b]/20 border-t border-slate-200 dark:border-[#1e293b] flex justify-between items-center rounded-b-[16px]">
                        <span className="text-[11px] font-[800] text-[#64748b]">当前处理状态</span>
                        <div className="relative flex items-center justify-end h-[30px]">
                           <div 
@@ -271,7 +271,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
   );
 
   const renderPC = () => (
-    <div className="min-h-screen bg-[#0a0f1e] text-slate-800 dark:text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0a0f1e] text-slate-800 dark:text-slate-100 flex flex-col font-sans">
       <header className="px-[40px] pt-[24px] pb-[24px] flex justify-between items-center w-full z-10 shrink-0">
         <div className="flex items-center gap-[16px]">
           <Bug size={28} strokeWidth={2} className="text-[#ef4444]" />
@@ -289,8 +289,8 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
           </button>
 
           <div className="flex items-center gap-[12px] ml-2">
-             <span className="text-[14px] font-[900] text-[#475569]">VEHICLE LAB</span>
-             <LucideUserCircle size={40} strokeWidth={1.5} className="text-[#475569] bg-[#1e293b] rounded-full p-1" />
+             <span className="text-[14px] font-[900] text-slate-500 dark:text-[#475569]">VEHICLE LAB</span>
+             <LucideUserCircle size={40} strokeWidth={1.5} className="text-slate-500 dark:text-[#475569] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none rounded-full p-1" />
           </div>
         </div>
       </header>
@@ -300,7 +300,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
         <div className="flex gap-[20px] w-full">
             <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] border border-slate-200 dark:border-[#1e293b] p-[20px] h-[100px] flex flex-col justify-between">
                <span className="text-[11px] font-[600] text-slate-500 dark:text-[#94a3b8]">总计缺陷</span>
-               <span className="text-[32px] font-[900] text-[#f8fafc] leading-none">{totalDefects}</span>
+               <span className="text-[32px] font-[900] text-slate-900 dark:text-[#f8fafc] leading-none">{totalDefects}</span>
             </div>
             <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] border border-slate-200 dark:border-[#1e293b] p-[20px] h-[100px] flex flex-col justify-between">
                <span className="text-[11px] font-[600] text-slate-500 dark:text-[#94a3b8]">未解决</span>
@@ -346,7 +346,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
            <div className="flex-1 overflow-x-auto flex flex-col custom-scrollbar">
              <div className="flex flex-col min-w-[1400px] w-full flex-1 h-full"> 
                <div 
-                 className="grid bg-[#0f172a] px-[24px] py-[16px] text-slate-500 dark:text-[#94a3b8] text-[12px] font-[800] border-b border-slate-200 dark:border-[#1e293b] shrink-0"
+                 className="grid bg-slate-100 dark:bg-[#0f172a] px-[24px] py-[16px] text-slate-500 dark:text-[#94a3b8] text-[12px] font-[800] border-b border-slate-200 dark:border-[#1e293b] shrink-0"
                  style={{ gridTemplateColumns: '60px 100px 120px 150px 80px 80px 140px 100px minmax(150px, 1fr) minmax(200px, 2fr) 110px', gap: '16px' }}
                >
                  <div>ID</div>
@@ -366,7 +366,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                  {filteredBugs.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-[80px] w-full text-center gap-[12px]">
                        <ShieldAlert size={48} className="text-[#1e293b]" strokeWidth={1} />
-                       <span className="text-[14px] font-[800] text-[#475569] uppercase tracking-widest">暂无缺陷动态</span>
+                       <span className="text-[14px] font-[800] text-slate-500 dark:text-[#475569] uppercase tracking-widest">暂无缺陷动态</span>
                     </div>
                  ) : (
                     filteredBugs.map((bug, idx) => {
@@ -376,18 +376,18 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                       return (
                         <div 
                           key={bug.id || idx} 
-                          className="grid px-[24px] py-[14px] items-center hover:bg-slate-100 dark:hover:bg-[#1e293b]/50 border-b border-slate-200 dark:border-[#1e293b] transition-colors"
+                          className="grid px-[24px] py-[14px] items-center hover:bg-slate-100 dark:hover:bg-slate-50 dark:bg-[#1e293b]/50 border-b border-slate-200 dark:border-[#1e293b] transition-colors"
                           style={{ gridTemplateColumns: '60px 100px 120px 150px 80px 80px 140px 100px minmax(150px, 1fr) minmax(200px, 2fr) 110px', gap: '16px' }}
                         >
                           <div className="text-[12px] font-[800] bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent truncate">#{bug.id || `BUG-${idx + 1024}`}</div>
-                          <div className="text-[12px] text-[#cbd5e1] truncate">{session ? `MY${session.model_year} ${session.vehicle_model}` : '-'}</div>
-                          <div className="text-[12px] text-[#cbd5e1] truncate">{session?.address || '-'}</div>
+                          <div className="text-[12px] text-slate-700 dark:text-[#cbd5e1] truncate">{session ? `MY${session.model_year} ${session.vehicle_model}` : '-'}</div>
+                          <div className="text-[12px] text-slate-700 dark:text-[#cbd5e1] truncate">{session?.address || '-'}</div>
                           <div className="text-[11px] font-mono text-slate-500 dark:text-[#94a3b8] truncate">{session?.vin || '-'}</div>
-                          <div className="text-[12px] text-[#cbd5e1] truncate">{session?.mileage || '-'}</div>
-                          <div className="text-[12px] text-[#cbd5e1] truncate">{session?.tester || '-'}</div>
+                          <div className="text-[12px] text-slate-700 dark:text-[#cbd5e1] truncate">{session?.mileage || '-'}</div>
+                          <div className="text-[12px] text-slate-700 dark:text-[#cbd5e1] truncate">{session?.tester || '-'}</div>
                           <div className="text-[11px] text-slate-500 dark:text-[#94a3b8] truncate">{bug.timestamp ? bug.timestamp.split('.')[0] : '-'}</div>
-                          <div className="text-[12px] text-[#cbd5e1] truncate">{caseDef?.function_category || caseDef?.category || '-'}</div>
-                          <div className="text-[13px] font-[600] text-[#f8fafc] truncate">{caseDef?.function || '-'}</div>
+                          <div className="text-[12px] text-slate-700 dark:text-[#cbd5e1] truncate">{caseDef?.function_category || caseDef?.category || '-'}</div>
+                          <div className="text-[13px] font-[600] text-slate-900 dark:text-[#f8fafc] truncate">{caseDef?.function || '-'}</div>
                           <div className="text-[12px] text-slate-500 dark:text-[#94a3b8] italic truncate">"{bug.description || ''}"</div>
                           <div className={`relative flex items-center justify-end h-[26px] w-[90px]`}>
                              <div 

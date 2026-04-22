@@ -35,7 +35,7 @@ export default function MobileNavigator({ currentView, setView, onTestPress }) {
           className={`w-[60px] h-[60px] rounded-[30px] flex items-center justify-center shadow-2xl transition-all active:scale-95 ${
             currentView === 'home' || currentView === 'test' 
               ? 'bg-[#007AFF] shadow-[#007AFF]/40' 
-              : 'bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent border border-slate-200 dark:border-[#1e293b] text-[#007AFF] shadow-black/50 hover:bg-slate-100 dark:hover:bg-[#1e293b]'
+              : 'bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent border border-slate-200 dark:border-[#1e293b] text-[#007AFF] shadow-black/50 hover:bg-slate-100 dark:hover:bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none'
           }`}
         >
           <Play size={32} className={currentView === 'home' || currentView === 'test' ? 'text-white translate-x-0.5' : 'text-[#007AFF] translate-x-0.5'} fill="currentColor" />

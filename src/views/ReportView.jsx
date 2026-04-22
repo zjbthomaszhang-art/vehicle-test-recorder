@@ -92,7 +92,7 @@ export default function ReportView({
 
         {/* Summary */}
         <div className="px-[24px] py-[24px] w-full">
-          <div className="bg-[#121826] border border-slate-200 dark:border-[#1e293b] rounded-[20px] p-[24px] flex justify-between items-center gap-[16px] w-full">
+          <div className="bg-white dark:bg-[#121826] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#1e293b] rounded-[20px] p-[24px] flex justify-between items-center gap-[16px] w-full">
             <div className="flex flex-col gap-[16px]">
               <span className="text-[22px] font-[900] text-slate-900 dark:text-white leading-none">
                 MY{modelYear || '2X'} {vehicleModel || 'BEV'}
@@ -112,7 +112,7 @@ export default function ReportView({
 
         {/* StatsRow */}
         <div className="px-[24px] pb-[16px] w-full flex gap-[12px]">
-          <div className="flex-1 bg-[#1e293b] rounded-[16px] h-[100px] flex flex-col justify-center items-center gap-[4px]">
+          <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none rounded-[16px] h-[100px] flex flex-col justify-center items-center gap-[4px]">
             <span className="text-[36px] font-[900] text-slate-900 dark:text-white leading-none">{stats.completed}</span>
             <span className="text-[12px] font-normal text-slate-500 dark:text-[#94a3b8]">已完成</span>
           </div>
@@ -128,15 +128,15 @@ export default function ReportView({
 
         {/* VerdictRow */}
         <div className="px-[24px] pb-[24px] w-full flex gap-[8px]">
-          <div className="flex-1 bg-[#1e293b] rounded-[12px] h-[64px] flex flex-col justify-center items-center gap-[2px]">
+          <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none rounded-[12px] h-[64px] flex flex-col justify-center items-center gap-[2px]">
             <span className="text-[20px] font-bold text-[#22c55e] leading-none">{stats.passed}</span>
             <span className="text-[11px] font-normal text-slate-500 dark:text-[#94a3b8] leading-none">通过</span>
           </div>
-          <div className="flex-1 bg-[#1e293b] rounded-[12px] h-[64px] flex flex-col justify-center items-center gap-[2px]">
+          <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none rounded-[12px] h-[64px] flex flex-col justify-center items-center gap-[2px]">
             <span className="text-[20px] font-bold text-[#ef4444] leading-none">{stats.failed}</span>
             <span className="text-[11px] font-normal text-slate-500 dark:text-[#94a3b8] leading-none">失败</span>
           </div>
-          <div className="flex-1 bg-[#1e293b] rounded-[12px] h-[64px] flex flex-col justify-center items-center gap-[2px]">
+          <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none rounded-[12px] h-[64px] flex flex-col justify-center items-center gap-[2px]">
             <span className="text-[20px] font-bold text-slate-500 dark:text-[#94a3b8] leading-none">{stats.na}</span>
             <span className="text-[11px] font-normal text-slate-500 dark:text-[#94a3b8] leading-none">不适用</span>
           </div>
@@ -152,7 +152,7 @@ export default function ReportView({
             </div>
           ) : (
             stats.failedCases.map((c, idx) => (
-              <div key={c.id || idx} className="bg-[#1e293b] rounded-[14px] px-[14px] py-[12px] flex flex-col gap-[6px]">
+              <div key={c.id || idx} className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none rounded-[14px] px-[14px] py-[12px] flex flex-col gap-[6px]">
                 {/* 标题行 */}
                 <div className="flex justify-between items-center gap-[8px]">
                   <span className="text-[12px] font-[700] text-[#ef4444] truncate">
@@ -169,7 +169,7 @@ export default function ReportView({
 
       {/* Footer */}
       <div className="w-full bg-slate-50 dark:bg-[#0f1523] border-t border-slate-200 dark:border-[#1e293b]/50 h-[88px] px-[16px] pt-[6px] pb-[20px] flex gap-[10px] items-center shrink-0">
-        <button onClick={() => setView('test')} className="w-[100px] h-[60px] bg-[#1e293b] rounded-[16px] flex flex-col justify-center items-center gap-[4px] active:scale-95 transition-all">
+        <button onClick={() => setView('test')} className="w-[100px] h-[60px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none rounded-[16px] flex flex-col justify-center items-center gap-[4px] active:scale-95 transition-all">
           <Undo2 size={24} className="text-slate-500 dark:text-[#94a3b8]" />
           <span className="text-[11px] font-[800] text-slate-500 dark:text-[#94a3b8]">返回修改</span>
         </button>
@@ -177,7 +177,7 @@ export default function ReportView({
           <Upload size={24} className="text-slate-900 dark:text-white" />
           <span className="text-[11px] font-[900] text-slate-900 dark:text-white">{isExporting ? '导出中...' : '导出报告'}</span>
         </button>
-        <button onClick={handleFinish} className="w-[100px] h-[60px] bg-[#1e293b] rounded-[16px] flex flex-col justify-center items-center gap-[4px] active:scale-95 transition-all">
+        <button onClick={handleFinish} className="w-[100px] h-[60px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none rounded-[16px] flex flex-col justify-center items-center gap-[4px] active:scale-95 transition-all">
           <CheckCircle2 size={24} className="text-slate-500 dark:text-[#94a3b8]" />
           <span className="text-[11px] font-[800] text-slate-500 dark:text-[#94a3b8]">结束测试</span>
         </button>
@@ -195,7 +195,7 @@ export default function ReportView({
               <span className="text-[18px] font-[900] italic text-[#ef4444]">缺陷中心</span>
               <button
                 onClick={() => setShowBugSheet(false)}
-                className="w-[40px] h-[40px] rounded-[20px] bg-[#1e293b] flex items-center justify-center active:scale-90 transition-all"
+                className="w-[40px] h-[40px] rounded-[20px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none flex items-center justify-center active:scale-90 transition-all"
               >
                 <X size={20} className="text-slate-500 dark:text-[#94a3b8]" />
               </button>
@@ -225,7 +225,7 @@ export default function ReportView({
                   <div key={bug.id || idx} className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[20px] border border-slate-200 dark:border-[#1e293b] flex flex-col" style={{ padding: 20, gap: 16 }}>
                     <div className="flex justify-between items-center">
                       <span className="text-[14px] font-[900] text-[#f1f5f9]">#BUG-{bugNum}</span>
-                      <div className="w-[32px] h-[32px] rounded-[16px] bg-[#1e293b] flex items-center justify-center">
+                      <div className="w-[32px] h-[32px] rounded-[16px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none flex items-center justify-center">
                         <Send size={14} className="text-[#60a5fa]" />
                       </div>
                     </div>
@@ -233,7 +233,7 @@ export default function ReportView({
                       <Link size={16} className="text-[#64748b] shrink-0" />
                       <span className="text-[12px] font-[600] text-slate-500 dark:text-[#94a3b8]">关联用例：Case {bug.case_id} - {linkedCase?.function || '未知'}</span>
                     </div>
-                    <span className="text-[14px] font-[600] text-[#cbd5e1] break-words leading-relaxed">{bug.description}</span>
+                    <span className="text-[14px] font-[600] text-slate-700 dark:text-[#cbd5e1] break-words leading-relaxed">{bug.description}</span>
                     {bug.media && bug.media.length > 0 && (
                       <div className="flex gap-[8px] flex-wrap">
                         {bug.media.slice(0, 4).map((m, mi) => (

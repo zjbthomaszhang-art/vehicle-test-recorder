@@ -8,7 +8,7 @@ import { uploadPhoto } from '../utils/photoUpload.js';
 // Row wrapper — matches HomeView row style exactly
 function FieldRow({ children, tall }) {
   return (
-    <div className={`bg-[#1e293b]/50 border border-[#334155]/60 rounded-[16px] px-[16px] flex items-center justify-between group focus-within:border-[#3b82f6] transition-all ${tall ? 'py-[10px]' : 'h-[54px]'}`}>
+    <div className={`bg-slate-50 dark:bg-[#1e293b]/50 border border-slate-200 dark:border-[#334155]/60 rounded-[16px] px-[16px] flex items-center justify-between group focus-within:border-[#3b82f6] transition-all ${tall ? 'py-[10px]' : 'h-[54px]'}`}>
       {children}
     </div>
   );
@@ -69,7 +69,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
 
         {/* Header — matches HomeView header padding */}
         <div className="px-[24px] pt-[44px] pb-[16px] shrink-0">
-          <h2 className="text-[26px] font-[800] text-[#f8fafc]">编辑测试记录</h2>
+          <h2 className="text-[26px] font-[800] text-slate-900 dark:text-[#f8fafc]">编辑测试记录</h2>
         </div>
 
         {/* Scrollable Fields */}
@@ -220,7 +220,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
           </FieldRow>
 
           {/* 现场环境照片 — matches HomeView photo row exactly */}
-          <div className="bg-[#1e293b]/50 border border-[#334155]/60 rounded-[16px] flex flex-col gap-[10px] pt-[10px] pb-[14px]">
+          <div className="bg-slate-50 dark:bg-[#1e293b]/50 border border-slate-200 dark:border-[#334155]/60 rounded-[16px] flex flex-col gap-[10px] pt-[10px] pb-[14px]">
             <div className="flex items-center justify-between px-[16px]">
               <div className="flex items-center gap-[14px] shrink-0">
                 <Camera size={32} className="text-[#8e8e93] p-1" strokeWidth={1.5} />
@@ -259,7 +259,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
         <div className="flex items-center gap-[8px] px-[16px] py-[16px] pb-[40px] shrink-0 border-t border-slate-200 dark:border-[#1e293b]">
           <button
             onClick={onClose}
-            className="flex flex-col items-center justify-center gap-[4px] w-[72px] h-[56px] rounded-[16px] text-[#64748b] hover:bg-slate-100 dark:hover:bg-[#1e293b] transition-colors shrink-0"
+            className="flex flex-col items-center justify-center gap-[4px] w-[72px] h-[56px] rounded-[16px] text-[#64748b] hover:bg-slate-100 dark:hover:bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none transition-colors shrink-0"
           >
             <X size={16} />
             <span className="text-[11px] font-[800]">取消</span>
@@ -287,7 +287,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
         {/* Custom Confirm Dialog for Deletion */}
         {deleteConfirm && (
           <div className="fixed inset-0 z-[400] flex items-center justify-center bg-[#00000080] backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-[#121826] border border-slate-200 dark:border-[#1e293b] rounded-[16px] p-[20px] w-full max-w-[320px] shadow-2xl flex flex-col gap-[16px]">
+            <div className="bg-white dark:bg-[#121826] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#1e293b] rounded-[16px] p-[20px] w-full max-w-[320px] shadow-2xl flex flex-col gap-[16px]">
               <div className="flex flex-col gap-[8px]">
                 <span className="text-[18px] font-[900] text-slate-900 dark:text-white">确认删除测试记录？</span>
                 <span className="text-[13px] font-[500] text-slate-500 dark:text-[#94a3b8] leading-snug">此操作不可恢复。删除该记录后，与之关联的所有测试数据都将被永久清除。</span>
@@ -295,7 +295,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
               <div className="flex justify-end gap-[12px] mt-[8px]">
                 <button 
                   onClick={() => setDeleteConfirm(false)}
-                  className="px-[16px] py-[8px] rounded-[10px] bg-[#1e293b] hover:bg-[#334155] text-[13px] font-[800] text-[#cbd5e1] transition-colors"
+                  className="px-[16px] py-[8px] rounded-[10px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none hover:bg-slate-100 dark:hover:bg-[#334155] text-[13px] font-[800] text-slate-700 dark:text-[#cbd5e1] transition-colors"
                 >
                   取消
                 </button>
