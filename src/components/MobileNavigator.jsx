@@ -38,7 +38,7 @@ export default function MobileNavigator({ currentView, setView, onTestPress }) {
               : 'bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent border border-slate-200 dark:border-[#1e293b] text-[#007AFF] shadow-black/50 hover:bg-slate-100 dark:hover:bg-[#1e293b]'
           }`}
         >
-          <Play size={32} className={currentView === 'home' || currentView === 'test' ? 'text-slate-900 dark:text-white translate-x-0.5' : 'text-[#007AFF] translate-x-0.5'} fill="currentColor" />
+          <Play size={32} className={currentView === 'home' || currentView === 'test' ? 'text-white translate-x-0.5' : 'text-[#007AFF] translate-x-0.5'} fill="currentColor" />
         </button>
         <span className={`text-[9px] font-[700] leading-[1.3] whitespace-pre-line text-center ${currentView === 'home' || currentView === 'test' ? 'text-[#007AFF]' : 'text-slate-500'}`}>
           {'执行\n测试'}
