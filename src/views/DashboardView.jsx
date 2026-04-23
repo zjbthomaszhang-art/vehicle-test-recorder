@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TerminalSquare, UserCircle as LucideUserCircle, TrendingUp as LucideTrendingUp, CheckCircle2, BadgeCheck, XCircle, Car, BarChart3, AlertTriangle, Bug, ArrowLeft, Gauge } from 'lucide-react';
+import { TerminalSquare, UserCircle as LucideUserCircle, TrendingUp as LucideTrendingUp, CheckCircle2, BadgeCheck, XCircle, Car, BarChart3, AlertTriangle, Bug, ArrowLeft, Gauge, Sun, Moon } from 'lucide-react';
 import { FIELD_LABELS } from '../constants/labels.js';
+import { useTheme } from '../hooks/useTheme.js';
 import MobileNavigator from '../components/MobileNavigator.jsx';
 
 export default function DashboardView({ API_BASE, cases, bugs, historySessions, topFailed, setView }) {
+  const { theme, toggleTheme } = useTheme();
   const [casesMap, setCasesMap] = useState({});
 
   // Aggregated States
@@ -402,6 +404,13 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
             className="border border-slate-200 dark:border-[#1e293b] rounded-[8px] w-[40px] h-[40px] flex items-center justify-center hover:bg-slate-100 dark:hover:bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none transition-all group"
           >
              <TerminalSquare size={18} strokeWidth={2} className="text-[#64748b] group-hover:text-slate-900 dark:text-white" />
+          </button>
+          
+          <button 
+            onClick={toggleTheme}
+            className="border border-slate-200 dark:border-[#1e293b] rounded-[8px] w-[40px] h-[40px] flex items-center justify-center hover:bg-slate-100 dark:hover:bg-[#1e293b] shadow-sm dark:shadow-none transition-all"
+          >
+            {theme === 'dark' ? <Sun size={18} strokeWidth={2} className="text-[#64748b] dark:text-white" /> : <Moon size={18} strokeWidth={2} className="text-[#64748b]" />}
           </button>
         </div>
       </header>

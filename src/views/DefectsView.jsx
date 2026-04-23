@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronDown, User, Bug, Plus, ShieldAlert, ArrowLeft, UserCircle as LucideUserCircle, AlertTriangle, Calendar, Hash, Car, Gauge, MapPin } from 'lucide-react';
+import { Search, ChevronDown, User, Bug, Plus, ShieldAlert, ArrowLeft, UserCircle as LucideUserCircle, AlertTriangle, Calendar, Hash, Car, Gauge, MapPin, Sun, Moon } from 'lucide-react';
 import CustomSelect from '../components/CustomSelect.jsx';
 import { API_BASE } from '../constants.js';
 import { FIELD_LABELS } from '../constants/labels.js';
 import MobileNavigator from '../components/MobileNavigator.jsx';
+import { useTheme } from '../hooks/useTheme.js';
 
 const STAGES = [
   { id: 'Plan', label: '新提报', color: 'text-[#ef4444]', bg: 'bg-[#ef4444]/10', border: 'border-[#ef4444]/50' },
@@ -13,6 +14,7 @@ const STAGES = [
 ];
 
 export default function DefectsView({ setView, bugs, setAllBugs, cases, historySessions, API_BASE }) {
+  const { theme, toggleTheme } = useTheme();
   const [casesMap, setCasesMap] = useState({});
   const [sessionsMap, setSessionsMap] = useState({});
 
@@ -229,7 +231,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                           <div 
                             className={`absolute right-full flex items-center overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${expandedBugId === bug.id ? 'max-w-[300px] opacity-100 pr-[8px]' : 'max-w-0 opacity-0 pr-0'} z-10`}
                           >
-                            <div className="flex items-center gap-[6px] whitespace-nowrap bg-slate-50 dark:bg-[#0f1523] rounded-[6px] shadow-[0_0_8px_8px_#0f1523]">
+                            <div className="flex items-center gap-[6px] whitespace-nowrap bg-slate-50 dark:bg-[#0f1523] rounded-[6px] shadow-[0_0_8px_8px_#f8fafc] dark:shadow-[0_0_8px_8px_#0f1523]">
                               {STAGES.filter(s => s.id !== (bug.status || 'Plan')).map(s => (
                                  <button
                                     key={s.id}
@@ -292,6 +294,13 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
              <span className="text-[14px] font-[900] text-slate-500 dark:text-[#475569]">VEHICLE LAB</span>
              <LucideUserCircle size={40} strokeWidth={1.5} className="text-slate-500 dark:text-[#475569] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none rounded-full p-1" />
           </div>
+
+          <button 
+            onClick={toggleTheme}
+            className="border border-slate-200 dark:border-[#1e293b] rounded-[8px] w-[40px] h-[40px] flex items-center justify-center hover:bg-slate-100 dark:hover:bg-[#1e293b] shadow-sm dark:shadow-none transition-all ml-2"
+          >
+            {theme === 'dark' ? <Sun size={18} strokeWidth={2} className="text-[#64748b] dark:text-white" /> : <Moon size={18} strokeWidth={2} className="text-[#64748b]" />}
+          </button>
         </div>
       </header>
 
@@ -393,7 +402,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                              <div 
                                className={`absolute right-full flex items-center overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${expandedBugId === bug.id ? 'max-w-[300px] opacity-100 pr-[8px]' : 'max-w-0 opacity-0 pr-0'} z-10`}
                              >
-                               <div className="flex items-center gap-[6px] whitespace-nowrap bg-slate-50 dark:bg-[#0f1523] rounded-[6px] shadow-[0_0_8px_8px_#0f1523]">
+                               <div className="flex items-center gap-[6px] whitespace-nowrap bg-slate-50 dark:bg-[#0f1523] rounded-[6px] shadow-[0_0_8px_8px_#f8fafc] dark:shadow-[0_0_8px_8px_#0f1523]">
                                  {STAGES.filter(s => s.id !== (bug.status || 'Plan')).map(s => (
                                     <button
                                        key={s.id}

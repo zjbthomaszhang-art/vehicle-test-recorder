@@ -485,7 +485,7 @@ export default function TestView({
                     >
                       {/* d1Top: justify-between */}
                       <div className="flex justify-between items-center">
-                        <span className="text-[14px] font-[900] text-[#f1f5f9]">#BUG-{bugNum}</span>
+                        <span className="text-[14px] font-[900] text-slate-900 dark:text-[#f1f5f9]">#BUG-{bugNum}</span>
                         {/* loc1D: near_me icon, #60a5fa, 18px inside #1e293b rounded-16 32x32 */}
                         <button
                           onClick={() => {

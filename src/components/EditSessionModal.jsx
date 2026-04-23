@@ -269,8 +269,8 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
             onClick={() => onSave(formData)}
             className="flex-1 h-[56px] bg-[#2563eb] hover:bg-[#1d4ed8] active:scale-95 transition-all rounded-[16px] flex items-center justify-center gap-[8px] shadow-lg shadow-blue-600/20"
           >
-            <Save size={16} className="text-slate-900 dark:text-white" />
-            <span className="text-[14px] font-[900] text-slate-900 dark:text-white">保存修改</span>
+            <Save size={16} className="text-white" />
+            <span className="text-[14px] font-[900] text-white">保存修改</span>
           </button>
 
           <button

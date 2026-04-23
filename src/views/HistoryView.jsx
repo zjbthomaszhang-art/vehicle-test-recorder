@@ -187,7 +187,7 @@ export default function HistoryView({
                        onClick={() => handleContinueTest(sess)}
                        className="h-[34px] px-[14px] bg-[#2563eb] hover:bg-[#1d4ed8] active:scale-95 transition-all rounded-[10px] flex items-center justify-center"
                      >
-                       <span className="text-[12px] font-[900] text-slate-900 dark:text-white">继续测试</span>
+                       <span className="text-[12px] font-[900] text-white">继续测试</span>
                      </button>
                   </div>
                </div>

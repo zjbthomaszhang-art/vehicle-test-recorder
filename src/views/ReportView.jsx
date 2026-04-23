@@ -224,7 +224,7 @@ export default function ReportView({
                 return (
                   <div key={bug.id || idx} className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[20px] border border-slate-200 dark:border-[#1e293b] flex flex-col" style={{ padding: 20, gap: 16 }}>
                     <div className="flex justify-between items-center">
-                      <span className="text-[14px] font-[900] text-[#f1f5f9]">#BUG-{bugNum}</span>
+                      <span className="text-[14px] font-[900] text-slate-900 dark:text-[#f1f5f9]">#BUG-{bugNum}</span>
                       <div className="w-[32px] h-[32px] rounded-[16px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none flex items-center justify-center">
                         <Send size={14} className="text-[#60a5fa]" />
                       </div>

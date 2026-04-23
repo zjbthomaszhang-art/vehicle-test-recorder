@@ -1,18 +1,26 @@
 import { useState, useEffect } from 'react';
 
-export function useTheme() {
-  const [theme, setTheme] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('theme');
-      if (stored) return stored;
-      // Default to system preference, or 'dark' if preferred
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        return 'dark';
-      }
-      return 'light';
+const getInitialTheme = () => {
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('theme');
+    if (stored) return stored;
+    // Default to system preference, or 'dark' if preferred
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
     }
-    return 'dark';
-  });
+    return 'light';
+  }
+  return 'dark';
+};
+
+export function useTheme() {
+  const [theme, setTheme] = useState(getInitialTheme);
+
+  useEffect(() => {
+    const handleThemeChange = (e) => setTheme(e.detail);
+    window.addEventListener('theme-change', handleThemeChange);
+    return () => window.removeEventListener('theme-change', handleThemeChange);
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -25,7 +33,9 @@ export function useTheme() {
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    window.dispatchEvent(new CustomEvent('theme-change', { detail: newTheme }));
   };
 
   return { theme, toggleTheme };
