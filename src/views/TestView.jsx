@@ -150,8 +150,8 @@ export default function TestView({
                <span className="text-[9px] font-[900] text-white">CASE {activeCase.id}</span>
             </div>
             {(activeCase.function_category || activeCase.functionCategory) && (
-              <div className="bg-[#1e3a8a] rounded-[6px] px-[8px] py-[4px] flex items-center justify-center">
-                 <span className="text-[9px] font-[800] bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent">{activeCase.function_category || activeCase.functionCategory}</span>
+              <div className="bg-[#3b82f6]/10 border border-[#3b82f6]/20 rounded-[6px] px-[8px] py-[4px] flex items-center justify-center">
+                 <span className="text-[9px] font-[800] text-[#3b82f6]">{activeCase.function_category || activeCase.functionCategory}</span>
               </div>
             )}
           </div>
@@ -178,7 +178,7 @@ export default function TestView({
         </div>
 
         {/* Timing Content tRwd */}
-        <div className={`mt-[16px] w-full flex ${(activeCase.type === 'Simple' || activeCase.type === 'simple') ? 'justify-center' : ((activeCase.hideCarExec && activeCase.type !== 'query') ? 'justify-between px-[40px]' : (activeCase.type === 'query' ? 'justify-around' : 'justify-between px-[0px]'))}`}>
+        <div className={`mt-[16px] w-full flex ${(activeCase.type === 'Simple' || activeCase.type === 'simple') ? 'justify-center' : 'justify-around'}`}>
           {/* Block 01 */}
            <button onClick={() => handleTimeClick('start')} className="flex flex-col items-center gap-[6px] active:scale-95">
              <div className={`w-[40px] h-[40px] rounded-[20px] flex items-center justify-center ${currentData.startTime ? 'bg-[#2563eb]' : 'bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none'}`}>
