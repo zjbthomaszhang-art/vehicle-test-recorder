@@ -190,7 +190,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                        
                        <div className="bg-[#ef4444]/5 border border-[#ef4444]/20 rounded-[10px] p-[12px] flex items-start gap-[10px]">
                           <AlertTriangle size={16} className="text-[#ef4444] shrink-0 mt-[2px]" strokeWidth={2} />
-                          <span className="text-[13px] font-[600] text-[#e2e8f0] leading-snug">
+                          <span className="text-[13px] font-[600] text-slate-800 dark:text-[#e2e8f0] leading-snug">
                              {bug.description || '无详细问题描述'}
                           </span>
                        </div>

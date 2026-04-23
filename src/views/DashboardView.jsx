@@ -265,7 +265,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
           <div className="flex justify-between items-center w-full">
              <div className="flex items-center gap-[6px]">
                 <Car size={14} strokeWidth={2.5} className="text-[#3b82f6]" />
-                <span className="text-[11px] font-[900] text-[#e2e8f0] italic">各车型通过率对比</span>
+                <span className="text-[11px] font-[900] text-slate-700 dark:text-[#e2e8f0] italic">各车型通过率对比</span>
              </div>
              <span className="text-[8px] font-[800] text-[#3b82f6]/60 tracking-wider">点击下钻</span>
           </div>
@@ -286,7 +286,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
         <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[14px] border border-slate-200 dark:border-[#1e293b] p-[16px] flex flex-col gap-[12px]">
           <div className="flex items-center gap-[6px]">
             <BarChart3 size={14} strokeWidth={2.5} className="text-[#3b82f6]" />
-            <span className="text-[11px] font-[900] text-[#e2e8f0] italic">每日测试量趋势</span>
+            <span className="text-[11px] font-[900] text-slate-700 dark:text-[#e2e8f0] italic">每日测试量趋势</span>
           </div>
           <div className="flex items-center gap-[12px]">
             <div className="flex items-center gap-[5px]">
@@ -325,7 +325,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
              <div key={tf.case_id || i} className="bg-slate-100 dark:bg-[#0f172a] border border-slate-200 dark:border-[#1e293b]/50 rounded-[8px] p-[10px] px-[12px] flex justify-between items-center">
                 <div className="flex flex-col gap-[2px] flex-1 min-w-0 pr-2">
                    <span className="text-[8px] font-[800] text-slate-500 dark:text-[#475569]">{caseDef.function_category || caseDef.functionCategory || 'Unknown'} &gt; {caseDef.function || 'Unknown'}</span>
-                   <span className="text-[10px] font-[800] text-[#e2e8f0] truncate">{caseDef.expected || caseDef.content || '...'}</span>
+                   <span className="text-[10px] font-[800] text-slate-700 dark:text-[#e2e8f0] truncate">{caseDef.expected || caseDef.content || '...'}</span>
                 </div>
                 <div className="bg-[#f59e0b]/10 rounded-[5px] px-[6px] py-[3px] shrink-0">
                    <span className="text-[9px] font-[900] text-[#f59e0b]">{tf.fail_count}次</span>
