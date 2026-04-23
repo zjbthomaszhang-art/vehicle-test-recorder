@@ -21,13 +21,13 @@ export default function ConfirmDialog({ dialog, onClose }) {
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={onClose}
-              className="py-4 bg-slate-800 text-slate-500 dark:text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-700 transition-colors"
+              className="py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
             >
               取消
             </button>
             <button
               onClick={dialog.onConfirm}
-              className="py-4 bg-blue-600 text-slate-900 dark:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/20"
+              className="py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/20"
             >
               确认
             </button>

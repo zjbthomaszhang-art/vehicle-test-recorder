@@ -147,7 +147,7 @@ export default function TestView({
         <div className="flex justify-between items-center w-full">
           <div className="flex gap-[8px] items-center">
             <div className="bg-[#2563eb] rounded-[6px] px-[8px] py-[4px] flex items-center justify-center">
-               <span className="text-[9px] font-[900] text-slate-900 dark:text-white">CASE {activeCase.id}</span>
+               <span className="text-[9px] font-[900] text-white">CASE {activeCase.id}</span>
             </div>
             {(activeCase.function_category || activeCase.functionCategory) && (
               <div className="bg-[#1e3a8a] rounded-[6px] px-[8px] py-[4px] flex items-center justify-center">
@@ -362,7 +362,7 @@ export default function TestView({
                   <button
                     key={cat}
                     onClick={() => toggleFilter(cat)}
-                    className={`px-[12px] py-[6px] rounded-[12px] text-[11px] font-[800] whitespace-nowrap transition-all ${isActive ? 'bg-[#3b82f6] text-slate-900 dark:text-white border border-[#2563eb]' : 'bg-transparent border border-slate-200 dark:border-[#1e293b] text-[#64748b]'}`}
+                    className={`px-[12px] py-[6px] rounded-[12px] text-[11px] font-[800] whitespace-nowrap transition-all ${isActive ? 'bg-[#3b82f6] text-white border border-[#2563eb]' : 'bg-transparent border border-slate-200 dark:border-[#1e293b] text-[#64748b]'}`}
                   >
                     {cat}
                   </button>
@@ -412,17 +412,17 @@ export default function TestView({
                     onClick={() => { setCurrentCaseIndex(i); setIsMenuOpen(false); }}
                     className={`px-[16px] py-[12px] rounded-[16px] border transition-all cursor-pointer flex items-center gap-[12px] active:scale-95 ${i === currentCaseIndex ? 'bg-[#2563eb] border-[#3b82f6]' : 'bg-transparent border-slate-200 dark:border-[#1e293b] hover:border-slate-200 dark:border-[#334155]'}`}
                   >
-                    <div className={`w-[32px] h-[32px] rounded-[10px] flex items-center justify-center font-[900] text-[12px] shrink-0 ${i === currentCaseIndex ? 'bg-white/20 text-slate-900 dark:text-white' : 'bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none text-slate-500 dark:text-[#94a3b8]'}`}>
+                    <div className={`w-[32px] h-[32px] rounded-[10px] flex items-center justify-center font-[900] text-[12px] shrink-0 ${i === currentCaseIndex ? 'bg-white/20 text-white' : 'bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none text-slate-500 dark:text-[#94a3b8]'}`}>
                       {c.id}
                     </div>
                     <div className="flex-1 min-w-0 flex flex-col gap-[4px]">
                       {funcCat && (
-                        <span className={`text-[9px] font-[800] px-[6px] py-[2px] rounded-[4px] self-start leading-none ${i === currentCaseIndex ? 'bg-white/20 text-slate-900 dark:text-white' : `${tagBg} ${tagText}`}`}>
+                        <span className={`text-[9px] font-[800] px-[6px] py-[2px] rounded-[4px] self-start leading-none ${i === currentCaseIndex ? 'bg-white/20 text-white' : `${tagBg} ${tagText}`}`}>
                           {funcCat}
                         </span>
                       )}
-                      <span className={`text-[13px] font-[900] leading-tight truncate ${i === currentCaseIndex ? 'text-slate-900 dark:text-white' : 'text-slate-900 dark:text-[#f8fafc]'}`}>{c.function}</span>
-                      <span className={`text-[11px] font-[500] truncate leading-none ${i === currentCaseIndex ? 'text-slate-900 dark:text-white/70' : 'text-[#64748b]'}`}>{c.content || c.expected || ''}</span>
+                      <span className={`text-[13px] font-[900] leading-tight truncate ${i === currentCaseIndex ? 'text-white' : 'text-slate-900 dark:text-[#f8fafc]'}`}>{c.function}</span>
+                      <span className={`text-[11px] font-[500] truncate leading-none ${i === currentCaseIndex ? 'text-white/70' : 'text-[#64748b]'}`}>{c.content || c.expected || ''}</span>
                     </div>
                     {caseResults[i]?.result === 'Pass' && <CheckCircle2 size={16} className="text-[#10b981] shrink-0" />}
                     {caseResults[i]?.result === 'Fail' && <XCircle size={16} className="text-[#ef4444] shrink-0" />}

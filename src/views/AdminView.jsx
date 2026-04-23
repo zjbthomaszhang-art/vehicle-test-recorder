@@ -222,7 +222,7 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
             onClick={handleAdd} 
             className={`w-full ${isEditing ? 'bg-[#10b981] hover:bg-[#059669]' : 'bg-[#3b82f6] hover:bg-[#2563eb]'} transition-colors rounded-[12px] p-[10px] flex justify-center items-center mt-[4px]`}
           >
-             <span className="text-[12px] font-[900] text-slate-900 dark:text-white">{isEditing ? '保存修改' : '添加案例'}</span>
+             <span className="text-[12px] font-[900] text-white">{isEditing ? '保存修改' : '添加案例'}</span>
           </button>
         </div>
 

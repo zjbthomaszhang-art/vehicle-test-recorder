@@ -119,10 +119,10 @@ export default function ReportView({
           {/* 缺陷 — clickable, opens bug sheet */}
           <button
             onClick={() => setShowBugSheet(true)}
-            className="flex-1 bg-[#450a0a] border border-[#ef4444] rounded-[16px] h-[100px] flex flex-col justify-center items-center gap-[4px] active:scale-95 transition-all"
+            className="flex-1 bg-red-50 dark:bg-[#450a0a] border border-red-200 dark:border-[#ef4444] rounded-[16px] h-[100px] flex flex-col justify-center items-center gap-[4px] active:scale-95 transition-all"
           >
-            <span className="text-[36px] font-[900] text-[#ef4444] leading-none">{bugs.length}</span>
-            <span className="text-[12px] font-normal text-[#ef4444]">缺陷</span>
+            <span className="text-[36px] font-[900] text-red-500 dark:text-[#ef4444] leading-none">{bugs.length}</span>
+            <span className="text-[12px] font-normal text-red-500 dark:text-[#ef4444]">缺陷</span>
           </button>
         </div>
 
@@ -174,8 +174,8 @@ export default function ReportView({
           <span className="text-[11px] font-[800] text-slate-500 dark:text-[#94a3b8]">返回修改</span>
         </button>
         <button onClick={handleExportPDF} disabled={isExporting} className="flex-1 h-[60px] bg-[#2563eb] rounded-[16px] flex flex-col justify-center items-center gap-[4px] shadow-[0_4px_12px_rgba(37,99,235,0.38)] active:scale-95 transition-all disabled:opacity-60">
-          <Upload size={24} className="text-slate-900 dark:text-white" />
-          <span className="text-[11px] font-[900] text-slate-900 dark:text-white">{isExporting ? '导出中...' : '导出报告'}</span>
+          <Upload size={24} className="text-white" />
+          <span className="text-[11px] font-[900] text-white">{isExporting ? '导出中...' : '导出报告'}</span>
         </button>
         <button onClick={handleFinish} className="w-[100px] h-[60px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none rounded-[16px] flex flex-col justify-center items-center gap-[4px] active:scale-95 transition-all">
           <CheckCircle2 size={24} className="text-slate-500 dark:text-[#94a3b8]" />
