@@ -182,7 +182,7 @@ export default function TestView({
           {/* Block 01 */}
            <button onClick={() => handleTimeClick('start')} className="flex flex-col items-center gap-[6px] active:scale-95">
              <div className={`w-[40px] h-[40px] rounded-[20px] flex items-center justify-center ${currentData.startTime ? 'bg-[#2563eb]' : 'bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none'}`}>
-                <span className={`text-[14px] font-[900] ${currentData.startTime ? 'text-slate-900 dark:text-white' : 'text-[#64748b]'}`}>01</span>
+                <span className={`text-[14px] font-[900] ${currentData.startTime ? 'text-white' : 'text-[#64748b]'}`}>01</span>
              </div>
              <span className="text-[8px] font-[800] text-[#64748b]">开始</span>
              <span className={`text-[12px] font-[800] ${currentData.startTime ? 'text-[#3b82f6]' : 'text-[#1e293b]'}`}>
@@ -194,7 +194,7 @@ export default function TestView({
           {!activeCase.hideCarExec && activeCase.type === 'timing' && (
              <button onClick={() => handleTimeClick('car')} className="flex flex-col items-center gap-[6px] active:scale-95">
                <div className={`w-[40px] h-[40px] rounded-[20px] flex items-center justify-center ${currentData.carExecTime ? 'bg-[#d97706]' : 'bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none'}`}>
-                  <span className={`text-[14px] font-[900] ${currentData.carExecTime ? 'text-slate-900 dark:text-white' : 'text-[#64748b]'}`}>02</span>
+                  <span className={`text-[14px] font-[900] ${currentData.carExecTime ? 'text-white' : 'text-[#64748b]'}`}>02</span>
                </div>
                <span className="text-[8px] font-[800] text-[#64748b]">车辆执行</span>
                <span className={`text-[12px] font-[800] ${currentData.carExecTime ? 'text-[#f59e0b]' : 'text-[#1e293b]'}`}>
@@ -207,7 +207,7 @@ export default function TestView({
           {(activeCase.type === 'timing' || activeCase.type === 'query') && (
             <button onClick={() => handleTimeClick('app')} className="flex flex-col items-center gap-[6px] active:scale-95">
               <div className={`w-[40px] h-[40px] rounded-[20px] flex items-center justify-center ${currentData.appFeedbackTime ? 'bg-[#10b981]' : 'bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none'}`}>
-                 <span className={`text-[14px] font-[900] ${currentData.appFeedbackTime ? 'text-slate-900 dark:text-white' : 'text-[#64748b]'}`}>
+                 <span className={`text-[14px] font-[900] ${currentData.appFeedbackTime ? 'text-white' : 'text-[#64748b]'}`}>
                    {(activeCase.hideCarExec || activeCase.type === 'query') ? '02' : '03'}
                  </span>
               </div>

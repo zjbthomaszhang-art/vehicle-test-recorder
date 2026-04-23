@@ -120,8 +120,8 @@ export default function HistoryView({
             onClick={handleSearch}
             className="w-full h-[40px] bg-[#2563eb] hover:bg-[#1d4ed8] active:scale-95 transition-all rounded-[12px] flex items-center justify-center gap-[8px]"
           >
-            <Search size={14} className="text-slate-900 dark:text-white" />
-            <span className="text-[12px] font-[900] text-slate-900 dark:text-white">搜索</span>
+            <Search size={14} className="text-white" />
+            <span className="text-[12px] font-[900] text-white">搜索</span>
           </button>
         </div>
 
