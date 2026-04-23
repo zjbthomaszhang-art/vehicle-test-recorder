@@ -17,8 +17,16 @@ export function formatDateTime(ts) {
   return `${YYYY}-${MM}-${DD} ${HH}:${mm}:${ss}`;
 }
 
-/** Alias for formatDateTime — kept for readability at call sites. */
-export const formatTime = formatDateTime;
+/** Returns 'HH:mm:ss' formatted time. */
+export function formatTime(ts) {
+  if (!ts) return '--:--:--';
+  const date = new Date(ts);
+  if (isNaN(date.getTime())) return '--:--:--';
+  const HH = String(date.getHours()).padStart(2, '0');
+  const mm = String(date.getMinutes()).padStart(2, '0');
+  const ss = String(date.getSeconds()).padStart(2, '0');
+  return `${HH}:${mm}:${ss}`;
+}
 
 /**
  * Creates a fresh, empty test result object for a single case.
