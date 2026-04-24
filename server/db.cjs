@@ -121,6 +121,17 @@ async function initializeDatabase() {
             console.error('⚠️ DB Migration missing for bugs:', err);
         }
 
+        // Bugs Media Column Auto-migration
+        try {
+            const [mediaCols] = await db.query("SHOW COLUMNS FROM bugs LIKE 'media'");
+            if (mediaCols.length === 0) {
+                await db.query(`ALTER TABLE bugs ADD COLUMN media LONGTEXT`);
+                console.log('✅ Successfully added media column to bugs table');
+            }
+        } catch (err) {
+            console.error('⚠️ DB Migration missing for bugs.media:', err);
+        }
+
         // Test Sessions Columns Auto-migration
         try {
             const [cols] = await db.query("SHOW COLUMNS FROM test_sessions");

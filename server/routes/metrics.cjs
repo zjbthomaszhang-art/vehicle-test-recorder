@@ -2,8 +2,49 @@ const express = require('express');
 const os = require('os');
 const { exec } = require('child_process');
 const fs = require('fs');
+const path = require('path');
 const { db } = require('../db.cjs');
 const { getBeijingTime } = require('../utils.cjs');
+
+// ============================================
+// Image Storage Stats
+// ============================================
+const uploadsDir = path.join(__dirname, '../uploads');
+const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']);
+let imageCache = { count: 0, totalBytes: 0, totalMB: 0, avgKB: 0 };
+let imageLastFetch = 0;
+
+function fetchImageStorage() {
+    if (Date.now() - imageLastFetch < 10000) return Promise.resolve(imageCache);
+    return new Promise((resolve) => {
+        try {
+            if (!fs.existsSync(uploadsDir)) {
+                imageCache = { count: 0, totalBytes: 0, totalMB: 0, avgKB: 0 };
+                imageLastFetch = Date.now();
+                return resolve(imageCache);
+            }
+            const files = fs.readdirSync(uploadsDir);
+            let count = 0;
+            let totalBytes = 0;
+            for (const f of files) {
+                const ext = path.extname(f).toLowerCase();
+                if (!IMAGE_EXTS.has(ext)) continue;
+                try {
+                    const stat = fs.statSync(path.join(uploadsDir, f));
+                    count++;
+                    totalBytes += stat.size;
+                } catch (_) { /* skip */ }
+            }
+            const totalMB = parseFloat((totalBytes / (1024 * 1024)).toFixed(2));
+            const avgKB = count > 0 ? parseFloat((totalBytes / count / 1024).toFixed(1)) : 0;
+            imageCache = { count, totalBytes, totalMB, avgKB };
+            imageLastFetch = Date.now();
+            resolve(imageCache);
+        } catch (e) {
+            resolve(imageCache);
+        }
+    });
+}
 
 const router = express.Router();
 
@@ -216,7 +257,10 @@ router.get('/', async (req, res) => {
         const freeMem = os.freemem() / (1024 * 1024 * 1024);
         const usedMem = totalMem - freeMem;
         
-        const disk = await fetchDiskUsage();
+        const [disk, imageStorage] = await Promise.all([
+            fetchDiskUsage(),
+            fetchImageStorage()
+        ]);
         
         res.json({
             cpu: currentCpuPercent,
@@ -229,6 +273,7 @@ router.get('/', async (req, res) => {
                 used: usedMem
             },
             disk: disk,
+            imageStorage: imageStorage,
             system: {
                 uptime: os.uptime(), // seconds
                 loadavg: os.loadavg(), // [1m, 5m, 15m]

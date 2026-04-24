@@ -456,7 +456,8 @@ export default function NDLBRecorder() {
         session_id: sessionIdRef.current,
         case_id: activeCase.id,
         description: currentData.notes || `[${activeCase.function}] Failed or Abnormal`,
-        app_duration: appDur
+        app_duration: appDur,
+        media: currentData.media || []   // ← persist photos/evidence to DB
       })
     })
       .then(async res => {

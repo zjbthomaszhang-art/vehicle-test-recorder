@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Car, Sun, Moon, Calendar, Info, Layers, Radio, MapPin, ArrowRight, User, Map as MapIcon, Database, Activity, Bug, Code, Gauge, Monitor, Network, Music, ChevronDown, X, Camera, CameraIcon } from 'lucide-react';
 import { FIELD_LABELS } from '../constants/labels.js';
 import { ARCHITECTURES, IVI_MODULES, COMM_MODULES } from '../constants.js';
 import { decodeModelYearFromVin } from '../utils/vinDecoder.js';
 import CustomSelect from '../components/CustomSelect.jsx';
 import { useTheme } from '../hooks/useTheme.js';
+import ImageLightbox from '../components/ImageLightbox.jsx';
 
 export default function HomeView({
   vehicleModel, setVehicleModel,
@@ -27,7 +28,17 @@ export default function HomeView({
   API_BASE,
 }) {
   const { theme, toggleTheme } = useTheme();
+  const [lightbox, setLightbox] = useState(null);
   return (
+    <>
+    {lightbox && (
+      <ImageLightbox
+        images={lightbox.images}
+        index={lightbox.index}
+        onClose={() => setLightbox(null)}
+        onChange={(i) => setLightbox(prev => ({ ...prev, index: i }))}
+      />
+    )}
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col font-sans p-4 sm:p-8 overflow-y-auto selection:bg-blue-500">
       <header className="mb-8 flex justify-between items-center animate-in fade-in slide-in-from-top duration-500">
         <div>
@@ -266,7 +277,11 @@ export default function HomeView({
                   >
                     <X size={10} className="text-slate-900 dark:text-white" strokeWidth={3} />
                   </button>
-                  <div className="w-[48px] h-[40px] rounded-md bg-slate-100 dark:bg-[#1c1c1e] overflow-hidden border border-slate-200 dark:border-[#2c2c2e]/50">
+                  <div
+                    key={idx}
+                    className="w-[48px] h-[40px] rounded-md bg-slate-100 dark:bg-[#1c1c1e] overflow-hidden border border-slate-200 dark:border-[#2c2c2e]/50 cursor-pointer hover:ring-2 hover:ring-[#3b82f6] transition-all active:scale-95"
+                    onClick={() => setLightbox({ images: envPhotos, index: idx })}
+                  >
                     <img src={photo} className="w-full h-full object-cover" alt={`env ${idx}`} />
                   </div>
                 </div>
@@ -287,5 +302,6 @@ export default function HomeView({
 
       </div>
     </div>
+    </>
   );
 }

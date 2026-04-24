@@ -21,7 +21,16 @@ router.get('/', async (req, res) => {
 
     try {
         const [rows] = params.length > 0 ? await db.query(query, params) : await db.query(query);
-        res.json(rows);
+        // Parse media JSON for each bug
+        const result = rows.map(b => ({
+            ...b,
+            media: (() => {
+                if (!b.media) return [];
+                try { const m = JSON.parse(b.media); return Array.isArray(m) ? m : []; }
+                catch { return []; }
+            })()
+        }));
+        res.json(result);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -29,16 +38,19 @@ router.get('/', async (req, res) => {
 
 // Create a bug
 router.post('/', async (req, res) => {
-    const { session_id, case_id, description, app_duration } = req.body;
+    const { session_id, case_id, description, app_duration, media } = req.body;
     if (!session_id || !case_id) return res.status(400).json({ error: 'session_id and case_id are required' });
 
+    // Serialize media array to JSON string for storage
+    const mediaJson = media && Array.isArray(media) ? JSON.stringify(media) : null;
+
     const query = `
-        INSERT INTO bugs (session_id, case_id, description, app_duration, timestamp)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO bugs (session_id, case_id, description, app_duration, timestamp, media)
+        VALUES (?, ?, ?, ?, ?, ?)
     `;
 
     try {
-        const [result] = await db.query(query, [session_id, case_id, description || '', app_duration || '', getBeijingTime()]);
+        const [result] = await db.query(query, [session_id, case_id, description || '', app_duration || '', getBeijingTime(), mediaJson]);
         res.json({ message: 'Bug created successfully', id: result.insertId });
     } catch (err) {
         res.status(500).json({ error: err.message });

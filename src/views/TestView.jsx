@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { formatTime } from '../utils/formatters.js';
 import { FIELD_LABELS } from '../constants/labels.js';
+import ImageLightbox from '../components/ImageLightbox.jsx';
 
 export default function TestView({
   cases, caseResults, bugs,
@@ -22,6 +23,7 @@ export default function TestView({
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showBugList, setShowBugList] = useState(false);
+  const [lightbox, setLightbox] = useState(null);
   
   const allCategories = React.useMemo(() => {
     const cats = new Set();
@@ -106,6 +108,15 @@ export default function TestView({
   }
 
   return (
+    <>
+    {lightbox && (
+      <ImageLightbox
+        images={lightbox.images}
+        index={lightbox.index}
+        onClose={() => setLightbox(null)}
+        onChange={(i) => setLightbox(prev => ({ ...prev, index: i }))}
+      />
+    )}
     <div className="min-h-screen bg-slate-50 dark:bg-[#0f1523] text-slate-800 dark:text-slate-200 flex flex-col font-sans overflow-hidden pt-[48px] relative pb-[100px]">
       
       {/* Header HD1 */}
@@ -275,12 +286,22 @@ export default function TestView({
         {/* Media Block (If any) */}
         {currentData.media && currentData.media.length > 0 && (
           <div className="mt-[12px] flex gap-3 overflow-x-auto pb-2 scrollbar-hide min-h-[4rem]">
-              {currentData.media.map(m => (
-                <div key={m.id} className="relative shrink-0 w-16 h-16 rounded-[1.2rem] overflow-hidden border border-slate-200 dark:border-[#1e293b] transition-all hover:scale-105 active:scale-95 group">
-                  <img src={m.url} alt="evidence" className="w-full h-full object-cover opacity-80 group-hover:opacity-100" />
-                  <button onClick={() => updateCurrentResult({ media: currentData.media.filter(item => item.id !== m.id) })} className="absolute top-1 right-1 p-1 bg-black/50 text-slate-900 dark:text-white rounded-full"><X size={10} /></button>
-                </div>
-              ))}
+              {currentData.media.map((m) => {
+                const imgUrls = currentData.media.filter(i => i.type !== 'video').map(i => i.url);
+                const imgIdx = imgUrls.indexOf(m.url);
+                return (
+                  <div key={m.id} className="relative shrink-0 w-16 h-16 rounded-[1.2rem] overflow-hidden border border-slate-200 dark:border-[#1e293b] transition-all hover:scale-105 active:scale-95 group">
+                    <img
+                      src={m.url}
+                      alt="evidence"
+                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 cursor-pointer"
+                      onClick={() => imgIdx >= 0 && setLightbox({ images: imgUrls, index: imgIdx })}
+                    />
+                    <button onClick={() => updateCurrentResult({ media: currentData.media.filter(item => item.id !== m.id) })} className="absolute top-1 right-1 p-1 bg-black/50 text-slate-900 dark:text-white rounded-full"><X size={10} /></button>
+                  </div>
+                );
+              })}
+
           </div>
         )}
 
@@ -510,15 +531,23 @@ export default function TestView({
                       {/* pRow: only show when there's media */}
                       {bug.media && bug.media.length > 0 && (
                         <div className="flex gap-[8px] flex-wrap">
-                          {bug.media.slice(0, 4).map((m, mi) => (
-                            <div key={mi} className="w-[64px] h-[64px] rounded-[8px] bg-[#334155] overflow-hidden shrink-0">
-                              {m.type === 'video' ? (
-                                <video src={m.url} className="w-full h-full object-cover" />
-                              ) : (
-                                <img src={m.url} alt={`media-${mi}`} className="w-full h-full object-cover" />
-                              )}
-                            </div>
-                          ))}
+                          {bug.media.slice(0, 4).map((m, mi) => {
+                            const imgUrls = bug.media.filter(x => x.type !== 'video').map(x => x.url);
+                            const imgIdx = imgUrls.indexOf(m.url);
+                            return (
+                              <div
+                                key={mi}
+                                className="w-[64px] h-[64px] rounded-[8px] bg-[#334155] overflow-hidden shrink-0 cursor-pointer hover:ring-2 hover:ring-[#3b82f6] transition-all active:scale-95"
+                                onClick={() => m.type !== 'video' && imgIdx >= 0 && setLightbox({ images: imgUrls, index: imgIdx })}
+                              >
+                                {m.type === 'video' ? (
+                                  <video src={m.url} className="w-full h-full object-cover" />
+                                ) : (
+                                  <img src={m.url} alt={`media-${mi}`} className="w-full h-full object-cover" />
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                       {/* foot: timestamp */}
@@ -544,5 +573,6 @@ export default function TestView({
         .scrollbar-hide::-webkit-scrollbar { display: none; }
       `}</style>
     </div>
+    </>
   );
 }

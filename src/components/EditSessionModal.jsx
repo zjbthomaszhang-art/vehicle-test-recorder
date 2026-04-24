@@ -4,6 +4,7 @@ import CustomSelect from './CustomSelect.jsx';
 import { ARCHITECTURES, IVI_MODULES, COMM_MODULES } from '../constants.js';
 import { decodeModelYearFromVin } from '../utils/vinDecoder.js';
 import { uploadPhoto } from '../utils/photoUpload.js';
+import ImageLightbox from './ImageLightbox.jsx';
 
 // Row wrapper — matches HomeView row style exactly
 function FieldRow({ children, tall }) {
@@ -18,17 +19,18 @@ function FieldRow({ children, tall }) {
 function FieldLabel({ icon: Icon, label }) {
   return (
     <div className="flex items-center gap-[14px] shrink-0">
-      <Icon size={32} className="text-[#8e8e93] p-1" strokeWidth={1.5} />
-      <span className="text-[16px] font-[600] text-slate-800 dark:text-slate-100">{label}</span>
+      <Icon size={32} className="text-slate-900 dark:text-white p-1" strokeWidth={1.5} />
+      <span className="text-[16px] font-[600] text-slate-500 dark:text-[#94a3b8]">{label}</span>
     </div>
   );
 }
 
-const inputCls = 'bg-transparent text-right outline-none text-slate-800 dark:text-slate-200 font-semibold text-[15px] w-1/2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal';
+const inputCls = 'bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[15px] w-1/2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal';
 const selectCls = 'bg-transparent text-right outline-none text-slate-800 dark:text-slate-200 font-semibold text-[15px] w-1/2 appearance-none cursor-pointer';
 
 export default function EditSessionModal({ session, onClose, onSave, onDelete }) {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [lightbox, setLightbox] = useState(null);
   const [formData, setFormData] = useState({
     vehicleModel: session.vehicle_model || '',
     model_year:   session.model_year || '',
@@ -65,6 +67,15 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
   };
 
   return (
+    <>
+    {lightbox && (
+      <ImageLightbox
+        images={lightbox.images}
+        index={lightbox.index}
+        onClose={() => setLightbox(null)}
+        onChange={(i) => setLightbox(prev => ({ ...prev, index: i }))}
+      />
+    )}
     <div className="fixed inset-0 z-[300] bg-slate-50 dark:bg-[#0f1523] flex flex-col animate-in fade-in duration-200">
 
         {/* Header — matches HomeView header padding */}
@@ -139,7 +150,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
                 inputMode="numeric"
                 value={formData.mileage}
                 onChange={set('mileage', v => v.replace(/\D/g, ''))}
-                className="bg-transparent text-right outline-none text-slate-800 dark:text-slate-200 font-semibold text-[15px] min-w-0 placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[15px] min-w-0 placeholder:text-slate-400 dark:placeholder:text-slate-600"
               />
               {formData.mileage && <span className="text-[#64748b] text-[13px] font-[500] shrink-0">km</span>}
             </div>
@@ -223,8 +234,8 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
           <div className="bg-slate-50 dark:bg-[#1e293b]/50 border border-slate-200 dark:border-[#334155]/60 rounded-[16px] flex flex-col gap-[10px] pt-[10px] pb-[14px]">
             <div className="flex items-center justify-between px-[16px]">
               <div className="flex items-center gap-[14px] shrink-0">
-                <Camera size={32} className="text-[#8e8e93] p-1" strokeWidth={1.5} />
-                <span className="text-[16px] font-[600] text-slate-800 dark:text-slate-100">现场环境照片</span>
+                <Camera size={32} className="text-slate-900 dark:text-white p-1" strokeWidth={1.5} />
+                <span className="text-[16px] font-[600] text-slate-500 dark:text-[#94a3b8]">现场环境照片</span>
               </div>
               <button
                 onClick={() => photoInputRef.current?.click()}
@@ -244,7 +255,10 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
                     >
                       <X size={10} className="text-slate-900 dark:text-white" strokeWidth={3} />
                     </button>
-                    <div className="w-[48px] h-[40px] rounded-md bg-slate-100 dark:bg-[#1c1c1e] overflow-hidden border border-slate-300 dark:border-slate-200 dark:border-[#2c2c2e]/50">
+                    <div
+                      className="w-[48px] h-[40px] rounded-md bg-slate-100 dark:bg-[#1c1c1e] overflow-hidden border border-slate-300 dark:border-slate-200 dark:border-[#2c2c2e]/50 cursor-pointer hover:ring-2 hover:ring-[#3b82f6] transition-all active:scale-95"
+                      onClick={() => setLightbox({ images: formData.envPhotos, index: idx })}
+                    >
                       <img src={photo} className="w-full h-full object-cover" alt={`env ${idx}`} />
                     </div>
                   </div>
@@ -321,5 +335,6 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
           .edit-modal-scroll { scrollbar-width: thin; scrollbar-color: #334155 transparent; }
         `}</style>
     </div>
+    </>
   );
 }

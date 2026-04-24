@@ -211,10 +211,6 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
         <div className="flex flex-col gap-[2px]">
           <span className="text-[26px] font-[800] text-slate-900 dark:text-white leading-none tracking-tight">仪表面板</span>
         </div>
-        <div className="flex gap-[10px] items-center">
-          <TerminalSquare size={20} strokeWidth={2} className="text-[#1e293b]" />
-          <LucideUserCircle size={28} strokeWidth={1.5} className="text-slate-500 dark:text-[#475569]" />
-        </div>
       </header>
       
       <main className="flex-1 overflow-y-auto px-[16px] pt-[16px] pb-[100px] flex flex-col gap-[16px] custom-scrollbar">
@@ -275,7 +271,11 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
                 <XAxis dataKey="model" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} dx={-10} />
-                <Tooltip cursor={{ fill: '#1e293b' }} contentStyle={{ backgroundColor: '#0f1523', border: '1px solid #1e293b', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold' }} />
+                <Tooltip
+                  cursor={{ fill: 'rgba(59,130,246,0.08)' }}
+                  contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', color: '#0f172a', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  labelStyle={{ color: '#64748b', fontWeight: 800 }}
+                />
                 <Bar dataKey="passRate" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20} />
               </BarChart>
             </ResponsiveContainer>
@@ -304,7 +304,11 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
                 <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 9, fontWeight: 700 }} axisLine={false} tickLine={false} />
                 <YAxis hide />
-                <Tooltip cursor={{ fill: '#1e293b' }} contentStyle={{ backgroundColor: '#0f1523', border: '1px solid #1e293b', borderRadius: '8px', fontSize: '10px', fontWeight: 'bold' }} />
+                <Tooltip
+                  cursor={{ fill: 'rgba(59,130,246,0.08)' }}
+                  contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '10px', fontWeight: 'bold', color: '#0f172a', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  labelStyle={{ color: '#64748b', fontWeight: 800 }}
+                />
                 <Bar dataKey="passed" stackId="a" fill="#3b82f6" barSize={12} radius={[0, 0, 2, 2]} />
                 <Bar dataKey="failed" stackId="a" fill="#f59e0b" barSize={12} radius={[2, 2, 0, 0]} />
               </BarChart>
@@ -463,7 +467,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
               <div className="flex justify-between items-center w-full">
                  <div className="flex items-center gap-[8px]">
                     <Car size={16} strokeWidth={2.5} className="text-[#3b82f6]" />
-                    <span className="text-[12px] font-[900] text-[#e2e8f0] italic">各车型通过率对比</span>
+                    <span className="text-[12px] font-[900] text-slate-700 dark:text-[#e2e8f0] italic">各车型通过率对比</span>
                  </div>
                  <span className="text-[10px] font-[800] text-[#3b82f6]/60 tracking-wider">点击下钻</span>
               </div>
@@ -473,7 +477,11 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
                     <XAxis dataKey="model" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} dx={-10} />
-                    <Tooltip cursor={{ fill: '#1e293b' }} contentStyle={{ backgroundColor: '#0f1523', border: '1px solid #1e293b', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold' }} />
+                    <Tooltip
+                      cursor={{ fill: 'rgba(59,130,246,0.08)' }}
+                      contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', color: '#0f172a', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                      labelStyle={{ color: '#64748b', fontWeight: 800 }}
+                    />
                     <Bar dataKey="passRate" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={24} onClick={(historySessions) => handleBarClick(historySessions)} cursor="pointer" />
                   </BarChart>
                 </ResponsiveContainer>
@@ -485,7 +493,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
               <div className="flex justify-between items-center w-full">
                   <div className="flex items-center gap-[8px]">
                     <BarChart3 size={16} strokeWidth={2.5} className="text-[#3b82f6]" />
-                    <span className="text-[12px] font-[900] text-[#e2e8f0] italic">每日测试量趋势</span>
+                    <span className="text-[12px] font-[900] text-slate-700 dark:text-[#e2e8f0] italic">每日测试量趋势</span>
                   </div>
                   <div className="flex items-center gap-[16px]">
                     <div className="flex items-center gap-[6px]">
@@ -504,7 +512,11 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
                     <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} />
                     <YAxis hide />
-                    <Tooltip cursor={{ fill: '#1e293b' }} contentStyle={{ backgroundColor: '#0f1523', border: '1px solid #1e293b', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold' }} />
+                    <Tooltip
+                      cursor={{ fill: 'rgba(59,130,246,0.08)' }}
+                      contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', color: '#0f172a', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                      labelStyle={{ color: '#64748b', fontWeight: 800 }}
+                    />
                     <Bar dataKey="passed" stackId="a" fill="#3b82f6" barSize={16} radius={[0, 0, 4, 4]} />
                     <Bar dataKey="failed" stackId="a" fill="#f59e0b" barSize={16} radius={[4, 4, 0, 0]} />
                   </BarChart>
@@ -529,7 +541,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
                  <div key={tf.case_id || i} className="bg-slate-100 dark:bg-[#0f172a] border border-slate-200 dark:border-[#1e293b]/50 rounded-[10px] p-[12px] px-[14px] flex justify-between items-center">
                     <div className="flex flex-col gap-[4px] flex-1 min-w-0 pr-3">
                        <span className="text-[10px] font-[800] text-slate-500 dark:text-[#475569]">{caseDef.function_category || caseDef.functionCategory || 'Unknown'} &gt; {caseDef.function || 'Unknown'}</span>
-                       <span className="text-[12px] font-[800] text-[#e2e8f0] truncate">{caseDef.expected || caseDef.content || '...'}</span>
+                       <span className="text-[12px] font-[800] text-slate-700 dark:text-[#e2e8f0] truncate">{caseDef.expected || caseDef.content || '...'}</span>
                     </div>
                     <div className="bg-[#f59e0b]/10 rounded-[6px] px-[8px] py-[4px] shrink-0">
                        <span className="text-[10px] font-[900] text-[#f59e0b]">{tf.fail_count}次</span>

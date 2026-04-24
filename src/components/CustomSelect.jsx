@@ -48,14 +48,14 @@ export default function CustomSelect({
           'block flex-1 min-w-0 truncate text-[12px]',
           isLeft ? 'text-left' : 'text-right',
           displayLabel
-            ? (textColor || 'text-slate-800 dark:text-slate-200 font-semibold')
-            : isLeft ? 'text-slate-500 dark:text-[#94a3b8] font-normal' : 'text-slate-600 font-normal',
+            ? (textColor || 'text-slate-900 dark:text-white font-semibold')
+            : 'text-slate-500 dark:text-[#94a3b8] font-normal',
         ].join(' ')}>
           {displayLabel || placeholder}
         </span>
         <ChevronDown
           size={14}
-          className={`${textColor || 'text-[#64748b]'} shrink-0 pointer-events-none transition-transform duration-200 ${isOpen ? 'rotate-180 text-blue-400' : ''}`}
+          className={`text-slate-500 dark:text-[#94a3b8] shrink-0 pointer-events-none transition-transform duration-200 ${isOpen ? 'rotate-180 text-blue-400' : ''}`}
         />
       </div>
 
@@ -70,10 +70,10 @@ export default function CustomSelect({
               return (
                 <div
                   key={optValue ?? '__empty__'}
-                  className={`px-4 py-3 sm:py-3.5 flex items-center justify-between cursor-pointer transition-colors active:bg-slate-200 dark:bg-[#2c2c2e] ${isSelected ? 'bg-blue-600/10' : 'hover:bg-slate-200 dark:bg-[#2c2c2e]/50'}`}
+                  className={`px-4 py-3 sm:py-3.5 flex items-center justify-between cursor-pointer transition-colors ${isSelected ? 'bg-blue-600/10' : 'hover:bg-slate-200 dark:hover:bg-[#3c3c3e]'}`}
                   onClick={() => { onChange(optValue); setIsOpen(false); }}
                 >
-                  <span className={`text-[15px] sm:text-base ${isSelected ? 'text-blue-500 font-bold' : optLabel ? 'text-slate-800 dark:text-slate-200 font-medium' : 'text-slate-500 dark:text-[#94a3b8] font-normal'}`}>
+                  <span className={`text-[15px] sm:text-base ${isSelected ? 'text-blue-500 font-bold' : 'text-slate-700 dark:text-slate-200 font-medium'}`}>
                     {optLabel || placeholder}
                   </span>
                   {isSelected && optValue && <Check size={16} className="text-blue-500 shrink-0" strokeWidth={3} />}
