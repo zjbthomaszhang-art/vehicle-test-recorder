@@ -3,11 +3,39 @@
 @tailwind utilities;
 
 @layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  *:focus {
+    outline: none !important;
+  }
+
+  /* Disable focus outlines on Recharts elements to prevent boxes appearing on click */
+  .recharts-wrapper,
+  .recharts-surface,
+  .recharts-responsive-container,
+  .recharts-bar-rectangle,
+  .recharts-active-bar,
+  svg {
+    outline: none !important;
+  }
+
   body {
     @apply text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-[#0f1523] overflow-x-hidden antialiased;
   }
 
   /* Inputs sizes are managed by Tailwind utility classes to match titles */
+  input::placeholder,
+  textarea::placeholder {
+    color: #94a3b8 !important;
+    opacity: 1 !important;
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: #475569 !important;
+  }
 }
 
 @layer utilities {
@@ -98,7 +126,7 @@
   .gm-input {
     @apply bg-slate-100/50 dark:bg-slate-900/50 border border-slate-300/60 dark:border-slate-700/60 rounded-xl text-base font-[600] text-slate-800 dark:text-slate-200 outline-none p-3
            focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30
-           placeholder:text-slate-600 transition-colors;
+           placeholder:text-slate-400 transition-colors;
   }
 
   @keyframes pulse-blue {

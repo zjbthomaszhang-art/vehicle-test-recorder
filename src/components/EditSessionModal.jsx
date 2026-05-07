@@ -1,15 +1,15 @@
 import React, { useState, useRef } from 'react';
-import { X, Code, Calendar, Car, User, Gauge, MapPin, Network, Music, Radio, Camera, Save, Trash2, Image as ImageIcon, CameraIcon, Layers, Monitor } from 'lucide-react';
+import { X, Code, Calendar, Car, User, Gauge, MapPin, Network, Music, Radio, Camera, Save, Trash2, Image as ImageIcon, CameraIcon, Layers, Monitor, FileText } from 'lucide-react';
 import CustomSelect from './CustomSelect.jsx';
 import { ARCHITECTURES, IVI_MODULES, COMM_MODULES } from '../constants.js';
-import { decodeModelYearFromVin } from '../utils/vinDecoder.js';
+import { decodeModelYearFromVin, decodeVinFromRules } from '../utils/vinDecoder.js';
 import { uploadPhoto } from '../utils/photoUpload.js';
 import ImageLightbox from './ImageLightbox.jsx';
 
 // Row wrapper — matches HomeView row style exactly
 function FieldRow({ children, tall }) {
   return (
-    <div className={`bg-slate-50 dark:bg-[#1e293b]/50 border border-slate-200 dark:border-[#334155]/60 rounded-[16px] px-[16px] flex items-center justify-between group focus-within:border-[#3b82f6] transition-all ${tall ? 'py-[10px]' : 'h-[54px]'}`}>
+    <div className={`bg-slate-50 dark:bg-[#1e293b]/50 border border-slate-200 dark:border-[#475569]/60 rounded-[16px] px-[16px] flex items-center justify-between group focus-within:border-[#3b82f6] transition-all ${tall ? 'min-h-[54px] py-[12px] items-start' : 'h-[54px]'}`}>
       {children}
     </div>
   );
@@ -20,15 +20,15 @@ function FieldLabel({ icon: Icon, label }) {
   return (
     <div className="flex items-center gap-[14px] shrink-0">
       <Icon size={32} className="text-slate-900 dark:text-white p-1" strokeWidth={1.5} />
-      <span className="text-[16px] font-[600] text-slate-500 dark:text-[#94a3b8]">{label}</span>
+      <span className="text-[15px] font-[600] text-slate-500 dark:text-[#94a3b8]">{label}</span>
     </div>
   );
 }
 
-const inputCls = 'bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[15px] w-1/2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal';
-const selectCls = 'bg-transparent text-right outline-none text-slate-800 dark:text-slate-200 font-semibold text-[15px] w-1/2 appearance-none cursor-pointer';
+const inputCls = 'bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[16px] w-1/2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:text-[15px] placeholder:font-normal';
+const selectCls = 'bg-transparent text-right outline-none text-slate-800 dark:text-slate-200 font-semibold text-[16px] w-1/2 appearance-none cursor-pointer';
 
-export default function EditSessionModal({ session, onClose, onSave, onDelete }) {
+export default function EditSessionModal({ session, onClose, onSave, onDelete, vinRules = [] }) {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [lightbox, setLightbox] = useState(null);
   const [formData, setFormData] = useState({
@@ -49,6 +49,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
     })(),
     tester:       session.tester || '',
     mileage:      session.mileage || '',
+    remarks:      session.remarks || ''
   });
 
   const photoInputRef = useRef(null);
@@ -104,7 +105,12 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
             <input
               type="text"
               value={formData.vehicleModel}
-              onChange={set('vehicleModel', v => v.toUpperCase())}
+              onChange={set('vehicleModel')}
+              onBlur={(e) => setFormData(prev => ({ ...prev, vehicleModel: e.target.value.replace(/[^A-Za-z0-9-]/g, '').toUpperCase() }))}
+              autoCapitalize="characters"
+              autoCorrect="off"
+              autoComplete="off"
+              spellCheck="false"
               className={`${inputCls} uppercase`}
             />
           </FieldRow>
@@ -116,14 +122,35 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
               type="text"
               value={formData.vin}
               onChange={(e) => {
-                const val = e.target.value.toUpperCase().slice(0, 17);
-                const decodedYear = decodeModelYearFromVin(val);
+                const rawVal = e.target.value;
+                const cleanVal = rawVal.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 17);
+                const decoded = decodeVinFromRules(cleanVal, vinRules);
+                if (decoded) {
+                  setFormData(prev => ({
+                    ...prev,
+                    vin: rawVal, // Keep exact typed characters in state
+                    ...(decoded.program_cd    ? { vehicleModel: decoded.program_cd }    : {}),
+                    ...(decoded.veh_manuf_year ? { model_year: decoded.veh_manuf_year } : {}),
+                  }));
+                } else {
+                  const decodedYear = decodeModelYearFromVin(cleanVal);
+                  setFormData(prev => ({
+                    ...prev,
+                    vin: rawVal,
+                    ...(decodedYear ? { model_year: decodedYear } : {})
+                  }));
+                }
+              }}
+              onBlur={(e) => {
                 setFormData(prev => ({
                   ...prev,
-                  vin: val,
-                  ...(decodedYear ? { model_year: decodedYear } : {})
+                  vin: e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 17)
                 }));
               }}
+              autoCapitalize="characters"
+              autoCorrect="off"
+              autoComplete="off"
+              spellCheck="false"
               className={`${inputCls} w-full ml-4 uppercase`}
             />
           </FieldRow>
@@ -135,7 +162,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
               value={formData.productionStage}
               onChange={(val) => setFormData(prev => ({ ...prev, productionStage: val }))}
               options={['PPV', 'NS', 'VDC', 'S', 'STC']}
-              placeholder="选择"
+              placeholder=""
               align="right"
               className="w-1/2"
             />
@@ -150,7 +177,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
                 inputMode="numeric"
                 value={formData.mileage}
                 onChange={set('mileage', v => v.replace(/\D/g, ''))}
-                className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[15px] min-w-0 placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[16px] min-w-0 placeholder:text-[15px] placeholder:text-slate-400 dark:placeholder:text-slate-600"
               />
               {formData.mileage && <span className="text-[#64748b] text-[13px] font-[500] shrink-0">km</span>}
             </div>
@@ -163,7 +190,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
               value={formData.testEnv}
               onChange={(val) => setFormData(prev => ({ ...prev, testEnv: val }))}
               options={['生产', '测试']}
-              placeholder="选择"
+              placeholder=""
               align="right"
               className="w-1/2"
             />
@@ -198,7 +225,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
               value={formData.architecture}
               onChange={(val) => setFormData(prev => ({ ...prev, architecture: val }))}
               options={ARCHITECTURES}
-              placeholder="选择"
+              placeholder=""
               align="right"
               className="w-1/2"
             />
@@ -211,7 +238,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
               value={formData.iviModule}
               onChange={(val) => setFormData(prev => ({ ...prev, iviModule: val }))}
               options={IVI_MODULES}
-              placeholder="选择"
+              placeholder=""
               align="right"
               className="w-1/2"
             />
@@ -224,18 +251,18 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
               value={formData.commModule}
               onChange={(val) => setFormData(prev => ({ ...prev, commModule: val }))}
               options={COMM_MODULES}
-              placeholder="选择"
+              placeholder=""
               align="right"
               className="w-1/2"
             />
           </FieldRow>
 
           {/* 现场环境照片 — matches HomeView photo row exactly */}
-          <div className="bg-slate-50 dark:bg-[#1e293b]/50 border border-slate-200 dark:border-[#334155]/60 rounded-[16px] flex flex-col gap-[10px] pt-[10px] pb-[14px]">
+          <div className="bg-slate-50 dark:bg-[#1e293b]/50 border border-slate-200 dark:border-[#475569]/60 rounded-[16px] flex flex-col gap-[10px] pt-[10px] pb-[14px]">
             <div className="flex items-center justify-between px-[16px]">
               <div className="flex items-center gap-[14px] shrink-0">
                 <Camera size={32} className="text-slate-900 dark:text-white p-1" strokeWidth={1.5} />
-                <span className="text-[16px] font-[600] text-slate-500 dark:text-[#94a3b8]">现场环境照片</span>
+                <span className="text-[15px] font-[600] text-slate-500 dark:text-[#94a3b8]">现场环境照片</span>
               </div>
               <button
                 onClick={() => photoInputRef.current?.click()}
@@ -267,10 +294,25 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
             )}
           </div>
 
+          {/* 备注 */}
+          <FieldRow tall>
+            <div className="flex items-center gap-[14px] shrink-0 mt-[3px]">
+              <FileText size={32} className="text-slate-900 dark:text-white p-1" strokeWidth={1.5} />
+              <span className="text-[15px] font-[600] text-slate-500 dark:text-[#94a3b8]">备注</span>
+            </div>
+            <textarea
+              value={formData.remarks}
+              onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
+              className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[16px] w-1/2 resize-none overflow-hidden mt-[3px]"
+              rows={1}
+              onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+            />
+          </FieldRow>
+
         </div>
 
         {/* Footer Buttons */}
-        <div className="flex items-center gap-[8px] px-[16px] py-[16px] pb-[40px] shrink-0 border-t border-slate-200 dark:border-[#1e293b]">
+        <div className="flex items-center gap-[8px] px-[16px] py-[16px] pb-[40px] shrink-0 border-t border-slate-200 dark:border-[#334155]">
           <button
             onClick={onClose}
             className="flex flex-col items-center justify-center gap-[4px] w-[72px] h-[56px] rounded-[16px] text-[#64748b] hover:bg-slate-100 dark:hover:bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none transition-colors shrink-0"
@@ -301,7 +343,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
         {/* Custom Confirm Dialog for Deletion */}
         {deleteConfirm && (
           <div className="fixed inset-0 z-[400] flex items-center justify-center bg-[#00000080] backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-[#121826] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#1e293b] rounded-[16px] p-[20px] w-full max-w-[320px] shadow-2xl flex flex-col gap-[16px]">
+            <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#334155] rounded-[16px] p-[20px] w-full max-w-[320px] shadow-2xl flex flex-col gap-[16px]">
               <div className="flex flex-col gap-[8px]">
                 <span className="text-[18px] font-[900] text-slate-900 dark:text-white">确认删除测试记录？</span>
                 <span className="text-[13px] font-[500] text-slate-500 dark:text-[#94a3b8] leading-snug">此操作不可恢复。删除该记录后，与之关联的所有测试数据都将被永久清除。</span>
@@ -318,7 +360,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete })
                     setDeleteConfirm(false);
                     onDelete && onDelete(session.id);
                   }}
-                  className="px-[16px] py-[8px] rounded-[10px] bg-[#ef4444] hover:bg-red-500 text-[13px] font-[900] text-slate-900 dark:text-white shadow-[0_0_10px_rgba(239,68,68,0.3)] transition-colors"
+                  className="px-[16px] py-[8px] rounded-[10px] bg-[#ef4444] hover:bg-red-500 text-[13px] font-[900] text-white shadow-[0_0_10px_rgba(239,68,68,0.3)] transition-colors"
                 >
                   确认删除
                 </button>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FolderOpen, Plus, Search, Edit3, X, ChevronLeft, UploadCloud } from 'lucide-react';
+import { FolderOpen, Plus, Search, Edit3, X, ChevronLeft, UploadCloud, Eye, EyeOff } from 'lucide-react';
 import CustomSelect from '../components/CustomSelect.jsx';
 import MobileNavigator from '../components/MobileNavigator.jsx';
 import { API_BASE } from '../constants.js';
@@ -9,6 +9,7 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCat, setFilterCat] = useState('');
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [showInactive, setShowInactive] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -19,6 +20,8 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
   const uniqueFunctionCategories = [...new Set(cases.map(c => c.functionCategory || c.function_category).filter(Boolean))];
 
   const filteredCases = cases.filter(c => {
+    if (!showInactive && c.is_active === 0) return false; // Show active only
+    if (showInactive && c.is_active !== 0) return false;  // Show inactive only
     let match = true;
     if (filterCat && c.functionCategory !== filterCat && c.function_category !== filterCat) match = false;
     if (searchTerm) {
@@ -26,7 +29,7 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
       if (!c.function?.toLowerCase().includes(q) && !c.content?.toLowerCase().includes(q)) match = false;
     }
     return match;
-  });
+  }).sort((a, b) => Number(a.id) - Number(b.id));
 
   const isEditing = cases.some(c => String(c.id) === String(formData.id));
 
@@ -73,6 +76,26 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
          setCases(cases.filter(c => c.id !== id));
          setDeleteConfirmId(null);
          if (typeof setToast === 'function') setToast({ message: '删除成功', type: 'success' });
+      });
+  };
+
+  const handleToggleActive = (c) => {
+    const newActiveState = c.is_active === 0 ? 1 : 0;
+    fetch(`${API_BASE}/cases/${c.id}/toggle-active`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_active: newActiveState })
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed');
+        return res.json();
+      })
+      .then(() => {
+        setCases(cases.map(caseItem => caseItem.id === c.id ? { ...caseItem, is_active: newActiveState } : caseItem));
+        if (typeof setToast === 'function') setToast({ message: newActiveState ? '已启用该案例' : '已停用该案例', type: 'success' });
+      })
+      .catch(err => {
+         if (typeof setToast === 'function') setToast({ message: '操作失败', type: 'error' });
       });
   };
 
@@ -126,13 +149,15 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(mappedCases)
-          }).then(() => {
-             fetch(`${API_BASE}/cases`)
-               .then(res => res.json())
-               .then(latestCases => {
-                  setCases(latestCases);
-                  if (typeof setToast === 'function') setToast({ message: `成功导入 ${mappedCases.length} 条记录`, type: 'success' });
-               });
+          }).then((res) => {
+             if (!res.ok) throw new Error('Bulk import failed');
+             return fetch(`${API_BASE}/cases`);
+          }).then(res => {
+             if (!res.ok) throw new Error('Fetch cases failed');
+             return res.json();
+          }).then(latestCases => {
+             setCases(latestCases);
+             if (typeof setToast === 'function') setToast({ message: `成功导入 ${mappedCases.length} 条记录`, type: 'success' });
           }).catch(() => {
              if (typeof setToast === 'function') setToast({ message: '导入失败', type: 'error' });
           });
@@ -201,6 +226,7 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
                ]}
                placeholder="案例类型"
                align="left"
+               textColor="text-slate-900 dark:text-white text-[12px] font-normal"
                className="w-[110px] shrink-0 bg-slate-100 dark:bg-[#0f172a] border border-slate-200 dark:border-[#334155] rounded-[8px] px-[8px] py-[8px]"
              />
           </div>
@@ -220,32 +246,23 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
           </div>
            <button 
             onClick={handleAdd} 
-            className={`w-full ${isEditing ? 'bg-[#10b981] hover:bg-[#059669]' : 'bg-[#3b82f6] hover:bg-[#2563eb]'} transition-colors rounded-[12px] p-[10px] flex justify-center items-center mt-[4px]`}
+            className={`w-full ${isEditing ? 'bg-[#10b981] hover:bg-[#059669]' : 'bg-[#2563eb] hover:bg-[#1d4ed8]'} transition-colors rounded-[12px] p-[10px] flex justify-center items-center mt-[4px]`}
           >
              <span className="text-[12px] font-[900] text-white">{isEditing ? '保存修改' : '添加案例'}</span>
           </button>
         </div>
 
-        {/* List Header */}
-        <div className="flex justify-between items-center w-full mt-[12px]">
-           <span className="text-[12px] font-[900] text-slate-500 dark:text-[#94a3b8]">当前案例数 ({cases.length})</span>
-           <input type="file" accept=".xlsx,.xls" ref={fileRef} onChange={handleImport} className="hidden" />
-           <button onClick={() => fileRef.current?.click()} className="flex items-center gap-[4px] bg-[#059669]/20 border border-[#10b981]/30 hover:bg-[#059669]/30 transition-colors rounded-[12px] px-[12px] py-[6px]">
-              <FolderOpen size={14} className="text-[#34d399]" />
-              <span className="text-[10px] font-[700] text-[#34d399]">导入</span>
-           </button>
-        </div>
-
         {/* Search Bar */}
-        <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#334155] rounded-[20px] p-[16px] flex flex-col gap-[12px]">
-           <span className="text-[10px] font-[900] text-slate-500 dark:text-[#94a3b8]">筛选用例</span>
+        <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#334155] rounded-[20px] p-[16px] flex flex-col gap-[12px] mt-[12px]">
+           <span className="text-[12px] font-[900] text-slate-500 dark:text-[#94a3b8]">筛选案例</span>
            <div className="flex gap-[8px] w-full">
               <CustomSelect
+                textColor="text-slate-900 dark:text-white text-[16px]"
                 value={filterCat}
                 onChange={setFilterCat}
-                options={['', ...uniqueFunctionCategories]}
+                options={[{value:'',label:'全部功能'}, ...uniqueFunctionCategories]}
                 placeholder="按功能大类筛选"
-                align="left"
+                align="between"
                 className="flex-1 min-w-0 w-1/2 bg-slate-100 dark:bg-[#0f172a] border border-slate-200 dark:border-[#334155] rounded-[8px] px-[12px] py-[8px]"
               />
               <input 
@@ -255,22 +272,43 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
            </div>
         </div>
 
+        {/* List Header */}
+        <div className="flex justify-between items-center w-full h-[24px] shrink-0">
+           <div className="flex items-center gap-[8px]">
+             <span className="text-[12px] font-[900] text-slate-500 dark:text-[#94a3b8]">当前案例数 ({filteredCases.length})</span>
+             <button 
+               onClick={() => setShowInactive(!showInactive)} 
+               className={`p-[4px] rounded-[6px] transition-colors border ${!showInactive ? 'bg-[#3b82f6]/10 text-[#3b82f6] border-[#3b82f6]/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}
+               title={!showInactive ? "当前：只显示启动案例 (点击查看停用案例)" : "当前：只显示停用案例 (点击查看启动案例)"}
+             >
+               {!showInactive ? <Eye size={14} /> : <EyeOff size={14} />}
+             </button>
+           </div>
+           <input type="file" accept=".xlsx,.xls" ref={fileRef} onChange={handleImport} className="hidden" />
+           <button onClick={() => fileRef.current?.click()} className="flex items-center gap-[4px] bg-[#059669]/20 border border-[#10b981]/30 hover:bg-[#059669]/30 transition-colors rounded-[12px] px-[8px] py-[4px]">
+              <FolderOpen size={14} className="text-[#34d399]" />
+              <span className="text-[10px] font-[700] text-[#34d399]">案例导入</span>
+           </button>
+        </div>
+
         {/* Cases List */}
         <div className="flex flex-col gap-[8px]">
-           {filteredCases.map(c => (
-              <div key={c.id} className="bg-white dark:bg-[#121826] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#1e293b] rounded-[14px] p-[10px] px-[14px] flex justify-between items-center transition-transform active:scale-[0.98]">
+           {filteredCases.map(c => {
+              const isActive = c.is_active !== 0;
+              return (
+              <div key={c.id} className={`bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#334155] rounded-[14px] p-[10px] px-[14px] flex justify-between items-center transition-all active:scale-[0.98] ${isActive ? '' : 'opacity-50 grayscale-[50%]'}`}>
                  <div className="flex flex-col gap-[4px] flex-1 min-w-0 pr-4">
                     <div className="flex items-center gap-[6px] h-[16px]">
-                       <div className="bg-[#3b82f6]/20 px-[6px] h-[16px] flex items-center justify-center rounded border border-[#3b82f6]/30">
-                          <span className="text-[10px] font-[800] text-[#60a5fa] leading-none translate-y-[-0.5px]">#{c.id}</span>
+                       <div className={`${isActive ? 'bg-[#3b82f6]/20 border-[#3b82f6]/30' : 'bg-slate-500/20 border-slate-500/30'} px-[6px] h-[16px] flex items-center justify-center rounded border`}>
+                          <span className={`text-[10px] font-[800] ${isActive ? 'text-[#60a5fa]' : 'text-slate-500 dark:text-[#94a3b8]'} leading-none translate-y-[-0.5px]`}>#{c.id}</span>
                        </div>
-                       <span className="text-[10px] font-[800] bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent truncate leading-[16px] mt-[0.5px]">
+                       <span className={`text-[10px] font-[800] ${isActive ? 'bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent' : 'text-slate-500 dark:text-[#94a3b8]'} truncate leading-[16px] mt-[0.5px]`}>
                          - {c.category ? `${c.category} - ` : ''}{c.functionCategory || c.function_category}
                        </span>
                     </div>
                     <div className="flex items-center gap-[6px] mt-0 overflow-hidden flex-wrap sm:flex-nowrap">
-                       <span className="text-[13px] font-[900] text-slate-900 dark:text-white shrink-0">{c.function}</span>
-                       {c.content && <span className="text-[11px] font-[500] text-slate-700 dark:text-[#cbd5e1] truncate shrink">- {c.content}</span>}
+                       <span className={`text-[13px] font-[900] ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-[#94a3b8] line-through decoration-slate-400'} shrink-0`}>{c.function}</span>
+                       {c.content && <span className={`text-[11px] font-[500] ${isActive ? 'text-slate-700 dark:text-[#cbd5e1]' : 'text-slate-500 dark:text-[#64748b] line-through'} truncate shrink`}>- {c.content}</span>}
                        <span className="text-[10px] font-[normal] text-[#64748b] shrink-0">| {c.type}</span>
                     </div>
                  </div>
@@ -278,12 +316,15 @@ export default function AdminView({ cases, setCases, setView, setToast }) {
                     <button onClick={() => handleEdit(c)} className="p-2 -mr-2 text-slate-500 dark:text-[#475569] hover:text-slate-900 dark:text-white transition-colors">
                        <Edit3 size={18} />
                     </button>
+                    <button onClick={() => handleToggleActive(c)} className="p-2 -mr-2 text-slate-500 dark:text-[#475569] hover:text-[#3b82f6] transition-colors" title={isActive ? "点击停用" : "点击启用"}>
+                       {isActive ? <Eye size={18} /> : <EyeOff size={18} />}
+                    </button>
                     <button onClick={() => setDeleteConfirmId(c.id)} className="p-2 -mr-2 text-[#ef4444] hover:text-red-400 transition-colors">
                        <X size={20} />
                     </button>
                  </div>
               </div>
-           ))}
+           )})}
         </div>
       </main>
 

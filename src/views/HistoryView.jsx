@@ -72,46 +72,61 @@ export default function HistoryView({
         onScroll={handleScroll}
       >
         {/* FilterSection */}
-        <div className="bg-white dark:bg-[#121826] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#1e293b] rounded-[20px] p-[16px] flex flex-col gap-[12px] shrink-0">
+        <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#334155] rounded-[20px] p-[16px] flex flex-col gap-[12px] shrink-0">
           <span className="text-[12px] font-[900] text-slate-500 dark:text-[#94a3b8]">筛选测试记录</span>
           
           <div className="flex gap-[8px] w-full">
-            <div className="flex flex-col gap-[2px] flex-1 min-w-0 w-1/2">
-              <span className="text-[11px] font-[600] text-[#64748b] truncate">测试开始</span>
+            <div className="relative flex-1 min-w-0 w-1/2">
               <input 
                  type="date"
-                 className="bg-slate-50 dark:bg-[#0f1523] appearance-none border border-slate-200 dark:border-[#1e293b] rounded-[10px] w-full min-w-0 h-[36px] px-[6px] text-[11px] text-slate-500 dark:text-[#94a3b8] focus:outline-none focus:border-[#3b82f6] outline-none"
-                 value={filterStartDate} onChange={e => setFilterStartDate(e.target.value)}
+                 className={`bg-slate-100 dark:bg-[#0f172a] border border-slate-200 dark:border-[#334155] rounded-[8px] w-full min-w-0 h-[36px] px-[12px] text-[14px] focus:outline-none focus:border-[#3b82f6] outline-none appearance-none ${!filterStartDate ? 'text-transparent dark:text-transparent' : 'text-slate-900 dark:text-white'}`}
+                 value={filterStartDate} 
+                 onChange={e => setFilterStartDate(e.target.value)}
               />
+              {!filterStartDate && (
+                <div className="absolute left-[12px] top-0 bottom-0 flex items-center pointer-events-none">
+                  <span className="text-[12px] text-slate-400 dark:text-slate-600">测试开始日期</span>
+                </div>
+              )}
             </div>
-            <div className="flex flex-col gap-[2px] flex-1 min-w-0 w-1/2">
-              <span className="text-[11px] font-[600] text-[#64748b] truncate">测试结束</span>
+            <div className="relative flex-1 min-w-0 w-1/2">
               <input 
                  type="date"
-                 className="bg-slate-50 dark:bg-[#0f1523] appearance-none border border-slate-200 dark:border-[#1e293b] rounded-[10px] w-full min-w-0 h-[36px] px-[6px] text-[11px] text-slate-500 dark:text-[#94a3b8] focus:outline-none focus:border-[#3b82f6] outline-none"
-                 value={filterEndDate} onChange={e => setFilterEndDate(e.target.value)}
+                 className={`bg-slate-100 dark:bg-[#0f172a] border border-slate-200 dark:border-[#334155] rounded-[8px] w-full min-w-0 h-[36px] px-[12px] text-[14px] focus:outline-none focus:border-[#3b82f6] outline-none appearance-none ${!filterEndDate ? 'text-transparent dark:text-transparent' : 'text-slate-900 dark:text-white'}`}
+                 value={filterEndDate} 
+                 onChange={e => setFilterEndDate(e.target.value)}
               />
+              {!filterEndDate && (
+                <div className="absolute left-[12px] top-0 bottom-0 flex items-center pointer-events-none">
+                  <span className="text-[12px] text-slate-400 dark:text-slate-600">测试结束日期</span>
+                </div>
+              )}
             </div>
           </div>
 
           <div className="flex gap-[8px] w-full">
-            <div className="flex flex-col gap-[2px] flex-1 min-w-0">
-              <span className="text-[11px] font-[600] text-[#64748b]">工程代码</span>
+            <div className="flex-1 min-w-0">
               <input 
-                 type="text" placeholder="例如：NDLB"
-                 className="bg-slate-50 dark:bg-[#0f1523] border border-slate-200 dark:border-[#1e293b] rounded-[10px] w-full h-[36px] px-[12px] text-[12px] text-slate-500 dark:text-[#94a3b8] placeholder:text-slate-400 dark:placeholder:text-slate-500 dark:text-[#94a3b8] focus:outline-none focus:border-[#3b82f6] outline-none"
-                 value={filterCode} onChange={e => setFilterCode(e.target.value)}
+                 type="text" placeholder="工程代码"
+                 className="bg-slate-100 dark:bg-[#0f172a] border border-slate-200 dark:border-[#334155] rounded-[8px] w-full h-[36px] px-[12px] text-[14px] placeholder:text-[12px] text-slate-900 dark:text-white focus:outline-none focus:border-[#3b82f6] outline-none uppercase"
+                 value={filterCode} 
+                 onChange={e => setFilterCode(e.target.value)}
+                 onBlur={e => setFilterCode(e.target.value.replace(/[^A-Za-z0-9-]/g, '').toUpperCase())}
+                 autoCapitalize="characters"
+                 autoCorrect="off"
+                 autoComplete="off"
+                 spellCheck="false"
               />
             </div>
-            <div className="flex flex-col gap-[2px] flex-1 min-w-0">
-              <span className="text-[11px] font-[600] text-[#64748b]">总线架构</span>
+            <div className="flex-1 min-w-0">
               <CustomSelect
+                textColor="text-slate-900 dark:text-white text-[16px]"
                 value={filterArch}
                 onChange={setFilterArch}
-                options={['全部', ...ARCHITECTURES]}
-                placeholder="请选择"
-                align="left"
-                className="w-full bg-slate-50 dark:bg-[#0f1523] border border-slate-200 dark:border-[#1e293b] rounded-[10px] h-[36px] px-[12px]"
+                options={[{value:'',label:'全部架构'}, ...ARCHITECTURES]}
+                placeholder="总线架构"
+                align="between"
+                className="w-full bg-slate-100 dark:bg-[#0f172a] border border-slate-200 dark:border-[#334155] rounded-[8px] h-[36px] px-[12px] py-[6px]"
               />
             </div>
           </div>
@@ -125,9 +140,13 @@ export default function HistoryView({
           </button>
         </div>
 
-        {/* ListSection */}
-        <div className="flex flex-col gap-[12px] w-full pt-[4px]">
+        {/* List Header */}
+        <div className="flex items-center w-full h-[24px] shrink-0">
            <span className="text-[12px] font-[900] text-slate-500 dark:text-[#94a3b8]">查询结果 ({filteredSessions.length})</span>
+        </div>
+
+        {/* ListSection */}
+        <div className="flex flex-col gap-[12px] w-full">
 
            {filteredSessions.length === 0 ? (
              <div className="text-center py-8 text-[#64748b] text-[12px] font-[800]">No sessions found.</div>
@@ -138,7 +157,7 @@ export default function HistoryView({
              const passRate = execCount > 0 ? ((passCount / execCount) * 100).toFixed(0) : 0;
 
              return (
-               <div key={sess.id} className="bg-white dark:bg-[#121826] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#1e293b] rounded-[20px] p-[14px] flex flex-col gap-[10px]">
+               <div key={sess.id} className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#334155] rounded-[20px] p-[14px] flex flex-col gap-[10px]">
                   {/* Top Row */}
                   <div className="flex justify-between items-center w-full">
                      <div className="flex gap-[8px] items-center">
@@ -149,7 +168,9 @@ export default function HistoryView({
                            {sess.timestamp ? String(sess.timestamp).substring(0, 16).replace(/-/g, '/') : ''}
                         </span>
                      </div>
-                     <span className="text-[11px] font-[normal] text-[#64748b]">{totalCases} 用例</span>
+                     <span className={`text-[20px] font-[900] ${passRate >= 90 ? 'text-[#22c55e]' : (passRate >= 60 ? 'text-[#eab308]' : 'text-[#ef4444]')}`}>
+                        通过率 {passRate}%
+                     </span>
                   </div>
 
                   {/* Title Row */}
@@ -158,7 +179,7 @@ export default function HistoryView({
                         {sess.model_year ? `MY${sess.model_year}` : ''} {sess.vehicle_model || 'Unknown'}
                      </span>
                      <button onClick={() => setEditingSession(sess)} className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none hover:bg-slate-100 dark:hover:bg-[#334155] transition-colors rounded-[10px] w-[32px] h-[32px] flex items-center justify-center -mr-1">
-                        <Edit3 size={16} className="text-slate-500 dark:text-[#94a3b8]" />
+                        <Edit3 size={16} className="text-slate-500 dark:text-[#cbd5e1]" />
                      </button>
                   </div>
 
@@ -170,18 +191,15 @@ export default function HistoryView({
                      <div className="flex flex-col gap-[2px] min-w-0 flex-1">
                         <span className="text-[12px] font-[normal] text-slate-700 dark:text-[#cbd5e1] truncate">VIN: {sess.vin || 'N/A'}</span>
                         <span className="text-[11px] font-[normal] text-[#64748b] truncate">
-                           {(sess.vehicle_architecture || sess.architecture) || 'N/A'} • {sess.test_location || sess.address || 'N/A'} • {sess.tester || 'N/A'}
+                           {sess.test_location || sess.address || 'N/A'} • {sess.tester || 'N/A'}
                         </span>
                      </div>
                   </div>
 
                   {/* Bottom Row */}
                   <div className="flex justify-between items-center w-full">
-                     <div className="flex gap-[8px] items-center">
-                        <span className={`text-[13px] font-[bold] ${passRate >= 90 ? 'text-[#22c55e]' : (passRate >= 60 ? 'text-[#eab308]' : 'text-[#ef4444]')}`}>
-                           通过 {passRate}%
-                        </span>
-                        <span className="text-[13px] font-[bold] text-[#64748b]">已执行 {execCount} 条用例</span>
+                     <div className="flex items-center">
+                        <span className="text-[13px] font-[bold] text-[#64748b]">已执行 {execCount} 条用例，完成进度 {execRate}%</span>
                      </div>
                      <button
                        onClick={() => handleContinueTest(sess)}

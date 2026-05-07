@@ -106,12 +106,13 @@ export default function PerformanceMonitorView({ setView }) {
   // SVG Path Generator (Smooth Bezier Curve)
   const generateSmoothPath = useCallback((data, maxVal, width, height) => {
     if (data.length === 0) return '';
-    const xStep = width / (data.length - 1);
+    const xStep = width / (Math.max(1, data.length - 1));
     
     // Convert data to points
     const points = data.map((val, i) => {
       const x = i * xStep;
-      const y = height - ((val / maxVal) * height);
+      let y = height - ((val / maxVal) * height);
+      y = Math.max(0, Math.min(height, y));
       return { x, y };
     });
 
@@ -125,9 +126,12 @@ export default function PerformanceMonitorView({ setView }) {
       const p3 = i !== points.length - 2 ? points[i + 2] : p2;
 
       const cp1x = p1.x + (p2.x - p0.x) / 6;
-      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      let cp1y = p1.y + (p2.y - p0.y) / 6;
       const cp2x = p2.x - (p3.x - p1.x) / 6;
-      const cp2y = p2.y - (p3.y - p1.y) / 6;
+      let cp2y = p2.y - (p3.y - p1.y) / 6;
+
+      cp1y = Math.max(0, Math.min(height, cp1y));
+      cp2y = Math.max(0, Math.min(height, cp2y));
 
       d += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
     }
@@ -167,8 +171,8 @@ export default function PerformanceMonitorView({ setView }) {
   const titlePrefix = getChartTitlePrefix();
 
   return (
-    <div className="h-screen bg-slate-50 dark:bg-[#0f1523] text-slate-800 dark:text-slate-200 flex flex-col font-sans overflow-hidden antialiased">
-      <div className="flex-1 w-full flex flex-col px-[40px] pt-[32px] pb-[24px] gap-[24px]">
+    <div className="h-screen bg-slate-50 dark:bg-[#0f1523] text-slate-800 dark:text-slate-200 flex flex-col font-sans overflow-y-auto custom-scrollbar antialiased">
+      <div className="flex-1 w-full flex flex-col px-[40px] pt-[20px] pb-[16px] gap-[16px] min-h-[700px]">
         
         {/* Header */}
         <header className="flex justify-between items-center w-full shrink-0">
@@ -181,7 +185,7 @@ export default function PerformanceMonitorView({ setView }) {
           </div>
           <button 
             onClick={() => setView('home')}
-            className="flex items-center gap-2 border border-slate-200 dark:border-[#1e293b] rounded-[8px] px-[16px] py-[10px] text-[12px] font-[800] text-[#64748b] hover:text-slate-900 dark:text-white transition-all bg-slate-50 dark:bg-[#0f1523]"
+            className="flex items-center gap-2 border border-slate-200 dark:border-[#334155] rounded-[8px] px-[16px] py-[10px] text-[12px] font-[800] text-[#64748b] hover:text-slate-900 dark:text-white transition-all bg-slate-50 dark:bg-[#0f1523]"
           >
             <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> 返回主页
           </button>
@@ -189,7 +193,7 @@ export default function PerformanceMonitorView({ setView }) {
 
         {/* Toolbar */}
         <div className="flex items-center gap-3 shrink-0">
-          <div className="flex gap-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent/80 p-1 border border-slate-200 dark:border-[#1e293b] rounded-lg">
+          <div className="flex gap-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 p-1 border border-slate-200 dark:border-[#334155] rounded-lg">
             {[
               { id: 'realtime', label: '实时 (60s)' },
               { id: '1h', label: '1小时' },
@@ -215,7 +219,7 @@ export default function PerformanceMonitorView({ setView }) {
         {/* Top KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-[24px] shrink-0">
           {/* CPU KPI */}
-          <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent/80 backdrop-blur-xl border border-slate-200 dark:border-[#1e293b] rounded-[1rem] p-[20px] shadow-2xl flex flex-col justify-between h-[110px]">
+          <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[16px] shadow-2xl flex flex-col justify-between h-[96px]">
             <span className="text-[11px] font-[800] text-[#64748b] uppercase tracking-widest flex items-center gap-2">
               <Server size={14} /> CPU 使用率
             </span>
@@ -226,7 +230,7 @@ export default function PerformanceMonitorView({ setView }) {
           </div>
 
           {/* RAM KPI */}
-          <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent/80 backdrop-blur-xl border border-slate-200 dark:border-[#1e293b] rounded-[1rem] p-[20px] shadow-2xl flex flex-col justify-between h-[110px]">
+          <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[16px] shadow-2xl flex flex-col justify-between h-[96px]">
             <span className="text-[11px] font-[800] text-[#64748b] uppercase tracking-widest flex items-center gap-2">
               <Activity size={14} /> 内存 (RAM) 使用
             </span>
@@ -237,7 +241,7 @@ export default function PerformanceMonitorView({ setView }) {
           </div>
 
           {/* DISK KPI */}
-          <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent/80 backdrop-blur-xl border border-slate-200 dark:border-[#1e293b] rounded-[1rem] p-[20px] shadow-2xl flex flex-col justify-between h-[110px]">
+          <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[16px] shadow-2xl flex flex-col justify-between h-[96px]">
             <span className="text-[11px] font-[800] text-[#64748b] uppercase tracking-widest flex items-center gap-2">
               <HardDrive size={14} /> 存储空间 (SSD)
             </span>
@@ -248,7 +252,7 @@ export default function PerformanceMonitorView({ setView }) {
           </div>
 
           {/* IMAGE STORAGE KPI */}
-          <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent/80 backdrop-blur-xl border border-slate-200 dark:border-[#1e293b] rounded-[1rem] p-[20px] shadow-2xl flex flex-col justify-between h-[110px]">
+          <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[16px] shadow-2xl flex flex-col justify-between h-[96px]">
             <span className="text-[11px] font-[800] text-[#64748b] uppercase tracking-widest flex items-center gap-2">
               <ImageIcon size={14} /> 图片存储
             </span>
@@ -260,12 +264,12 @@ export default function PerformanceMonitorView({ setView }) {
         </div>
 
         {/* Main Body */}
-        <div className="flex flex-1 min-h-0 flex-col lg:flex-row gap-[24px]">
+        <div className="flex flex-1 min-h-0 flex-col lg:flex-row gap-[16px]">
           {/* Left Area - Charts */}
-          <div className="flex-1 flex flex-col gap-[24px] min-w-0 h-full">
+          <div className="flex-1 flex flex-col gap-[16px] min-w-0 h-full">
             
             {/* CPU Chart */}
-            <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent/80 backdrop-blur-xl border border-slate-200 dark:border-[#1e293b] rounded-[1rem] p-[24px] shadow-2xl flex flex-col relative min-h-0">
+            <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[20px] shadow-2xl flex flex-col relative min-h-0">
               <h2 className="text-sm font-black italic text-slate-700 dark:text-slate-300 mb-4 shrink-0">{titlePrefix} CPU 负载趋势</h2>
               
               <div className="flex-1 relative flex min-h-0">
@@ -277,7 +281,7 @@ export default function PerformanceMonitorView({ setView }) {
                 
                 {/* Chart Area */}
                 <div className="flex-1 relative">
-                  <svg className="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 800 160">
+                  <svg className="absolute inset-0 w-full h-full overflow-hidden" preserveAspectRatio="none" viewBox="0 0 800 160">
                     <path
                       d={`${cpuPath} L 800 160 L 0 160 Z`}
                       fill="rgba(59, 130, 246, 0.15)"
@@ -301,7 +305,7 @@ export default function PerformanceMonitorView({ setView }) {
             </div>
 
             {/* RAM Chart */}
-            <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent/80 backdrop-blur-xl border border-slate-200 dark:border-[#1e293b] rounded-[1rem] p-[24px] shadow-2xl flex flex-col relative min-h-0">
+            <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[20px] shadow-2xl flex flex-col relative min-h-0">
               <h2 className="text-sm font-black italic text-slate-700 dark:text-slate-300 mb-4 shrink-0">{titlePrefix}内存 (RAM) 负载趋势</h2>
               
               <div className="flex-1 relative flex min-h-0">
@@ -313,7 +317,7 @@ export default function PerformanceMonitorView({ setView }) {
                 
                 {/* Chart Area */}
                 <div className="flex-1 relative">
-                  <svg className="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 800 160">
+                  <svg className="absolute inset-0 w-full h-full overflow-hidden" preserveAspectRatio="none" viewBox="0 0 800 160">
                     <path
                       d={`${ramPath} L 800 160 L 0 160 Z`}
                       fill="rgba(168, 85, 247, 0.15)"
@@ -339,9 +343,9 @@ export default function PerformanceMonitorView({ setView }) {
           </div>
 
           {/* Right Area - Sidebar */}
-          <div className="w-[450px] flex flex-col gap-[24px] shrink-0 h-full">
+          <div className="w-[450px] flex flex-col gap-[16px] shrink-0 h-full">
             {/* System Runtime Status */}
-            <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent/80 backdrop-blur-xl border border-slate-200 dark:border-[#1e293b] rounded-[1rem] p-[24px] shadow-2xl flex flex-col min-h-0 overflow-hidden">
+            <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[20px] shadow-2xl flex flex-col min-h-0 overflow-hidden">
               <h2 className="text-sm font-black italic text-slate-700 dark:text-slate-300 mb-5 shrink-0">系统运行状态</h2>
               <div className="flex-1 flex flex-col justify-around gap-[16px]">
 
@@ -397,7 +401,7 @@ export default function PerformanceMonitorView({ setView }) {
             </div>
 
             {/* Network Stream */}
-            <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent/80 backdrop-blur-xl border border-slate-200 dark:border-[#1e293b] rounded-[1rem] p-[24px] shadow-2xl flex flex-col min-h-0 relative">
+            <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[24px] shadow-2xl flex flex-col min-h-0 relative">
               <div className="flex justify-between items-center mb-4 shrink-0">
                 <h2 className="text-sm font-black italic text-slate-700 dark:text-slate-300 flex items-center gap-2">
                   <Globe size={16} /> {titlePrefix}网络带宽趋势
@@ -417,7 +421,7 @@ export default function PerformanceMonitorView({ setView }) {
                 
                 {/* Chart Area */}
                 <div className="flex-1 relative">
-                  <svg className="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 80">
+                  <svg className="absolute inset-0 w-full h-full overflow-hidden" preserveAspectRatio="none" viewBox="0 0 400 80">
                     <path d={`${rxPath} L 400 80 L 0 80 Z`} fill="rgba(52, 211, 153, 0.1)" />
                     <path d={rxPath} fill="none" stroke="#34d399" strokeWidth="2" strokeLinecap="round" />
                     
@@ -435,7 +439,7 @@ export default function PerformanceMonitorView({ setView }) {
             </div>
 
             {/* Image Storage Panel */}
-            <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent/80 backdrop-blur-xl border border-slate-200 dark:border-[#1e293b] rounded-[1rem] p-[24px] shadow-2xl flex flex-col gap-[14px] shrink-0">
+            <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[24px] shadow-2xl flex flex-col gap-[14px] shrink-0">
               <h2 className="text-sm font-black italic text-slate-700 dark:text-slate-300 flex items-center gap-2 shrink-0">
                 <ImageIcon size={15} className="text-[#14b8a6]" /> 图片存储统计
               </h2>

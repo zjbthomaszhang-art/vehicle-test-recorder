@@ -59,6 +59,16 @@ export default function NDLBRecorder() {
   const [testEnv, setTestEnv] = useState('');
   const [tester, setTester] = useState('');
   const [mileage, setMileage] = useState('');
+  const [remarks, setRemarks] = useState('');
+  const [vinRules, setVinRules] = useState([]);
+
+  // Load VIN rules from backend on mount
+  useEffect(() => {
+    fetch(`${API_BASE}/vin-rules`)
+      .then(res => res.json())
+      .then(data => { if (Array.isArray(data)) setVinRules(data); })
+      .catch(err => console.warn('Failed to load VIN rules:', err));
+  }, []);
 
   // --- Session State ---
   const [currentSessionId, setCurrentSessionId] = useState(null);
@@ -160,7 +170,7 @@ export default function NDLBRecorder() {
         setHistorySessions(prev => JSON.stringify(prev) === JSON.stringify(sessionsData) ? prev : sessionsData);
       }
       if (Array.isArray(bugsData)) {
-        const sortedBugs = bugsData.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+        const sortedBugs = bugsData.sort((a, b) => new Date(String(b.timestamp || 0).replace(/-/g, '/')) - new Date(String(a.timestamp || 0).replace(/-/g, '/')));
         setAllBugs(prev => JSON.stringify(prev) === JSON.stringify(sortedBugs) ? prev : sortedBugs);
       }
       if (Array.isArray(topFailsData)) {
@@ -202,7 +212,7 @@ export default function NDLBRecorder() {
     setArchitecture(''); setIviModule(''); setCommModule('');
     setProductionStage(''); setTestEnv('');
     setEnvPhotos([]);
-    setTester(''); setMileage('');
+    setTester(''); setMileage(''); setRemarks('');
   };
 
   // --- Global Actions ---
@@ -241,6 +251,7 @@ export default function NDLBRecorder() {
     setTestEnv(sess.test_env || '');
     setTester(sess.tester || '');
     setMileage(sess.mileage || '');
+    setRemarks(sess.remarks || '');
     const raw = sess.env_photo;
     if (raw) {
       try { const p = JSON.parse(raw); setEnvPhotos(Array.isArray(p) ? p : []); }
@@ -313,7 +324,7 @@ export default function NDLBRecorder() {
 
   const buildSessionData = (sessionId = null) => ({
     sessionId: sessionId || currentSessionId,
-    vehicle: { vehicleModel, model_year: modelYear, vin, production_stage: productionStage, address, architecture, iviModule, commModule, test_env: testEnv, envPhotos, tester, mileage },
+    vehicle: { vehicleModel, model_year: modelYear, vin, production_stage: productionStage, address, architecture, iviModule, commModule, test_env: testEnv, envPhotos, tester, mileage, remarks },
     results: caseResults.map((res, idx) => ({
       case_id: cases[idx].id,
       start_time: res.startTime,
@@ -589,6 +600,8 @@ export default function NDLBRecorder() {
           testEnv={testEnv} setTestEnv={setTestEnv}
           tester={tester} setTester={setTester}
           mileage={mileage} setMileage={setMileage}
+        remarks={remarks} setRemarks={setRemarks}
+          vinRules={vinRules}
           handleAddMedia={handleAddMedia}
           setToast={setToast}
           setView={setView}
@@ -652,6 +665,7 @@ export default function NDLBRecorder() {
       {editingSession && (
         <EditSessionModal
           session={editingSession}
+          vinRules={vinRules}
           onClose={() => setEditingSession(null)}
           onSave={async (updatedVehicle) => {
             setIsSaving(true);
@@ -712,7 +726,7 @@ export default function NDLBRecorder() {
         />
       )}
 
-      <input type="file" ref={photoInputRef} className="hidden" accept="image/*" capture="environment" onChange={handlePhotoUpload} />
+      <input type="file" ref={photoInputRef} className="hidden" accept="image/*" onChange={handlePhotoUpload} />
       <Toast toast={toast} />
 
       {/* Global Mobile Navigator */}

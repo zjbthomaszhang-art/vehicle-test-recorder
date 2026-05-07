@@ -40,6 +40,13 @@ async function initializeDatabase() {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         `);
 
+        // Migration: Add is_active to cases if it doesn't exist
+        const [casesCols] = await db.query("SHOW COLUMNS FROM cases LIKE 'is_active'");
+        if (casesCols.length === 0) {
+            await db.query("ALTER TABLE cases ADD COLUMN is_active TINYINT DEFAULT 1");
+            console.log("Added is_active column to cases table");
+        }
+
         // Test Sessions Table
         await db.query(`
             CREATE TABLE IF NOT EXISTS test_sessions (

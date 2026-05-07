@@ -11,7 +11,7 @@ export default function ConfirmDialog({ dialog, onClose }) {
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 animate-in fade-in zoom-in duration-300">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
-      <div className="relative bg-white dark:bg-slate-900 shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent border border-white/10 w-full max-w-sm rounded-[2.5rem] shadow-[0_50px_100px_rgba(0,0,0,0.5)] overflow-hidden">
+      <div className="relative bg-white dark:bg-slate-900 shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] border border-white/10 w-full max-w-sm rounded-[2.5rem] shadow-[0_50px_100px_rgba(0,0,0,0.5)] overflow-hidden">
         <div className="p-8 text-center">
           <div className="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
             <AlertCircle size={32} />

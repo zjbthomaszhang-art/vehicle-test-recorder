@@ -116,7 +116,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
 
     if (clickedModel) {
       const filtered = historySessions.filter(s => s.vehicle_model === clickedModel);
-      filtered.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+      filtered.sort((a, b) => new Date(String(b.timestamp || 0).replace(/-/g, '/')) - new Date(String(a.timestamp || 0).replace(/-/g, '/')));
       setSelectedModel(clickedModel);
       setModelSessions(filtered);
     }
@@ -132,7 +132,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-[#0f1523] text-slate-800 dark:text-slate-100 font-sans px-[24px] pt-[44px] pb-[100px] overflow-y-auto">
         <div className="max-w-4xl mx-auto">
-          <header className="mb-6 flex justify-between items-center pb-4 border-b border-slate-200 dark:border-[#1e293b]">
+          <header className="mb-6 flex justify-between items-center pb-4 border-b border-slate-200 dark:border-[#334155]">
             <div className="flex items-center gap-3">
               <button 
                 onClick={() => setSelectedModel(null)} 
@@ -156,7 +156,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
             const passRate = execCount > 0 ? ((passCount / execCount) * 100).toFixed(0) : 0;
 
             return (
-              <div key={session.id || idx} className="bg-white dark:bg-[#121826] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#1e293b] rounded-[20px] p-[14px] flex flex-col gap-[10px]">
+              <div key={session.id || idx} className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#334155] rounded-[20px] p-[14px] flex flex-col gap-[10px]">
                 {/* Top Row */}
                 <div className="flex justify-between items-center w-full">
                    <div className="flex gap-[8px] items-center">
@@ -216,16 +216,16 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
       <main className="flex-1 overflow-y-auto px-[16px] pt-[16px] pb-[100px] flex flex-col gap-[16px] custom-scrollbar">
         {/* KPI Row 1 */}
         <div className="flex gap-[12px] w-full">
-          <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[14px] border border-slate-200 dark:border-[#1e293b] p-[16px] h-[86px] flex flex-col justify-between">
+          <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[14px] border border-slate-200 dark:border-[#334155] p-[16px] h-[86px] flex flex-col justify-between">
             <div className="flex justify-between items-center w-full">
-               <span className="text-[12px] font-[900] text-slate-500 dark:text-[#475569]">总场次</span>
+               <span className="text-[12px] font-[900] text-slate-500 dark:text-[#cbd5e1]">总场次</span>
                <LucideTrendingUp size={14} strokeWidth={3} className="text-[#3b82f6]" />
             </div>
             <span className="text-[28px] font-[900] text-slate-900 dark:text-[#f8fafc] leading-none">{stats.totalSessions}</span>
           </div>
-          <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[14px] border border-slate-200 dark:border-[#1e293b] p-[16px] h-[86px] flex flex-col justify-between">
+          <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[14px] border border-slate-200 dark:border-[#334155] p-[16px] h-[86px] flex flex-col justify-between">
             <div className="flex justify-between items-center w-full">
-               <span className="text-[12px] font-[900] text-slate-500 dark:text-[#475569]">全局通过率</span>
+               <span className="text-[12px] font-[900] text-slate-500 dark:text-[#cbd5e1]">全局通过率</span>
                <CheckCircle2 size={14} strokeWidth={3} className="text-[#10b981]" />
             </div>
             <div className="flex items-end gap-[2px]">
@@ -237,19 +237,19 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
 
         {/* KPI Row 2 */}
         <div className="flex gap-[12px] w-full">
-          <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[14px] border border-slate-200 dark:border-[#1e293b] p-[16px] h-[86px] flex flex-col justify-between">
+          <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[14px] border border-slate-200 dark:border-[#334155] p-[16px] h-[86px] flex flex-col justify-between">
             <div className="flex justify-between items-center w-full">
-               <span className="text-[12px] font-[900] text-slate-500 dark:text-[#475569]">通过用例</span>
+               <span className="text-[12px] font-[900] text-slate-500 dark:text-[#cbd5e1]">通过用例</span>
                <BadgeCheck size={14} strokeWidth={3} className="text-[#60a5fa]" />
             </div>
             <div className="flex items-end gap-[4px]">
                <span className="text-[28px] font-[900] text-slate-900 dark:text-[#f8fafc] leading-none">{stats.totalPassed}</span>
-               <span className="text-[12px] font-[800] text-slate-500 dark:text-[#334155] leading-none mb-[4px]">/ {stats.totalCases}</span>
+               <span className="text-[12px] font-[800] text-slate-500 dark:text-[#94a3b8] leading-none mb-[4px]">/ {stats.totalCases}</span>
             </div>
           </div>
-          <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[14px] border border-slate-200 dark:border-[#1e293b] p-[16px] h-[86px] flex flex-col justify-between">
+          <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[14px] border border-slate-200 dark:border-[#334155] p-[16px] h-[86px] flex flex-col justify-between">
             <div className="flex justify-between items-center w-full">
-               <span className="text-[12px] font-[900] text-slate-500 dark:text-[#475569]">失败用例</span>
+               <span className="text-[12px] font-[900] text-slate-500 dark:text-[#cbd5e1]">失败用例</span>
                <XCircle size={14} strokeWidth={3} className="text-[#f59e0b]" />
             </div>
             <span className="text-[28px] font-[900] text-[#f59e0b] leading-none">{stats.totalFailed}</span>
@@ -257,7 +257,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
         </div>
 
         {/* Model Pass Rate */}
-        <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[14px] border border-slate-200 dark:border-[#1e293b] p-[16px] flex flex-col gap-[12px]">
+        <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[14px] border border-slate-200 dark:border-[#334155] p-[16px] flex flex-col gap-[12px]">
           <div className="flex justify-between items-center w-full">
              <div className="flex items-center gap-[6px]">
                 <Car size={14} strokeWidth={2.5} className="text-[#3b82f6]" />
@@ -267,23 +267,23 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
           </div>
           <div className="h-[150px] w-full ml-[-20px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={modelData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }} onClick={handleBarClick}>
+              <BarChart data={modelData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }} onClick={(e) => e && e.activePayload && handleBarClick(e.activePayload[0].payload)} style={{ outline: 'none' }} className="focus:outline-none">
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
                 <XAxis dataKey="model" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} dx={-10} />
+                <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} dx={-10} tickFormatter={(value) => `${value}%`} />
                 <Tooltip
                   cursor={{ fill: 'rgba(59,130,246,0.08)' }}
                   contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', color: '#0f172a', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   labelStyle={{ color: '#64748b', fontWeight: 800 }}
                 />
-                <Bar dataKey="passRate" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20} />
+                <Bar dataKey="passRate" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20} onClick={(payload) => handleBarClick(payload)} cursor="pointer" />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Daily Volume */}
-        <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[14px] border border-slate-200 dark:border-[#1e293b] p-[16px] flex flex-col gap-[12px]">
+        <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[14px] border border-slate-200 dark:border-[#334155] p-[16px] flex flex-col gap-[12px]">
           <div className="flex items-center gap-[6px]">
             <BarChart3 size={14} strokeWidth={2.5} className="text-[#3b82f6]" />
             <span className="text-[11px] font-[900] text-slate-700 dark:text-[#e2e8f0] italic">每日测试量趋势</span>
@@ -291,11 +291,11 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
           <div className="flex items-center gap-[12px]">
             <div className="flex items-center gap-[5px]">
                <div className="w-[7px] h-[7px] bg-[#3b82f6] rounded-full"></div>
-               <span className="text-[9px] font-[700] text-slate-500 dark:text-[#94a3b8]">通过</span>
+               <span className="text-[9px] font-[700] text-slate-500 dark:text-[#cbd5e1]">通过</span>
             </div>
             <div className="flex items-center gap-[5px]">
                <div className="w-[7px] h-[7px] bg-[#f59e0b] rounded-full"></div>
-               <span className="text-[9px] font-[700] text-slate-500 dark:text-[#94a3b8]">未通过</span>
+               <span className="text-[9px] font-[700] text-slate-500 dark:text-[#cbd5e1]">未通过</span>
             </div>
           </div>
           <div className="h-[110px] w-full ml-[-20px] mt-[4px]">
@@ -317,7 +317,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
         </div>
 
         {/* Top Failed */}
-        <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[14px] border border-slate-200 dark:border-[#1e293b] p-[16px] flex flex-col gap-[10px]">
+        <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[14px] border border-slate-200 dark:border-[#334155] p-[16px] flex flex-col gap-[10px]">
           <div className="flex items-center gap-[6px] mb-[4px]">
              <AlertTriangle size={14} strokeWidth={2.5} className="text-[#f59e0b]" />
              <span className="text-[11px] font-[900] text-[#f59e0b] italic">高频失败用例</span>
@@ -326,9 +326,9 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
           {topFailed.length > 0 ? topFailed.slice(0, 3).map((tf, i) => {
              const caseDef = casesMap[tf.case_id] || tf;
              return (
-             <div key={tf.case_id || i} className="bg-slate-100 dark:bg-[#0f172a] border border-slate-200 dark:border-[#1e293b]/50 rounded-[8px] p-[10px] px-[12px] flex justify-between items-center">
+             <div key={tf.case_id || i} className="bg-slate-100 dark:bg-[#334155] border border-slate-200 dark:border-[#334155]/50 rounded-[8px] p-[10px] px-[12px] flex justify-between items-center">
                 <div className="flex flex-col gap-[2px] flex-1 min-w-0 pr-2">
-                   <span className="text-[8px] font-[800] text-slate-500 dark:text-[#475569]">{caseDef.function_category || caseDef.functionCategory || 'Unknown'} &gt; {caseDef.function || 'Unknown'}</span>
+                   <span className="text-[8px] font-[800] text-slate-500 dark:text-[#cbd5e1]">{caseDef.function_category || caseDef.functionCategory || 'Unknown'} &gt; {caseDef.function || 'Unknown'}</span>
                    <span className="text-[10px] font-[800] text-slate-700 dark:text-[#e2e8f0] truncate">{caseDef.expected || caseDef.content || '...'}</span>
                 </div>
                 <div className="bg-[#f59e0b]/10 rounded-[5px] px-[6px] py-[3px] shrink-0">
@@ -337,12 +337,12 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
              </div>
              );
           }) : (
-            <div className="text-[10px] font-[800] text-slate-500 dark:text-[#475569] text-center py-4">暂无失败用例</div>
+            <div className="text-[10px] font-[800] text-slate-500 dark:text-[#cbd5e1] text-center py-4">暂无失败用例</div>
           )}
         </div>
 
         {/* Recent Defects */}
-        <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[14px] border border-slate-200 dark:border-[#1e293b] p-[16px] flex flex-col gap-[10px]">
+        <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[14px] border border-slate-200 dark:border-[#334155] p-[16px] flex flex-col gap-[10px]">
            <div className="flex items-center gap-[6px] mb-[4px]">
              <Bug size={14} strokeWidth={2.5} className="text-[#ef4444]" />
              <span className="text-[11px] font-[900] text-[#ef4444] italic">最新缺陷动态</span>
@@ -356,14 +356,14 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
                   <div className="flex flex-col gap-[3px] w-full min-w-0">
                     <div className="flex justify-between items-center w-full">
                       <span className="text-[10px] font-[900] text-slate-900 dark:text-white truncate">{linkedCase?.function || `Case ${bug.case_id}`}</span>
-                      <span className="text-[8px] font-[800] text-slate-500 dark:text-[#475569] shrink-0">{bug.timestamp?.substring(0, 16).replace(/-/g, '/')}</span>
+                      <span className="text-[8px] font-[800] text-slate-500 dark:text-[#cbd5e1] shrink-0">{bug.timestamp?.substring(0, 16).replace(/-/g, '/')}</span>
                     </div>
-                    <span className="text-[9px] font-[600] text-slate-500 dark:text-[#94a3b8] truncate w-full">"{bug.description}"</span>
+                    <span className="text-[9px] font-[600] text-slate-500 dark:text-[#cbd5e1] truncate w-full">"{bug.description}"</span>
                   </div>
                </div>
              )
            }) : (
-             <div className="text-[10px] font-[800] text-slate-500 dark:text-[#475569] text-center py-4">暂无缺陷动态</div>
+             <div className="text-[10px] font-[800] text-slate-500 dark:text-[#cbd5e1] text-center py-4">暂无缺陷动态</div>
            )}
         </div>
 
@@ -381,7 +381,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
   );
 
   const renderPC = () => (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0a0f1e] text-slate-800 dark:text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0f1523] text-slate-800 dark:text-slate-100 flex flex-col font-sans">
       <header className="px-[40px] pt-[24px] pb-[24px] flex justify-between items-center w-full z-10 shrink-0">
         <div className="flex items-center gap-[16px]">
           <Gauge size={28} strokeWidth={2} className="text-[#3b82f6]" />
@@ -393,26 +393,26 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
         <div className="flex items-center gap-[16px]">
           <button 
             onClick={() => setView('home')} 
-            className="flex items-center gap-2 border border-slate-200 dark:border-[#1e293b] rounded-[8px] px-[16px] py-[10px] text-[12px] font-[800] text-[#64748b] hover:text-slate-900 dark:text-white transition-all"
+            className="flex items-center gap-2 border border-slate-200 dark:border-[#334155] rounded-[8px] px-[16px] py-[10px] text-[12px] font-[800] text-[#64748b] hover:text-slate-900 dark:text-white transition-all"
           >
              <ArrowLeft size={14} /> 返回主页
           </button>
           
           <div className="flex items-center gap-[12px]">
-             <span className="text-[14px] font-[900] text-slate-500 dark:text-[#475569]">VEHICLE LAB</span>
-             <LucideUserCircle size={32} strokeWidth={1.5} className="text-slate-500 dark:text-[#475569]" />
+             <span className="text-[14px] font-[900] text-slate-500 dark:text-[#cbd5e1]">VEHICLE LAB</span>
+             <LucideUserCircle size={32} strokeWidth={1.5} className="text-slate-500 dark:text-[#cbd5e1]" />
           </div>
 
           <button 
             onClick={() => setView('monitor')}
-            className="border border-slate-200 dark:border-[#1e293b] rounded-[8px] w-[40px] h-[40px] flex items-center justify-center hover:bg-slate-100 dark:hover:bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none transition-all group"
+            className="border border-slate-200 dark:border-[#334155] rounded-[8px] w-[40px] h-[40px] flex items-center justify-center hover:bg-slate-100 dark:hover:bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none transition-all group"
           >
              <TerminalSquare size={18} strokeWidth={2} className="text-[#64748b] group-hover:text-slate-900 dark:text-white" />
           </button>
           
           <button 
             onClick={toggleTheme}
-            className="border border-slate-200 dark:border-[#1e293b] rounded-[8px] w-[40px] h-[40px] flex items-center justify-center hover:bg-slate-100 dark:hover:bg-[#1e293b] shadow-sm dark:shadow-none transition-all"
+            className="border border-slate-200 dark:border-[#334155] rounded-[8px] w-[40px] h-[40px] flex items-center justify-center hover:bg-slate-100 dark:hover:bg-[#1e293b] shadow-sm dark:shadow-none transition-all"
           >
             {theme === 'dark' ? <Sun size={18} strokeWidth={2} className="text-[#64748b] dark:text-white" /> : <Moon size={18} strokeWidth={2} className="text-[#64748b]" />}
           </button>
@@ -422,16 +422,16 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
       <main className="flex-1 overflow-y-auto px-[40px] pb-[24px] flex flex-col gap-[20px] custom-scrollbar">
         {/* KPI Row */}
         <div className="flex gap-[16px] w-full">
-          <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] border border-slate-200 dark:border-[#1e293b] p-[20px] h-[100px] flex flex-col justify-between">
+          <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[20px] h-[100px] flex flex-col justify-between">
             <div className="flex justify-between items-center w-full">
-               <span className="text-[10px] font-[900] text-slate-500 dark:text-[#475569]">总测试场次</span>
+               <span className="text-[10px] font-[900] text-slate-500 dark:text-[#cbd5e1]">总测试场次</span>
                <LucideTrendingUp size={18} strokeWidth={3} className="text-[#3b82f6]" />
             </div>
             <span className="text-[32px] font-[900] text-slate-900 dark:text-[#f8fafc] leading-none">{stats.totalSessions}</span>
           </div>
-          <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] border border-slate-200 dark:border-[#1e293b] p-[20px] h-[100px] flex flex-col justify-between">
+          <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[20px] h-[100px] flex flex-col justify-between">
             <div className="flex justify-between items-center w-full">
-               <span className="text-[10px] font-[900] text-slate-500 dark:text-[#475569]">全局通过率</span>
+               <span className="text-[10px] font-[900] text-slate-500 dark:text-[#cbd5e1]">全局通过率</span>
                <CheckCircle2 size={18} strokeWidth={3} className="text-[#10b981]" />
             </div>
             <div className="flex items-end gap-[4px]">
@@ -439,19 +439,19 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
                <span className="text-[16px] font-[900] text-[#10b981]/50 leading-none mb-[2px]">%</span>
             </div>
           </div>
-          <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] border border-slate-200 dark:border-[#1e293b] p-[20px] h-[100px] flex flex-col justify-between">
+          <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[20px] h-[100px] flex flex-col justify-between">
             <div className="flex justify-between items-center w-full">
-               <span className="text-[10px] font-[900] text-slate-500 dark:text-[#475569]">通过用例数</span>
+               <span className="text-[10px] font-[900] text-slate-500 dark:text-[#cbd5e1]">通过用例数</span>
                <BadgeCheck size={18} strokeWidth={3} className="text-[#60a5fa]" />
             </div>
             <div className="flex items-end gap-[6px]">
                <span className="text-[32px] font-[900] text-slate-900 dark:text-[#f8fafc] leading-none">{stats.totalPassed}</span>
-               <span className="text-[14px] font-[800] text-slate-500 dark:text-[#334155] leading-none mb-[4px]">/ {stats.totalCases}</span>
+               <span className="text-[14px] font-[800] text-slate-500 dark:text-[#94a3b8] leading-none mb-[4px]">/ {stats.totalCases}</span>
             </div>
           </div>
-          <div className="flex-1 bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] border border-slate-200 dark:border-[#1e293b] p-[20px] h-[100px] flex flex-col justify-between">
+          <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[20px] h-[100px] flex flex-col justify-between">
             <div className="flex justify-between items-center w-full">
-               <span className="text-[10px] font-[900] text-slate-500 dark:text-[#475569]">失败用例数</span>
+               <span className="text-[10px] font-[900] text-slate-500 dark:text-[#cbd5e1]">失败用例数</span>
                <XCircle size={18} strokeWidth={3} className="text-[#f59e0b]" />
             </div>
             <span className="text-[32px] font-[900] text-[#f59e0b] leading-none">{stats.totalFailed}</span>
@@ -463,7 +463,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
           {/* Left Column */}
           <div className="flex-1 flex flex-col gap-[20px]">
             {/* Model Pass Rate */}
-            <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] border border-slate-200 dark:border-[#1e293b] p-[24px] flex-1 flex flex-col gap-[16px] min-h-[200px]">
+            <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[24px] flex-1 flex flex-col gap-[16px] min-h-[200px]">
               <div className="flex justify-between items-center w-full">
                  <div className="flex items-center gap-[8px]">
                     <Car size={16} strokeWidth={2.5} className="text-[#3b82f6]" />
@@ -473,7 +473,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
               </div>
               <div className="flex-1 w-full ml-[-20px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={modelData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }} onClick={(historySessions) => historySessions && historySessions.activePayload && handleBarClick(historySessions.activePayload[0].payload)}>
+                  <BarChart data={modelData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }} onClick={(historySessions) => historySessions && historySessions.activePayload && handleBarClick(historySessions.activePayload[0].payload)} style={{ outline: 'none' }} className="focus:outline-none">
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
                     <XAxis dataKey="model" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} dx={-10} />
@@ -489,7 +489,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
             </div>
 
             {/* Daily Volume */}
-            <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] border border-slate-200 dark:border-[#1e293b] p-[24px] flex-1 flex flex-col gap-[16px] min-h-[200px]">
+            <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[24px] flex-1 flex flex-col gap-[16px] min-h-[200px]">
               <div className="flex justify-between items-center w-full">
                   <div className="flex items-center gap-[8px]">
                     <BarChart3 size={16} strokeWidth={2.5} className="text-[#3b82f6]" />
@@ -498,11 +498,11 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
                   <div className="flex items-center gap-[16px]">
                     <div className="flex items-center gap-[6px]">
                        <div className="w-[8px] h-[8px] bg-[#3b82f6] rounded-full"></div>
-                       <span className="text-[10px] font-[700] text-slate-500 dark:text-[#94a3b8]">通过</span>
+                       <span className="text-[10px] font-[700] text-slate-500 dark:text-[#cbd5e1]">通过</span>
                     </div>
                     <div className="flex items-center gap-[6px]">
                        <div className="w-[8px] h-[8px] bg-[#f59e0b] rounded-full"></div>
-                       <span className="text-[10px] font-[700] text-slate-500 dark:text-[#94a3b8]">未通过</span>
+                       <span className="text-[10px] font-[700] text-slate-500 dark:text-[#cbd5e1]">未通过</span>
                     </div>
                   </div>
               </div>
@@ -528,7 +528,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
           {/* Right Column */}
           <div className="w-[400px] flex flex-col gap-[20px]">
             {/* Top Failed */}
-            <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] border border-slate-200 dark:border-[#1e293b] p-[24px] flex-1 flex flex-col gap-[12px]">
+            <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[24px] flex-1 flex flex-col gap-[12px]">
               <div className="flex items-center gap-[8px] mb-[8px]">
                  <AlertTriangle size={16} strokeWidth={2.5} className="text-[#f59e0b]" />
                  <span className="text-[12px] font-[900] text-[#f59e0b] italic">高频失败用例</span>
@@ -538,9 +538,9 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
               {topFailed.length > 0 ? topFailed.slice(0, 4).map((tf, i) => {
                  const caseDef = casesMap[tf.case_id] || tf;
                  return (
-                 <div key={tf.case_id || i} className="bg-slate-100 dark:bg-[#0f172a] border border-slate-200 dark:border-[#1e293b]/50 rounded-[10px] p-[12px] px-[14px] flex justify-between items-center">
+                 <div key={tf.case_id || i} className="bg-slate-100 dark:bg-[#334155] border border-slate-200 dark:border-[#334155]/50 rounded-[10px] p-[12px] px-[14px] flex justify-between items-center">
                     <div className="flex flex-col gap-[4px] flex-1 min-w-0 pr-3">
-                       <span className="text-[10px] font-[800] text-slate-500 dark:text-[#475569]">{caseDef.function_category || caseDef.functionCategory || 'Unknown'} &gt; {caseDef.function || 'Unknown'}</span>
+                       <span className="text-[10px] font-[800] text-slate-500 dark:text-[#cbd5e1]">{caseDef.function_category || caseDef.functionCategory || 'Unknown'} &gt; {caseDef.function || 'Unknown'}</span>
                        <span className="text-[12px] font-[800] text-slate-700 dark:text-[#e2e8f0] truncate">{caseDef.expected || caseDef.content || '...'}</span>
                     </div>
                     <div className="bg-[#f59e0b]/10 rounded-[6px] px-[8px] py-[4px] shrink-0">
@@ -549,13 +549,13 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
                  </div>
                  );
               }) : (
-                <div className="text-[12px] font-[800] text-slate-500 dark:text-[#475569] text-center py-4">暂无失败用例</div>
+                <div className="text-[12px] font-[800] text-slate-500 dark:text-[#cbd5e1] text-center py-4">暂无失败用例</div>
               )}
               </div>
             </div>
 
             {/* Recent Defects */}
-            <div className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[16px] border border-slate-200 dark:border-[#1e293b] p-[24px] flex-1 flex flex-col gap-[12px]">
+            <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[24px] flex-1 flex flex-col gap-[12px]">
                <div className="flex items-center gap-[8px] mb-[8px]">
                  <Bug size={16} strokeWidth={2.5} className="text-[#ef4444]" />
                  <span className="text-[12px] font-[900] text-[#ef4444] italic">最新缺陷动态</span>
@@ -572,12 +572,12 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
                           <span className="text-[11px] font-[900] text-slate-900 dark:text-[#f8fafc] truncate">{linkedCase?.function || `Case ${bug.case_id}`}</span>
                           <span className="text-[10px] font-[800] text-[#64748b] shrink-0 ml-2">{bug.timestamp?.substring(0, 16).replace(/-/g, '/')}</span>
                         </div>
-                        <span className="text-[10.5px] font-[600] text-slate-500 dark:text-[#94a3b8] break-words line-clamp-2 leading-snug">"{bug.description}"</span>
+                        <span className="text-[10.5px] font-[600] text-slate-500 dark:text-[#cbd5e1] break-words line-clamp-2 leading-snug">"{bug.description}"</span>
                       </div>
                    </div>
                  )
                }) : (
-                 <div className="text-[12px] font-[800] text-slate-500 dark:text-[#475569] text-center py-4">暂无缺陷动态</div>
+                 <div className="text-[12px] font-[800] text-slate-500 dark:text-[#cbd5e1] text-center py-4">暂无缺陷动态</div>
                )}
                </div>
             </div>

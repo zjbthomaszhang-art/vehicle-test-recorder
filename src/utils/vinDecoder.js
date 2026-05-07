@@ -20,3 +20,34 @@ export const decodeModelYearFromVin = (vin) => {
   const yearChar = vin.charAt(9).toUpperCase();
   return VIN_MODEL_YEAR_MAP[yearChar] || null;
 };
+
+/**
+ * Decodes program code and manufacture year from a VIN using uploaded rule table.
+ * Matches VIN positions 1-11 against all rules; a null/empty position field means wildcard.
+ * @param {string} vin
+ * @param {Array} rules - array from GET /api/vin-rules
+ * @returns {{ program_cd, veh_manuf_year, veh_model_desc, message_desc_zh }|null}
+ */
+export const decodeVinFromRules = (vin, rules) => {
+  if (!vin || !rules || rules.length === 0) return null;
+  const v = vin.toUpperCase();
+  for (const rule of rules) {
+    let match = true;
+    for (let i = 1; i <= 11; i++) {
+      const expected = rule[`position_${i}`];
+      if (expected && expected.trim() !== '' && expected.trim() !== v[i - 1]) {
+        match = false;
+        break;
+      }
+    }
+    if (match) {
+      return {
+        program_cd: rule.program_cd || '',
+        veh_manuf_year: rule.veh_manuf_year ? String(rule.veh_manuf_year) : '',
+        veh_model_desc: rule.veh_model_desc || '',
+        message_desc_zh: rule.message_desc_zh || '',
+      };
+    }
+  }
+  return null;
+};

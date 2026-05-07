@@ -3,9 +3,9 @@ export const API_BASE = '/api';
 
 
 // Dropdown option lists
-export const ARCHITECTURES = ['GA', 'GB', 'BEV', 'Uvan', 'Kcar', 'GEM'];
-export const IVI_MODULES = ['info', 'ici', 'ngi'];
-export const COMM_MODULES = ['TCP', 'VCP', 'GEM'];
+export const ARCHITECTURES = ['VCS', 'ICI', 'INFO'];
+export const IVI_MODULES = ['VIP', 'CLEA', 'UVAN', 'GlobalA'];
+export const COMM_MODULES = ['ICM', 'VCP'];
 export const FUNCTION_CATEGORIES = [
   '蓝键功能', '白键功能', '红键功能', 'WiFi', '车机屏', 'TASK', '手机APP-iOS', '手机APP-Android'
 ];

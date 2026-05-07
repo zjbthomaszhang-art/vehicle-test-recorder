@@ -132,16 +132,16 @@ export default function TestView({
             </span>
           </div>
           <button onClick={() => setIsMenuOpen(true)} className="flex items-center justify-center">
-            <Menu size={24} className="text-slate-500 dark:text-[#94a3b8]" />
+            <Menu size={24} className="text-slate-500 dark:text-[#cbd5e1]" />
           </button>
         </div>
       </header>
 
       {/* System Bar sbarBoxD */}
       <div className="px-[24px] shrink-0 mt-[16px]">
-        <div className={`inline-flex rounded-[16px] border px-[12px] py-[4px] gap-[8px] items-center ${isOnline ? 'bg-[#d1fae5]/10 border-[#059669]/30' : 'bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border-slate-200 dark:border-[#334155]'}`}>
+        <div className={`inline-flex rounded-[16px] border px-[12px] py-[4px] gap-[8px] items-center ${isOnline ? 'bg-[#d1fae5]/10 border-[#059669]/30' : 'bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border-slate-200 dark:border-[#475569]'}`}>
            <div className={`w-[6px] h-[6px] rounded-[3px] ${isOnline ? 'bg-[#10b981]' : 'bg-[#64748b]'}`}></div>
-           <span className={`text-[9px] font-[800] ${isOnline ? 'text-[#10b981]' : 'text-slate-500 dark:text-[#94a3b8]'}`}>
+           <span className={`text-[9px] font-[800] ${isOnline ? 'text-[#10b981]' : 'text-slate-500 dark:text-[#cbd5e1]'}`}>
              {isOnline ? (pendingSyncCount > 0 ? `数据同步中(${pendingSyncCount})` : '数据已同步') : '当前离线记录'}
            </span>
         </div>
@@ -172,11 +172,11 @@ export default function TestView({
         {/* Title */}
         <h2 className="text-[20px] font-[900] text-slate-900 dark:text-[#f8fafc] mt-[16px]">{activeCase.function}</h2>
         {/* Expected result in quotes */}
-        <p className="text-[12px] font-[600] text-slate-500 dark:text-[#94a3b8] mt-[8px]">"{activeCase.content || FIELD_LABELS.noExpectedCriteria}"</p>
+        <p className="text-[12px] font-[600] text-slate-500 dark:text-[#cbd5e1] mt-[8px]">"{activeCase.content || FIELD_LABELS.noExpectedCriteria}"</p>
 
         {/* Test steps / method in blue info box */}
         {activeCase.expected && (
-          <div className="mt-[16px] w-full rounded-[12px] bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent border border-slate-200 dark:border-[#1e293b] p-[16px] flex gap-[12px]">
+          <div className="mt-[16px] w-full rounded-[12px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#334155] p-[16px] flex gap-[12px]">
             <Info size={16} className="text-[#3b82f6] shrink-0 mt-[1px]" />
             <span className="text-[11px] font-[500] text-slate-700 dark:text-[#cbd5e1] leading-relaxed break-words whitespace-pre-wrap">{activeCase.expected}</span>
           </div>
@@ -185,7 +185,7 @@ export default function TestView({
         {/* Timing Header tTitleD */}
         <div className="mt-[24px] flex items-center gap-[8px]">
           <Clock size={14} className="text-[#64748b]" />
-          <span className="text-[10px] font-[800] text-slate-500 dark:text-[#475569]">时间捕获</span>
+          <span className="text-[10px] font-[800] text-slate-500 dark:text-[#cbd5e1]">时间捕获</span>
         </div>
 
         {/* Timing Content tRwd */}
@@ -234,14 +234,14 @@ export default function TestView({
         {(activeCase.type === 'timing' || activeCase.type === 'query') && (
         <div className="mt-[16px] w-full flex gap-[12px]">
           {activeCase.type === 'timing' && (
-          <div className="flex-1 h-[72px] rounded-[12px] border border-slate-200 dark:border-[#1e293b] py-[12px] px-[16px] flex flex-col justify-between">
+          <div className="flex-1 h-[72px] rounded-[12px] border border-slate-200 dark:border-[#334155] py-[12px] px-[16px] flex flex-col justify-between">
              <span className="text-[9px] font-[800] text-[#64748b]">车辆耗时</span>
              <span className="text-[18px] font-[900] text-slate-900 dark:text-[#f8fafc]">
                {(currentData.startTime && currentData.carExecTime) ? ((currentData.carExecTime - currentData.startTime) / 1000).toFixed(2) + 's' : '--'}
              </span>
           </div>
           )}
-          <div className="flex-1 h-[72px] rounded-[12px] border border-slate-200 dark:border-[#1e293b] py-[12px] px-[16px] flex flex-col justify-between">
+          <div className="flex-1 h-[72px] rounded-[12px] border border-slate-200 dark:border-[#334155] py-[12px] px-[16px] flex flex-col justify-between">
              <span className="text-[9px] font-[800] text-[#64748b]">App 耗时</span>
              <span className="text-[18px] font-[900] bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent">
                {(currentData.startTime && currentData.appFeedbackTime) ? ((currentData.appFeedbackTime - currentData.startTime) / 1000).toFixed(2) + 's' : '--'}
@@ -253,32 +253,32 @@ export default function TestView({
         {/* Result Judgement Header vTitleD */}
         <div className="mt-[24px] flex items-center gap-[8px]">
           <BadgeCheck size={14} className="text-[#64748b]" />
-          <span className="text-[10px] font-[800] text-slate-500 dark:text-[#475569]">结果判定</span>
+          <span className="text-[10px] font-[800] text-slate-500 dark:text-[#cbd5e1]">结果判定</span>
         </div>
 
         {/* Buttons vRowD */}
         <div className="mt-[16px] w-full flex justify-between items-center gap-[12px]">
-          <button onClick={() => updateCurrentResult({ result: 'Pass', ...(!currentData.startTime ? { startTime: Date.now() } : {}) })} className={`flex-1 h-[64px] rounded-[16px] flex flex-col justify-center items-center gap-[4px] border ${currentData.result === 'Pass' ? 'border-[#10b981]' : 'border-slate-200 dark:border-[#1e293b]'} bg-transparent transition-all active:scale-95`}>
+          <button onClick={() => updateCurrentResult({ result: 'Pass', ...(!currentData.startTime ? { startTime: Date.now() } : {}) })} className={`flex-1 h-[64px] rounded-[16px] flex flex-col justify-center items-center gap-[4px] border ${currentData.result === 'Pass' ? 'border-[#10b981]' : 'border-slate-200 dark:border-[#334155]'} bg-transparent transition-all active:scale-95`}>
             <CheckCircle2 size={20} className={currentData.result === 'Pass' ? 'text-[#10b981]' : 'text-[#64748b]'} />
             <span className={`text-[11px] font-[900] ${currentData.result === 'Pass' ? 'text-[#10b981]' : 'text-[#64748b]'}`}>通过</span>
           </button>
-          <button onClick={() => updateCurrentResult({ result: 'Fail', ...(!currentData.startTime ? { startTime: Date.now() } : {}) })} className={`flex-1 h-[64px] rounded-[16px] flex flex-col justify-center items-center gap-[4px] border ${currentData.result === 'Fail' ? 'border-[#ef4444]' : 'border-slate-200 dark:border-[#1e293b]'} bg-transparent transition-all active:scale-95`}>
+          <button onClick={() => updateCurrentResult({ result: 'Fail', ...(!currentData.startTime ? { startTime: Date.now() } : {}) })} className={`flex-1 h-[64px] rounded-[16px] flex flex-col justify-center items-center gap-[4px] border ${currentData.result === 'Fail' ? 'border-[#ef4444]' : 'border-slate-200 dark:border-[#334155]'} bg-transparent transition-all active:scale-95`}>
              <XCircle size={20} className={currentData.result === 'Fail' ? 'text-[#ef4444]' : 'text-[#64748b]'} />
              <span className={`text-[11px] font-[900] ${currentData.result === 'Fail' ? 'text-[#ef4444]' : 'text-[#64748b]'}`}>未通过</span>
           </button>
-          <button onClick={() => updateCurrentResult({ result: 'N/A', ...(!currentData.startTime ? { startTime: Date.now() } : {}) })} className={`flex-1 h-[64px] rounded-[16px] flex flex-col justify-center items-center gap-[4px] border ${currentData.result === 'N/A' ? 'border-[#94a3b8]' : 'border-slate-200 dark:border-[#1e293b]'} bg-transparent transition-all active:scale-95`}>
-            <MinusCircle size={20} className={currentData.result === 'N/A' ? 'text-slate-500 dark:text-[#94a3b8]' : 'text-[#64748b]'} />
-            <span className={`text-[11px] font-[900] ${currentData.result === 'N/A' ? 'text-slate-500 dark:text-[#94a3b8]' : 'text-[#64748b]'}`}>不适用</span>
+          <button onClick={() => updateCurrentResult({ result: 'N/A', ...(!currentData.startTime ? { startTime: Date.now() } : {}) })} className={`flex-1 h-[64px] rounded-[16px] flex flex-col justify-center items-center gap-[4px] border ${currentData.result === 'N/A' ? 'border-[#94a3b8]' : 'border-slate-200 dark:border-[#334155]'} bg-transparent transition-all active:scale-95`}>
+            <MinusCircle size={20} className={currentData.result === 'N/A' ? 'text-slate-500 dark:text-[#cbd5e1]' : 'text-[#64748b]'} />
+            <span className={`text-[11px] font-[900] ${currentData.result === 'N/A' ? 'text-slate-500 dark:text-[#cbd5e1]' : 'text-[#64748b]'}`}>不适用</span>
           </button>
         </div>
 
         {/* Notes Header nTitleD */}
         <div className="mt-[24px] flex justify-between items-center w-full">
           <div className="flex items-center gap-[8px]">
-            <FileText size={14} className="text-slate-500 dark:text-[#475569]" />
-            <span className="text-[10px] font-[800] text-slate-500 dark:text-[#475569]">备注详情</span>
+            <FileText size={14} className="text-slate-500 dark:text-[#cbd5e1]" />
+            <span className="text-[10px] font-[800] text-slate-500 dark:text-[#cbd5e1]">备注详情</span>
           </div>
-          <button onClick={() => handleAddMedia()} className="w-[24px] h-[24px] rounded-[6px] border border-slate-200 dark:border-[#1e293b] flex items-center justify-center active:scale-90 transition-all hover:bg-slate-100 dark:hover:bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none shrink-0">
+          <button onClick={() => handleAddMedia()} className="w-[24px] h-[24px] rounded-[6px] border border-slate-200 dark:border-[#334155] flex items-center justify-center active:scale-90 transition-all hover:bg-slate-100 dark:hover:bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none shrink-0">
             <Camera size={14} className="text-[#64748b]" />
           </button>
         </div>
@@ -290,7 +290,7 @@ export default function TestView({
                 const imgUrls = currentData.media.filter(i => i.type !== 'video').map(i => i.url);
                 const imgIdx = imgUrls.indexOf(m.url);
                 return (
-                  <div key={m.id} className="relative shrink-0 w-16 h-16 rounded-[1.2rem] overflow-hidden border border-slate-200 dark:border-[#1e293b] transition-all hover:scale-105 active:scale-95 group">
+                  <div key={m.id} className="relative shrink-0 w-16 h-16 rounded-[1.2rem] overflow-hidden border border-slate-200 dark:border-[#334155] transition-all hover:scale-105 active:scale-95 group">
                     <img
                       src={m.url}
                       alt="evidence"
@@ -305,7 +305,7 @@ export default function TestView({
           </div>
         )}
 
-        <div className="mt-[16px] w-full h-[48px] rounded-[24px] border border-slate-200 dark:border-[#1e293b] flex items-center px-[20px] bg-transparent focus-within:border-[#3b82f6]/50 transition-colors">
+        <div className="mt-[16px] w-full h-[48px] rounded-[24px] border border-slate-200 dark:border-[#334155] flex items-center px-[20px] bg-transparent focus-within:border-[#3b82f6]/50 transition-colors">
           <input
             type="text"
             placeholder="点击新增备注..."
@@ -317,7 +317,7 @@ export default function TestView({
       </main>
 
       {/* Footer Navigation fD14 */}
-      <footer className="fixed bottom-0 left-0 right-0 h-[88px] bg-slate-50 dark:bg-[#0f1523] border-t border-slate-200 dark:border-[#1e293b]/50 flex items-center pt-[6px] px-[16px] pb-[20px] z-50">
+      <footer className="fixed bottom-0 left-0 right-0 h-[88px] bg-slate-50 dark:bg-[#0f1523] border-t border-slate-200 dark:border-[#334155]/50 flex items-center pt-[6px] px-[16px] pb-[20px] z-50">
         <div className="w-full flex justify-between items-center">
           <button onClick={() => { resetAllFields(); setView('home'); }} className="flex flex-col items-center justify-center w-[64px] gap-[6px] transition-all">
             <Home size={24} className="text-[#64748b]" />
@@ -354,13 +354,13 @@ export default function TestView({
           <div className="absolute inset-0 bg-black/70" onClick={() => setIsMenuOpen(false)} />
           <div className="relative w-[85%] max-w-[360px] ml-auto bg-slate-50 dark:bg-[#0f1523] h-full shadow-[-20px_0_40px_rgba(0,0,0,0.5)] flex flex-col">
             {/* Header — fill: #0f172a, padding: [40,24,16,24] */}
-            <div className="bg-slate-100 dark:bg-[#0f172a] flex justify-between items-center pt-[40px] px-[24px] pb-[16px] shrink-0">
+            <div className="bg-slate-50 dark:bg-[#0f1523] flex justify-between items-center pt-[40px] px-[24px] pb-[16px] shrink-0">
               <span className="text-[26px] font-[800] text-slate-900 dark:text-[#f8fafc]">用例导航</span>
               <button
                 onClick={() => setIsMenuOpen(false)}
                 className="w-[40px] h-[40px] rounded-[20px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none flex items-center justify-center active:scale-90 transition-all"
               >
-                <X size={20} className="text-slate-500 dark:text-[#94a3b8]" />
+                <X size={20} className="text-slate-500 dark:text-[#cbd5e1]" />
               </button>
             </div>
 
@@ -383,7 +383,7 @@ export default function TestView({
                   <button
                     key={cat}
                     onClick={() => toggleFilter(cat)}
-                    className={`px-[12px] py-[6px] rounded-[12px] text-[11px] font-[800] whitespace-nowrap transition-all ${isActive ? 'bg-[#3b82f6] text-white border border-[#2563eb]' : 'bg-transparent border border-slate-200 dark:border-[#1e293b] text-[#64748b]'}`}
+                    className={`px-[12px] py-[6px] rounded-[12px] text-[11px] font-[800] whitespace-nowrap transition-all ${isActive ? 'bg-[#3b82f6] text-white border border-[#2563eb]' : 'bg-transparent border border-slate-200 dark:border-[#334155] text-[#64748b]'}`}
                   >
                     {cat}
                   </button>
@@ -431,9 +431,9 @@ export default function TestView({
                     key={c.id}
                     ref={i === currentCaseIndex ? activeCaseRef : null}
                     onClick={() => { setCurrentCaseIndex(i); setIsMenuOpen(false); }}
-                    className={`px-[16px] py-[12px] rounded-[16px] border transition-all cursor-pointer flex items-center gap-[12px] active:scale-95 ${i === currentCaseIndex ? 'bg-[#2563eb] border-[#3b82f6]' : 'bg-transparent border-slate-200 dark:border-[#1e293b] hover:border-slate-200 dark:border-[#334155]'}`}
+                    className={`px-[16px] py-[12px] rounded-[16px] border transition-all cursor-pointer flex items-center gap-[12px] active:scale-95 ${i === currentCaseIndex ? 'bg-[#2563eb] border-[#3b82f6]' : 'bg-transparent border-slate-200 dark:border-[#334155] hover:border-slate-200 dark:border-[#475569]'}`}
                   >
-                    <div className={`w-[32px] h-[32px] rounded-[10px] flex items-center justify-center font-[900] text-[12px] shrink-0 ${i === currentCaseIndex ? 'bg-white/20 text-white' : 'bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none text-slate-500 dark:text-[#94a3b8]'}`}>
+                    <div className={`w-[32px] h-[32px] rounded-[10px] flex items-center justify-center font-[900] text-[12px] shrink-0 ${i === currentCaseIndex ? 'bg-white/20 text-white' : 'bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none text-slate-500 dark:text-[#cbd5e1]'}`}>
                       {c.id}
                     </div>
                     <div className="flex-1 min-w-0 flex flex-col gap-[4px]">
@@ -470,7 +470,7 @@ export default function TestView({
                 onClick={() => setShowBugList(false)}
                 className="w-[40px] h-[40px] rounded-[20px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none flex items-center justify-center active:scale-90 transition-all"
               >
-                <X size={20} className="text-slate-500 dark:text-[#94a3b8]" />
+                <X size={20} className="text-slate-500 dark:text-[#cbd5e1]" />
               </button>
             </div>
 
@@ -501,7 +501,7 @@ export default function TestView({
                   return (
                     <div
                       key={bug.id || idx}
-                      className="bg-white dark:bg-[#111827] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-transparent rounded-[20px] border border-slate-200 dark:border-[#1e293b] flex flex-col"
+                      className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[20px] border border-slate-200 dark:border-[#334155] flex flex-col"
                       style={{padding: 20, gap: 16}}
                     >
                       {/* d1Top: justify-between */}
@@ -524,7 +524,7 @@ export default function TestView({
                       {/* d1Mid: link icon #64748b + case ref */}
                       <div className="flex items-center gap-[8px]">
                         <Link size={16} className="text-[#64748b] shrink-0" />
-                        <span className="text-[12px] font-[600] text-slate-500 dark:text-[#94a3b8]">关联用例：Case {bug.case_id} - {linkedCase?.function || '未知'}</span>
+                        <span className="text-[12px] font-[600] text-slate-500 dark:text-[#cbd5e1]">关联用例：Case {bug.case_id} - {linkedCase?.function || '未知'}</span>
                       </div>
                       {/* txt: description */}
                       <span className="text-[14px] font-[600] text-slate-700 dark:text-[#cbd5e1] break-words leading-relaxed">{bug.description}</span>

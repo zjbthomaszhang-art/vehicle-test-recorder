@@ -13,8 +13,8 @@ router.post('/', async (req, res) => {
         await connection.beginTransaction();
 
         const sessionQuery = `
-            INSERT INTO test_sessions (vehicle_model, model_year, vin, production_stage, address, architecture, ivi_module, comm_module, test_env, env_photo, tester, mileage, timestamp)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO test_sessions (vehicle_model, model_year, vin, production_stage, address, architecture, ivi_module, comm_module, test_env, env_photo, tester, mileage, remarks, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const [sessionResult] = await connection.query(sessionQuery, [
@@ -32,6 +32,7 @@ router.post('/', async (req, res) => {
                 : (vehicle.envPhoto || null),
             vehicle.tester || '',
             vehicle.mileage || '',
+            vehicle.remarks || '',
             getBeijingTime()
         ]);
 
@@ -71,7 +72,7 @@ router.get('/', async (req, res) => {
     let query = `
         SELECT 
             ts.id, ts.vehicle_model, ts.model_year, ts.vin, ts.production_stage, ts.test_env, ts.address, ts.architecture, 
-            ts.ivi_module, ts.comm_module, ts.env_photo, ts.tester, ts.mileage, ts.timestamp,
+            ts.ivi_module, ts.comm_module, ts.env_photo, ts.tester, ts.mileage, ts.remarks, ts.timestamp,
             COUNT(tr.id) as total_count,
             SUM(CASE WHEN tr.result IN ('Pass', 'Fail', 'N/A') THEN 1 ELSE 0 END) as case_count,
             SUM(CASE WHEN tr.result = 'Pass' THEN 1 ELSE 0 END) as pass_count,
@@ -139,7 +140,7 @@ router.put('/:id', async (req, res) => {
 
         const updateSessionQuery = `
             UPDATE test_sessions SET 
-                vehicle_model = ?, model_year = ?, vin = ?, production_stage = ?, test_env = ?, address = ?, architecture = ?, ivi_module = ?, comm_module = ?, env_photo = ?, tester = ?, mileage = ?, timestamp = ?
+                vehicle_model = ?, model_year = ?, vin = ?, production_stage = ?, test_env = ?, address = ?, architecture = ?, ivi_module = ?, comm_module = ?, env_photo = ?, tester = ?, mileage = ?, remarks = ?, timestamp = ?
             WHERE id = ?
         `;
 
@@ -149,7 +150,7 @@ router.put('/:id', async (req, res) => {
             (Array.isArray(vehicle.envPhotos) && vehicle.envPhotos.length > 0)
                 ? JSON.stringify(vehicle.envPhotos)
                 : (vehicle.envPhoto || null),
-            vehicle.tester || '', vehicle.mileage || '', getBeijingTime(), sessionId
+            vehicle.tester || '', vehicle.mileage || '', vehicle.remarks || '', getBeijingTime(), sessionId
         ]);
 
         if (results && Array.isArray(results) && results.length > 0) {

@@ -11,6 +11,7 @@ const dbViewerRouter = require('./routes/dbViewer.cjs');
 const exportRouter = require('./routes/export.cjs');
 const uploadRouter = require('./routes/upload.cjs');
 const metricsRouter = require('./routes/metrics.cjs');
+const vinRulesRouter = require('./routes/vinRules.cjs');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -26,6 +27,7 @@ app.use('/api/bugs', bugsRouter);
 app.use('/api/export', exportRouter);
 app.use('/api/upload', uploadRouter);
 app.use('/api/metrics', metricsRouter);
+app.use('/api/vin-rules', vinRulesRouter);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/db-api', dbViewerRouter);
 // /db-viewer redirects to /db-api/viewer for backwards compatibility
