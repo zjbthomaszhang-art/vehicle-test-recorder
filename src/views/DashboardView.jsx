@@ -152,8 +152,9 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
           {modelSessions.map((session, idx) => {
             const execCount = parseInt(session.case_count) || 0;
             const passCount = parseInt(session.pass_count) || 0;
+            const passFailCount = parseInt(session.pass_fail_count) || 0;
             const totalCases = cases ? cases.length : 0;
-            const passRate = execCount > 0 ? ((passCount / execCount) * 100).toFixed(0) : 0;
+            const passRate = passFailCount > 0 ? ((passCount / passFailCount) * 100).toFixed(0) : 0;
 
             return (
               <div key={session.id || idx} className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#334155] rounded-[20px] p-[14px] flex flex-col gap-[10px]">
@@ -207,7 +208,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
 
   const renderMobile = () => (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0f1523] text-slate-800 dark:text-slate-100 flex flex-col font-sans">
-      <header className="px-[24px] pt-[44px] pb-[8px] flex justify-between items-center w-full z-10 shrink-0">
+      <header className="px-[16px] pt-[44px] pb-[8px] flex justify-between items-center w-full z-10 shrink-0">
         <div className="flex flex-col gap-[2px]">
           <span className="text-[26px] font-[800] text-slate-900 dark:text-white leading-none tracking-tight">仪表面板</span>
         </div>
@@ -284,21 +285,23 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
 
         {/* Daily Volume */}
         <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[14px] border border-slate-200 dark:border-[#334155] p-[16px] flex flex-col gap-[12px]">
-          <div className="flex items-center gap-[6px]">
-            <BarChart3 size={14} strokeWidth={2.5} className="text-[#3b82f6]" />
-            <span className="text-[11px] font-[900] text-slate-700 dark:text-[#e2e8f0] italic">每日测试量趋势</span>
-          </div>
-          <div className="flex items-center gap-[12px]">
-            <div className="flex items-center gap-[5px]">
-               <div className="w-[7px] h-[7px] bg-[#3b82f6] rounded-full"></div>
-               <span className="text-[9px] font-[700] text-slate-500 dark:text-[#cbd5e1]">通过</span>
+          <div className="flex justify-between items-center w-full">
+            <div className="flex items-center gap-[6px]">
+              <BarChart3 size={14} strokeWidth={2.5} className="text-[#3b82f6]" />
+              <span className="text-[11px] font-[900] text-slate-700 dark:text-[#e2e8f0] italic">每日测试量趋势</span>
             </div>
-            <div className="flex items-center gap-[5px]">
-               <div className="w-[7px] h-[7px] bg-[#f59e0b] rounded-full"></div>
-               <span className="text-[9px] font-[700] text-slate-500 dark:text-[#cbd5e1]">未通过</span>
+            <div className="flex items-center gap-[12px]">
+              <div className="flex items-center gap-[5px]">
+                 <div className="w-[7px] h-[7px] bg-[#3b82f6] rounded-full"></div>
+                 <span className="text-[9px] font-[700] text-slate-500 dark:text-[#cbd5e1]">通过</span>
+              </div>
+              <div className="flex items-center gap-[5px]">
+                 <div className="w-[7px] h-[7px] bg-[#f59e0b] rounded-full"></div>
+                 <span className="text-[9px] font-[700] text-slate-500 dark:text-[#cbd5e1]">未通过</span>
+              </div>
             </div>
           </div>
-          <div className="h-[110px] w-full ml-[-20px] mt-[4px]">
+          <div className="h-[110px] w-full mt-[4px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dailyData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
@@ -328,8 +331,8 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
              return (
              <div key={tf.case_id || i} className="bg-slate-100 dark:bg-[#334155] border border-slate-200 dark:border-[#334155]/50 rounded-[8px] p-[10px] px-[12px] flex justify-between items-center">
                 <div className="flex flex-col gap-[2px] flex-1 min-w-0 pr-2">
-                   <span className="text-[8px] font-[800] text-slate-500 dark:text-[#cbd5e1]">{caseDef.function_category || caseDef.functionCategory || 'Unknown'} &gt; {caseDef.function || 'Unknown'}</span>
-                   <span className="text-[10px] font-[800] text-slate-700 dark:text-[#e2e8f0] truncate">{caseDef.expected || caseDef.content || '...'}</span>
+                   <span className="text-[10px] font-[900] text-slate-900 dark:text-white truncate">{caseDef.function_category || caseDef.functionCategory || 'Unknown'} &gt; {caseDef.function || 'Unknown'}</span>
+                   <span className="text-[9px] font-[600] text-slate-500 dark:text-[#cbd5e1] truncate">{caseDef.expected || caseDef.content || '...'}</span>
                 </div>
                 <div className="bg-[#f59e0b]/10 rounded-[5px] px-[6px] py-[3px] shrink-0">
                    <span className="text-[9px] font-[900] text-[#f59e0b]">{tf.fail_count}次</span>
@@ -355,7 +358,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
                   <div className="w-[2px] bg-[#ef4444] rounded-[2px]" />
                   <div className="flex flex-col gap-[3px] w-full min-w-0">
                     <div className="flex justify-between items-center w-full">
-                      <span className="text-[10px] font-[900] text-slate-900 dark:text-white truncate">{linkedCase?.function || `Case ${bug.case_id}`}</span>
+                      <span className="text-[10px] font-[900] text-slate-900 dark:text-white truncate">{(bug.function_category || linkedCase?.function_category || linkedCase?.category || 'Unknown')} &gt; {(bug.function || linkedCase?.function || `Case ${bug.case_id}`)}</span>
                       <span className="text-[8px] font-[800] text-slate-500 dark:text-[#cbd5e1] shrink-0">{bug.timestamp?.substring(0, 16).replace(/-/g, '/')}</span>
                     </div>
                     <span className="text-[9px] font-[600] text-slate-500 dark:text-[#cbd5e1] truncate w-full">"{bug.description}"</span>
@@ -381,7 +384,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
   );
 
   const renderPC = () => (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0f1523] text-slate-800 dark:text-slate-100 flex flex-col font-sans">
+    <div className="h-screen bg-slate-50 dark:bg-[#0f1523] text-slate-800 dark:text-slate-100 flex flex-col font-sans overflow-hidden">
       <header className="px-[40px] pt-[24px] pb-[24px] flex justify-between items-center w-full z-10 shrink-0">
         <div className="flex items-center gap-[16px]">
           <Gauge size={28} strokeWidth={2} className="text-[#3b82f6]" />
@@ -419,39 +422,41 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-[40px] pb-[24px] flex flex-col gap-[20px] custom-scrollbar">
+      <main className="flex-1 overflow-hidden px-[40px] pb-[24px] flex flex-col gap-[20px] min-h-0">
         {/* KPI Row */}
-        <div className="flex gap-[16px] w-full">
-          <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[20px] h-[100px] flex flex-col justify-between">
-            <div className="flex justify-between items-center w-full">
-               <span className="text-[10px] font-[900] text-slate-500 dark:text-[#cbd5e1]">总测试场次</span>
-               <LucideTrendingUp size={18} strokeWidth={3} className="text-[#3b82f6]" />
+        <div className="grid grid-cols-[1fr_400px] gap-[20px] w-full">
+          <div className="grid grid-cols-3 gap-[20px]">
+            <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[20px] h-[100px] flex flex-col justify-between">
+              <div className="flex justify-between items-center w-full">
+                 <span className="text-[13px] font-[900] text-slate-500 dark:text-[#cbd5e1]">总测试场次</span>
+                 <LucideTrendingUp size={18} strokeWidth={3} className="text-[#3b82f6]" />
+              </div>
+              <span className="text-[32px] font-[900] text-slate-900 dark:text-[#f8fafc] leading-none">{stats.totalSessions}</span>
             </div>
-            <span className="text-[32px] font-[900] text-slate-900 dark:text-[#f8fafc] leading-none">{stats.totalSessions}</span>
+            <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[20px] h-[100px] flex flex-col justify-between">
+              <div className="flex justify-between items-center w-full">
+                 <span className="text-[13px] font-[900] text-slate-500 dark:text-[#cbd5e1]">全局通过率</span>
+                 <CheckCircle2 size={18} strokeWidth={3} className="text-[#10b981]" />
+              </div>
+              <div className="flex items-end gap-[4px]">
+                 <span className="text-[32px] font-[900] text-[#10b981] leading-none">{overallPassRate}</span>
+                 <span className="text-[16px] font-[900] text-[#10b981]/50 leading-none mb-[2px]">%</span>
+              </div>
+            </div>
+            <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[20px] h-[100px] flex flex-col justify-between">
+              <div className="flex justify-between items-center w-full">
+                 <span className="text-[13px] font-[900] text-slate-500 dark:text-[#cbd5e1]">通过用例数</span>
+                 <BadgeCheck size={18} strokeWidth={3} className="text-[#60a5fa]" />
+              </div>
+              <div className="flex items-end gap-[6px]">
+                 <span className="text-[32px] font-[900] text-slate-900 dark:text-[#f8fafc] leading-none">{stats.totalPassed}</span>
+                 <span className="text-[14px] font-[800] text-slate-500 dark:text-[#94a3b8] leading-none mb-[4px]">/ {stats.totalCases}</span>
+              </div>
+            </div>
           </div>
-          <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[20px] h-[100px] flex flex-col justify-between">
+          <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[20px] h-[100px] flex flex-col justify-between">
             <div className="flex justify-between items-center w-full">
-               <span className="text-[10px] font-[900] text-slate-500 dark:text-[#cbd5e1]">全局通过率</span>
-               <CheckCircle2 size={18} strokeWidth={3} className="text-[#10b981]" />
-            </div>
-            <div className="flex items-end gap-[4px]">
-               <span className="text-[32px] font-[900] text-[#10b981] leading-none">{overallPassRate}</span>
-               <span className="text-[16px] font-[900] text-[#10b981]/50 leading-none mb-[2px]">%</span>
-            </div>
-          </div>
-          <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[20px] h-[100px] flex flex-col justify-between">
-            <div className="flex justify-between items-center w-full">
-               <span className="text-[10px] font-[900] text-slate-500 dark:text-[#cbd5e1]">通过用例数</span>
-               <BadgeCheck size={18} strokeWidth={3} className="text-[#60a5fa]" />
-            </div>
-            <div className="flex items-end gap-[6px]">
-               <span className="text-[32px] font-[900] text-slate-900 dark:text-[#f8fafc] leading-none">{stats.totalPassed}</span>
-               <span className="text-[14px] font-[800] text-slate-500 dark:text-[#94a3b8] leading-none mb-[4px]">/ {stats.totalCases}</span>
-            </div>
-          </div>
-          <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[20px] h-[100px] flex flex-col justify-between">
-            <div className="flex justify-between items-center w-full">
-               <span className="text-[10px] font-[900] text-slate-500 dark:text-[#cbd5e1]">失败用例数</span>
+               <span className="text-[13px] font-[900] text-slate-500 dark:text-[#cbd5e1]">失败用例数</span>
                <XCircle size={18} strokeWidth={3} className="text-[#f59e0b]" />
             </div>
             <span className="text-[32px] font-[900] text-[#f59e0b] leading-none">{stats.totalFailed}</span>
@@ -459,11 +464,11 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
         </div>
 
         {/* Main Row */}
-        <div className="flex gap-[20px] w-full min-h-[400px]">
+        <div className="flex-1 grid grid-cols-[1fr_400px] gap-[20px] w-full min-h-0">
           {/* Left Column */}
-          <div className="flex-1 flex flex-col gap-[20px]">
+          <div className="grid grid-rows-2 gap-[20px] min-w-0 min-h-0">
             {/* Model Pass Rate */}
-            <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[24px] flex-1 flex flex-col gap-[16px] min-h-[200px]">
+            <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[24px] flex flex-col gap-[16px] min-h-0 min-w-0">
               <div className="flex justify-between items-center w-full">
                  <div className="flex items-center gap-[8px]">
                     <Car size={16} strokeWidth={2.5} className="text-[#3b82f6]" />
@@ -489,7 +494,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
             </div>
 
             {/* Daily Volume */}
-            <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[24px] flex-1 flex flex-col gap-[16px] min-h-[200px]">
+            <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[24px] flex flex-col gap-[16px] min-h-0 min-w-0">
               <div className="flex justify-between items-center w-full">
                   <div className="flex items-center gap-[8px]">
                     <BarChart3 size={16} strokeWidth={2.5} className="text-[#3b82f6]" />
@@ -506,7 +511,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
                     </div>
                   </div>
               </div>
-              <div className="flex-1 w-full ml-[-20px] mt-[8px]">
+              <div className="flex-1 w-full mt-[8px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={dailyData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
@@ -526,22 +531,22 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
           </div>
 
           {/* Right Column */}
-          <div className="w-[400px] flex flex-col gap-[20px]">
+          <div className="grid grid-rows-2 gap-[20px] min-w-0 min-h-0">
             {/* Top Failed */}
-            <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[24px] flex-1 flex flex-col gap-[12px]">
+            <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[24px] flex flex-col gap-[12px] min-h-0 min-w-0">
               <div className="flex items-center gap-[8px] mb-[8px]">
                  <AlertTriangle size={16} strokeWidth={2.5} className="text-[#f59e0b]" />
                  <span className="text-[12px] font-[900] text-[#f59e0b] italic">高频失败用例</span>
               </div>
               
-              <div className="flex-1 flex flex-col gap-[8px] overflow-y-auto">
+              <div className="flex-1 flex flex-col gap-[8px] overflow-y-auto custom-scrollbar">
               {topFailed.length > 0 ? topFailed.slice(0, 4).map((tf, i) => {
                  const caseDef = casesMap[tf.case_id] || tf;
                  return (
                  <div key={tf.case_id || i} className="bg-slate-100 dark:bg-[#334155] border border-slate-200 dark:border-[#334155]/50 rounded-[10px] p-[12px] px-[14px] flex justify-between items-center">
                     <div className="flex flex-col gap-[4px] flex-1 min-w-0 pr-3">
-                       <span className="text-[10px] font-[800] text-slate-500 dark:text-[#cbd5e1]">{caseDef.function_category || caseDef.functionCategory || 'Unknown'} &gt; {caseDef.function || 'Unknown'}</span>
-                       <span className="text-[12px] font-[800] text-slate-700 dark:text-[#e2e8f0] truncate">{caseDef.expected || caseDef.content || '...'}</span>
+                       <span className="text-[11px] font-[900] text-slate-900 dark:text-white truncate">{caseDef.function_category || caseDef.functionCategory || 'Unknown'} &gt; {caseDef.function || 'Unknown'}</span>
+                       <span className="text-[10.5px] font-[600] text-slate-500 dark:text-[#cbd5e1] truncate">{caseDef.expected || caseDef.content || '...'}</span>
                     </div>
                     <div className="bg-[#f59e0b]/10 rounded-[6px] px-[8px] py-[4px] shrink-0">
                        <span className="text-[10px] font-[900] text-[#f59e0b]">{tf.fail_count}次</span>
@@ -555,7 +560,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
             </div>
 
             {/* Recent Defects */}
-            <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[24px] flex-1 flex flex-col gap-[12px]">
+            <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[24px] flex flex-col gap-[12px] min-h-0 min-w-0">
                <div className="flex items-center gap-[8px] mb-[8px]">
                  <Bug size={16} strokeWidth={2.5} className="text-[#ef4444]" />
                  <span className="text-[12px] font-[900] text-[#ef4444] italic">最新缺陷动态</span>
@@ -569,7 +574,7 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
                       <div className="w-[3px] bg-[#ef4444] rounded-[3px] self-stretch mt-1 mb-1 shadow-[0_0_8px_rgba(239,68,68,0.4)]" />
                       <div className="flex flex-col gap-[4px] w-full min-w-0">
                         <div className="flex justify-between items-baseline w-full">
-                          <span className="text-[11px] font-[900] text-slate-900 dark:text-[#f8fafc] truncate">{linkedCase?.function || `Case ${bug.case_id}`}</span>
+                          <span className="text-[11px] font-[900] text-slate-900 dark:text-[#f8fafc] truncate">{(bug.function_category || linkedCase?.function_category || linkedCase?.category || 'Unknown')} &gt; {(bug.function || linkedCase?.function || `Case ${bug.case_id}`)}</span>
                           <span className="text-[10px] font-[800] text-[#64748b] shrink-0 ml-2">{bug.timestamp?.substring(0, 16).replace(/-/g, '/')}</span>
                         </div>
                         <span className="text-[10.5px] font-[600] text-slate-500 dark:text-[#cbd5e1] break-words line-clamp-2 leading-snug">"{bug.description}"</span>

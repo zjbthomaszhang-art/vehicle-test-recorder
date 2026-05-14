@@ -72,7 +72,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
     }
     if (searchQuery) {
       const caseDef = casesMap[b.case_id];
-      const text = `${b.description} ${caseDef?.function || ''} ${caseDef?.expected || ''}`.toLowerCase();
+      const text = `${b.description} ${b.function || caseDef?.function || ''} ${b.expected || caseDef?.expected || ''}`.toLowerCase();
       if (!text.includes(searchQuery.toLowerCase())) match = false;
     }
     return match;
@@ -93,13 +93,13 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
 
   const renderMobile = () => (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0f1523] text-slate-800 dark:text-slate-100 flex flex-col font-sans">
-      <header className="px-[24px] pt-[44px] pb-[8px] flex justify-between items-center w-full z-10 shrink-0">
+      <header className="px-[16px] pt-[44px] pb-[8px] flex justify-between items-center w-full z-10 shrink-0">
         <div className="flex items-center gap-[12px]">
           <span className="text-[26px] font-[900] text-slate-900 dark:text-[#f8fafc] leading-none tracking-tight">缺陷管理</span>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-[24px] pt-[16px] pb-[100px] flex flex-col gap-[24px] custom-scrollbar">
+      <main className="flex-1 overflow-y-auto px-[16px] pt-[16px] pb-[100px] flex flex-col gap-[24px] custom-scrollbar">
         {/* KPIs Grid */}
         <div className="flex flex-col gap-[12px]">
           <div className="flex gap-[12px] w-full">
@@ -133,13 +133,13 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                    <input
                      type="text"
                      placeholder="搜索缺陷..."
-                     className="bg-transparent border-none outline-none text-[16px] text-slate-900 dark:text-white placeholder:text-[12px] w-full"
+                     className="bg-transparent border-none outline-none text-slate-900 dark:text-white placeholder:text-[12px] w-full text-[16px] font-[700]"
                      value={searchQuery}
                      onChange={(e) => setSearchQuery(e.target.value)}
                    />
               </div>
               <CustomSelect
-               textColor="text-slate-900 dark:text-white text-[16px]"
+               textColor="text-slate-900 dark:text-white text-[16px] font-[700]"
                value={filterStatus}
                onChange={setFilterStatus}
                options={[{value:'',label:'全部状态'}, ...STAGES.map(s=>({value:s.id,label:s.label}))]}
@@ -189,10 +189,10 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                     <div className="px-[16px] pt-[16px] pb-[12px] flex flex-col gap-[12px]">
                        <div className="flex flex-col gap-[4px]">
                           <span className="text-[10px] font-[800] bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent uppercase tracking-widest leading-none">
-                             {caseDef?.function_category || caseDef?.category || 'Unknown Category'}
+                             {bug.function_category || caseDef?.function_category || caseDef?.category || 'Unknown Category'}
                           </span>
                           <span className="text-[15px] font-[800] text-slate-900 dark:text-[#f8fafc] leading-tight mt-[4px]">
-                             {caseDef?.function || 'Unknown Function Name'}
+                             {bug.function || caseDef?.function || 'Unknown Function Name'}
                           </span>
                        </div>
                        
@@ -317,19 +317,19 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
         {/* KPIs Grid */}
         <div className="flex gap-[20px] w-full">
             <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[20px] h-[100px] flex flex-col justify-between">
-               <span className="text-[12px] font-[900] text-slate-500 dark:text-[#cbd5e1]">总计缺陷</span>
+               <span className="text-[13px] font-[900] text-slate-500 dark:text-[#cbd5e1]">总计缺陷</span>
                <span className="text-[32px] font-[900] text-slate-900 dark:text-[#f8fafc] leading-none">{totalDefects}</span>
             </div>
             <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[20px] h-[100px] flex flex-col justify-between">
-               <span className="text-[12px] font-[900] text-slate-500 dark:text-[#cbd5e1]">未解决</span>
+               <span className="text-[13px] font-[900] text-slate-500 dark:text-[#cbd5e1]">未解决</span>
                <span className="text-[32px] font-[900] text-[#ef4444] leading-none">{unresolvedCount}</span>
             </div>
             <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[20px] h-[100px] flex flex-col justify-between">
-               <span className="text-[12px] font-[900] text-slate-500 dark:text-[#cbd5e1]">处理中</span>
+               <span className="text-[13px] font-[900] text-slate-500 dark:text-[#cbd5e1]">处理中</span>
                <span className="text-[32px] font-[900] text-[#eab308] leading-none">{inProgressCount}</span>
             </div>
             <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[20px] h-[100px] flex flex-col justify-between">
-               <span className="text-[12px] font-[900] text-slate-500 dark:text-[#cbd5e1]">已解决</span>
+               <span className="text-[13px] font-[900] text-slate-500 dark:text-[#cbd5e1]">已解决</span>
                <span className="text-[32px] font-[900] text-[#10b981] leading-none">{resolvedCount}</span>
             </div>
         </div>
@@ -343,7 +343,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                  <input 
                    type="text" 
                    placeholder="搜索缺陷..." 
-                   className="bg-transparent border-none outline-none text-[16px] text-slate-900 dark:text-white placeholder:text-[12px] w-full"
+                   className="bg-transparent border-none outline-none text-slate-900 dark:text-white placeholder:text-[12px] w-full text-[16px] font-[700]"
                    value={searchQuery}
                    onChange={(e) => setSearchQuery(e.target.value)}
                  />
@@ -351,7 +351,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
 
               <div className="flex gap-[16px] flex-1 max-w-[300px]">
                  <CustomSelect
-                   textColor="text-slate-900 dark:text-white text-[16px]"
+                   textColor="text-slate-900 dark:text-white text-[16px] font-[700]"
                    value={filterStatus}
                    onChange={setFilterStatus}
                    options={[{value:'',label:'全部状态'}, ...STAGES.map(s=>({value:s.id,label:s.label}))]}
@@ -414,8 +414,8 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                           <div className="text-[12px] text-slate-700 dark:text-[#cbd5e1] truncate">{session?.mileage || '-'}</div>
                           <div className="text-[12px] text-slate-700 dark:text-[#cbd5e1] truncate">{session?.tester || '-'}</div>
                           <div className="text-[11px] text-slate-500 dark:text-[#cbd5e1] truncate">{bug.timestamp ? bug.timestamp.split('.')[0] : '-'}</div>
-                          <div className="text-[12px] text-slate-700 dark:text-[#cbd5e1] truncate">{caseDef?.function_category || caseDef?.category || '-'}</div>
-                          <div className="text-[13px] font-[600] text-slate-900 dark:text-[#f8fafc] truncate">{caseDef?.function || '-'}</div>
+                          <div className="text-[12px] text-slate-700 dark:text-[#cbd5e1] truncate">{bug.function_category || caseDef?.function_category || caseDef?.category || '-'}</div>
+                          <div className="text-[13px] font-[600] text-slate-900 dark:text-[#f8fafc] truncate">{bug.function || caseDef?.function || '-'}</div>
                           <div className="text-[12px] text-slate-500 dark:text-[#cbd5e1] italic truncate">"{bug.description || ''}"</div>
                           <div className={`relative flex items-center justify-end h-[26px] w-[90px]`}>
                              <div 

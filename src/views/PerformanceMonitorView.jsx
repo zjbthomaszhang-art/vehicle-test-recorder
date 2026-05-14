@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ChevronLeft, Activity, Server, HardDrive, Globe, ImageIcon } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 
 export default function PerformanceMonitorView({ setView }) {
   // Real Data Engine State
@@ -216,65 +217,55 @@ export default function PerformanceMonitorView({ setView }) {
           </div>
         </div>
 
-        {/* Top KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-[24px] shrink-0">
-          {/* CPU KPI */}
-          <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[16px] shadow-2xl flex flex-col justify-between h-[96px]">
-            <span className="text-[11px] font-[800] text-[#64748b] uppercase tracking-widest flex items-center gap-2">
-              <Server size={14} /> CPU 使用率
-            </span>
-            <div className="text-slate-800 dark:text-slate-200 flex items-baseline">
-              <span className="text-4xl font-black italic tracking-tighter bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent leading-none pb-1 pr-1">{currentCpu.toFixed(1)}</span>
-              <span className="text-lg font-bold text-[#60a5fa] ml-1 leading-none">%</span>
-            </div>
-          </div>
+        {/* Main Body - two columns: left (KPIs + charts), right (sidebar) */}
+        <div className="flex flex-1 min-h-0 gap-[16px]">
+          {/* Left Area - 3 KPIs + Charts */}
+          <div className="flex-1 flex flex-col gap-[16px] min-w-0">
 
-          {/* RAM KPI */}
-          <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[16px] shadow-2xl flex flex-col justify-between h-[96px]">
-            <span className="text-[11px] font-[800] text-[#64748b] uppercase tracking-widest flex items-center gap-2">
-              <Activity size={14} /> 内存 (RAM) 使用
-            </span>
-            <div className="text-slate-800 dark:text-slate-200 flex items-baseline leading-none">
-              <span className="text-4xl font-black italic tracking-tighter text-[#a855f7] leading-none">{currentRam.toFixed(1)}</span>
-              <span className="text-lg font-bold text-[#c084fc] ml-1 leading-none">GB <span className="text-xs text-[#64748b]">/ {ramTotal.toFixed(1)}GB</span></span>
-            </div>
-          </div>
+            {/* Left KPI row - 3 cards */}
+            <div className="grid grid-cols-3 gap-[16px] shrink-0">
+              {/* CPU KPI */}
+              <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[16px] shadow-2xl flex flex-col justify-between h-[96px]">
+                <span className="text-[11px] font-[800] text-[#64748b] uppercase tracking-widest flex items-center gap-2">
+                  <Server size={14} /> CPU 使用率
+                </span>
+                <div className="text-slate-800 dark:text-slate-200 flex items-baseline">
+                  <span className="text-4xl font-black italic tracking-tighter bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent leading-none pb-1 pr-2">{currentCpu.toFixed(1)}</span>
+                  <span className="text-lg font-bold text-[#60a5fa] ml-1 leading-none">%</span>
+                </div>
+              </div>
 
-          {/* DISK KPI */}
-          <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[16px] shadow-2xl flex flex-col justify-between h-[96px]">
-            <span className="text-[11px] font-[800] text-[#64748b] uppercase tracking-widest flex items-center gap-2">
-              <HardDrive size={14} /> 存储空间 (SSD)
-            </span>
-            <div className="text-slate-800 dark:text-slate-200 flex items-baseline leading-none">
-              <span className="text-4xl font-black italic tracking-tighter text-[#f97316] leading-none">{diskData.used.toFixed(1)}</span>
-              <span className="text-lg font-bold text-[#fb923c] ml-1 leading-none">GB <span className="text-xs text-[#64748b]">/ {diskData.total.toFixed(0)}GB</span></span>
-            </div>
-          </div>
+              {/* RAM KPI */}
+              <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[16px] shadow-2xl flex flex-col justify-between h-[96px]">
+                <span className="text-[11px] font-[800] text-[#64748b] uppercase tracking-widest flex items-center gap-2">
+                  <Activity size={14} /> 内存 (RAM) 使用
+                </span>
+                <div className="text-slate-800 dark:text-slate-200 flex items-baseline leading-none">
+                  <span className="text-4xl font-black italic tracking-tighter text-[#a855f7] leading-none">{currentRam.toFixed(1)}</span>
+                  <span className="text-lg font-bold text-[#c084fc] ml-1 leading-none">GB <span className="text-xs text-[#64748b]">/ {ramTotal.toFixed(1)}GB</span></span>
+                </div>
+              </div>
 
-          {/* IMAGE STORAGE KPI */}
-          <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[16px] shadow-2xl flex flex-col justify-between h-[96px]">
-            <span className="text-[11px] font-[800] text-[#64748b] uppercase tracking-widest flex items-center gap-2">
-              <ImageIcon size={14} /> 图片存储
-            </span>
-            <div className="text-slate-800 dark:text-slate-200 flex items-baseline leading-none">
-              <span className="text-4xl font-black italic tracking-tighter text-[#14b8a6] leading-none">{imageStorage.totalMB < 1000 ? imageStorage.totalMB.toFixed(1) : (imageStorage.totalMB / 1024).toFixed(2)}</span>
-              <span className="text-lg font-bold text-[#2dd4bf] ml-1 leading-none">{imageStorage.totalMB < 1000 ? 'MB' : 'GB'} <span className="text-xs text-[#64748b]">/ {imageStorage.count} 张</span></span>
+              {/* DISK KPI */}
+              <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[16px] shadow-2xl flex flex-col justify-between h-[96px]">
+                <span className="text-[11px] font-[800] text-[#64748b] uppercase tracking-widest flex items-center gap-2">
+                  <HardDrive size={14} /> 存储空间 (SSD)
+                </span>
+                <div className="text-slate-800 dark:text-slate-200 flex items-baseline leading-none">
+                  <span className="text-4xl font-black italic tracking-tighter text-[#f97316] leading-none">{diskData.used.toFixed(1)}</span>
+                  <span className="text-lg font-bold text-[#fb923c] ml-1 leading-none">GB <span className="text-xs text-[#64748b]">/ {diskData.total.toFixed(0)}GB</span></span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Main Body */}
-        <div className="flex flex-1 min-h-0 flex-col lg:flex-row gap-[16px]">
-          {/* Left Area - Charts */}
-          <div className="flex-1 flex flex-col gap-[16px] min-w-0 h-full">
-            
+
             {/* CPU Chart */}
             <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[20px] shadow-2xl flex flex-col relative min-h-0">
               <h2 className="text-sm font-black italic text-slate-700 dark:text-slate-300 mb-4 shrink-0">{titlePrefix} CPU 负载趋势</h2>
               
               <div className="flex-1 relative flex min-h-0">
                 {/* Y Axis */}
-                <div className="flex flex-col justify-between text-[10px] text-[#64748b] font-mono pr-4 min-w-[40px] font-bold py-2">
+                <div className="flex flex-col justify-between text-[12px] text-[#64748b] font-mono pr-4 min-w-[40px] font-bold py-2">
                   <span>100%</span>
                   <span>0%</span>
                 </div>
@@ -298,7 +289,7 @@ export default function PerformanceMonitorView({ setView }) {
               </div>
 
               {/* X Axis */}
-              <div className="flex justify-between pl-[40px] text-[10px] text-[#64748b] font-mono mt-2 shrink-0 font-bold">
+              <div className="flex justify-between pl-[40px] text-[12px] text-[#64748b] font-mono mt-2 shrink-0 font-bold">
                 <span>{xStart}</span>
                 <span>{xEnd}</span>
               </div>
@@ -310,7 +301,7 @@ export default function PerformanceMonitorView({ setView }) {
               
               <div className="flex-1 relative flex min-h-0">
                 {/* Y Axis */}
-                <div className="flex flex-col justify-between text-[10px] text-[#64748b] font-mono pr-4 min-w-[40px] font-bold py-2">
+                <div className="flex flex-col justify-between text-[12px] text-[#64748b] font-mono pr-4 min-w-[40px] font-bold py-2">
                   <span>{ramTotal.toFixed(1)}GB</span>
                   <span>0GB</span>
                 </div>
@@ -334,7 +325,7 @@ export default function PerformanceMonitorView({ setView }) {
               </div>
 
               {/* X Axis */}
-              <div className="flex justify-between pl-[40px] text-[10px] text-[#64748b] font-mono mt-2 shrink-0 font-bold">
+              <div className="flex justify-between pl-[40px] text-[12px] text-[#64748b] font-mono mt-2 shrink-0 font-bold">
                 <span>{xStart}</span>
                 <span>{xEnd}</span>
               </div>
@@ -344,16 +335,32 @@ export default function PerformanceMonitorView({ setView }) {
 
           {/* Right Area - Sidebar */}
           <div className="w-[450px] flex flex-col gap-[16px] shrink-0 h-full">
+            {/* IMAGE STORAGE KPI */}
+            <div className="shrink-0 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[16px] shadow-2xl flex flex-col justify-between h-[96px]">
+              <span className="text-[11px] font-[800] text-[#64748b] uppercase tracking-widest flex items-center gap-2">
+                <ImageIcon size={14} /> 图片存储
+              </span>
+              <div className="text-slate-800 dark:text-slate-200 flex items-baseline leading-none">
+                <span className="text-4xl font-black italic tracking-tighter text-[#14b8a6] leading-none">{imageStorage.totalMB < 1000 ? imageStorage.totalMB.toFixed(1) : (imageStorage.totalMB / 1024).toFixed(2)}</span>
+                <span className="text-lg font-bold text-[#2dd4bf] ml-1 leading-none">{imageStorage.totalMB < 1000 ? 'MB' : 'GB'} <span className="text-xs text-[#64748b]">/ {imageStorage.count} 张</span></span>
+              </div>
+            </div>
             {/* System Runtime Status */}
-            <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[20px] shadow-2xl flex flex-col min-h-0 overflow-hidden">
-              <h2 className="text-sm font-black italic text-slate-700 dark:text-slate-300 mb-5 shrink-0">系统运行状态</h2>
+            <div className="shrink-0 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[20px] shadow-2xl flex flex-col">
+              <div className="flex justify-between items-center mb-5 shrink-0">
+                <h2 className="text-sm font-black italic text-slate-700 dark:text-slate-300">系统运行状态</h2>
+                <span className="text-[12px] text-slate-500 dark:text-[#94a3b8] font-[600]">
+                  {systemInfo.loadavg[0] < 0.5 ? '🟢 系统空闲，运行轻松' :
+                   systemInfo.loadavg[0] < 1.5 ? '🟡 系统正常负载' : '🔴 系统负载偏高'}
+                </span>
+              </div>
               <div className="flex-1 flex flex-col justify-around gap-[16px]">
 
                 {/* Load Average */}
                 <div className="flex flex-col gap-[6px]">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-[800] text-slate-500 dark:text-[#64748b] uppercase tracking-wider">平均负载</span>
-                    <span className="text-[10px] font-[700] text-slate-400 dark:text-[#475569]">1分钟 / 5分钟 / 15分钟</span>
+                    <span className="text-[10px] font-[700] text-slate-500 dark:text-[#94a3b8]">1分钟 / 5分钟 / 15分钟</span>
                   </div>
                   <div className="flex items-center gap-[10px]">
                     <div className={`w-2 h-2 rounded-full shrink-0 ${
@@ -364,10 +371,6 @@ export default function PerformanceMonitorView({ setView }) {
                       {systemInfo.loadavg.map(v => v.toFixed(2)).join('  /  ')}
                     </span>
                   </div>
-                  <span className="text-[10px] text-slate-400 dark:text-[#475569] font-[500]">
-                    {systemInfo.loadavg[0] < 0.5 ? '🟢 系统空闲，运行轻松' :
-                     systemInfo.loadavg[0] < 1.5 ? '🟡 系统正常负载' : '🔴 系统负载偏高'}
-                  </span>
                 </div>
 
                 {/* Uptime */}
@@ -414,7 +417,7 @@ export default function PerformanceMonitorView({ setView }) {
 
               <div className="flex-1 relative flex min-h-0">
                 {/* Y Axis */}
-                <div className="flex flex-col justify-between text-[10px] text-[#64748b] font-mono pr-2 min-w-[40px] font-bold py-1">
+                <div className="flex flex-col justify-between text-[12px] text-[#64748b] font-mono pr-2 min-w-[40px] font-bold py-1">
                   <span>{(maxNet / 1000).toFixed(1)}M</span>
                   <span>0</span>
                 </div>
@@ -432,66 +435,96 @@ export default function PerformanceMonitorView({ setView }) {
               </div>
 
               {/* X Axis */}
-              <div className="flex justify-between pl-[40px] text-[10px] text-[#64748b] font-mono mt-2 shrink-0 font-bold">
+              <div className="flex justify-between pl-[40px] text-[12px] text-[#64748b] font-mono mt-2 shrink-0 font-bold">
                 <span>{xStart}</span>
                 <span>{xEnd}</span>
               </div>
             </div>
 
             {/* Image Storage Panel */}
-            <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[24px] shadow-2xl flex flex-col gap-[14px] shrink-0">
+            <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[20px] shadow-2xl flex flex-col gap-[12px] shrink-0">
               <h2 className="text-sm font-black italic text-slate-700 dark:text-slate-300 flex items-center gap-2 shrink-0">
                 <ImageIcon size={15} className="text-[#14b8a6]" /> 图片存储统计
               </h2>
 
-              {/* Stats Grid */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-[800] text-[#64748b] uppercase tracking-wider">图片总数</span>
-                  <span className="text-[22px] font-[900] text-slate-800 dark:text-[#e2e8f0] font-mono leading-none">{imageStorage.count}</span>
-                  <span className="text-[10px] text-[#64748b] font-[500]">张</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-[800] text-[#64748b] uppercase tracking-wider">总占用</span>
-                  <span className="text-[22px] font-[900] text-[#14b8a6] font-mono leading-none">
-                    {imageStorage.totalMB < 1000 ? imageStorage.totalMB.toFixed(1) : (imageStorage.totalMB / 1024).toFixed(2)}
-                  </span>
-                  <span className="text-[10px] text-[#64748b] font-[500]">{imageStorage.totalMB < 1000 ? 'MB' : 'GB'}</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-[800] text-[#64748b] uppercase tracking-wider">平均大小</span>
-                  <span className="text-[22px] font-[900] text-slate-800 dark:text-[#e2e8f0] font-mono leading-none">{imageStorage.avgKB.toFixed(0)}</span>
-                  <span className="text-[10px] text-[#64748b] font-[500]">KB / 张</span>
-                </div>
-              </div>
-
-              {/* Progress Bar: Images vs Disk */}
-              {(() => {
-                const diskBytes = diskData.total * 1024;
-                const imgMB = imageStorage.totalMB;
-                const pct = diskBytes > 0 ? Math.min(100, (imgMB / (diskData.total * 1024)) * 100) : 0;
-                const pctDisplay = diskData.total > 0 ? ((imgMB / (diskData.total * 1024)) * 100).toFixed(2) : '0.00';
-                return (
-                  <div className="flex flex-col gap-[6px]">
-                    <div className="flex justify-between text-[10px] font-[700] text-[#64748b]">
-                      <span>图片占磁盘比例</span>
-                      <span className="text-[#14b8a6]">{pctDisplay}%</span>
+              <div className="flex gap-[12px] items-center">
+                {/* Stats - left */}
+                <div className="flex flex-col gap-[10px] flex-1">
+                  <div className="flex gap-[16px]">
+                    <div className="flex flex-col gap-[2px]">
+                      <span className="text-[10px] font-[800] text-[#64748b] uppercase tracking-wider">图片总数</span>
+                      <span className="text-[18px] font-[900] text-slate-800 dark:text-[#e2e8f0] font-mono leading-none">{imageStorage.count}</span>
+                      <span className="text-[10px] text-[#64748b] font-[500]">张</span>
                     </div>
-                    <div className="w-full h-[6px] bg-slate-100 dark:bg-[#1e293b] rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-700"
-                        style={{
-                          width: `${pct}%`,
-                          background: 'linear-gradient(90deg, #14b8a6, #06b6d4)'
-                        }}
-                      />
+                    <div className="flex flex-col gap-[2px]">
+                      <span className="text-[10px] font-[800] text-[#64748b] uppercase tracking-wider">总占用</span>
+                      <span className="text-[18px] font-[900] text-[#14b8a6] font-mono leading-none">
+                        {imageStorage.totalMB < 1000 ? imageStorage.totalMB.toFixed(1) : (imageStorage.totalMB / 1024).toFixed(2)}
+                      </span>
+                      <span className="text-[10px] text-[#64748b] font-[500]">{imageStorage.totalMB < 1000 ? 'MB' : 'GB'}</span>
                     </div>
-                    <span className="text-[10px] text-[#64748b] font-[500]">
-                      {imgMB.toFixed(1)} MB / {(diskData.total * 1024).toFixed(0)} MB 磁盘容量
-                    </span>
+                    <div className="flex flex-col gap-[2px]">
+                      <span className="text-[10px] font-[800] text-[#64748b] uppercase tracking-wider">平均大小</span>
+                      <span className="text-[18px] font-[900] text-slate-800 dark:text-[#e2e8f0] font-mono leading-none">{imageStorage.avgKB.toFixed(0)}</span>
+                      <span className="text-[10px] text-[#64748b] font-[500]">KB / 张</span>
+                    </div>
                   </div>
-                );
-              })()}
+                  {(() => {
+                    const diskMB = diskData.total * 1024;
+                    const imgMB = imageStorage.totalMB;
+                    const pctDisplay = diskData.total > 0 ? ((imgMB / diskMB) * 100).toFixed(2) : '0.00';
+                    return (
+                      <div className="flex justify-between text-[10px] font-[700] text-[#64748b]">
+                        <span>图片占磁盘比例</span>
+                        <span className="text-[10px] font-[900] text-[#64748b]">({imgMB.toFixed(1)} MB / {diskMB.toFixed(0)} MB)</span>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Pie - right */}
+                {(() => {
+                  const diskMB = diskData.total * 1024;
+                  const imgMB = imageStorage.totalMB;
+                  const otherMB = diskMB - imgMB;
+                  const pctDisplay = diskData.total > 0 ? ((imgMB / diskMB) * 100).toFixed(2) : '0.00';
+                  const pieData = [
+                    { name: '图片占用', value: imgMB > 0 ? imgMB : 0.01, color: '#f59e0b' },
+                    { name: '其他空间', value: otherMB > 0 ? otherMB : 0.01, color: '#1e3a5f' }
+                  ];
+                  return (
+                    <div className="relative shrink-0" style={{width: 120, height: 120}}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={pieData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={38}
+                            outerRadius={54}
+                            stroke="none"
+                            dataKey="value"
+                            startAngle={90}
+                            endAngle={-270}
+                          >
+                            {pieData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <RechartsTooltip
+                            contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px', fontSize: '10px', color: '#f8fafc', padding: '6px 10px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}
+                            itemStyle={{ color: '#e2e8f0', fontWeight: 800 }}
+                            formatter={(value) => `${value.toFixed(1)} MB`}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span className="text-[16px] font-[900] text-[#f59e0b] leading-none">{pctDisplay}%</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
             
           </div>

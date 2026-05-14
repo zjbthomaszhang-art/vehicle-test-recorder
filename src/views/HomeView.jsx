@@ -57,7 +57,7 @@ export default function HomeView({
               </h1>
               <div className="scanline-overlay rounded-[4px]"></div>
             </div>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-0.5">{FIELD_LABELS.validationTest}</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest mt-0.5 ml-[6px] bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent">{FIELD_LABELS.validationTest}</p>
           </div>
           <button onClick={toggleTheme} className="w-12 h-12 bg-white dark:bg-[#1e293b] rounded-2xl flex items-center justify-center border border-slate-200 dark:border-[#334155] shadow-sm dark:shadow-none transition-colors active:scale-95">
             {theme === 'dark' ? <Sun className="text-amber-500" size={26} strokeWidth={1.5} /> : <Moon className="text-slate-600" size={26} strokeWidth={1.5} />}
@@ -107,8 +107,8 @@ export default function HomeView({
 
           {/* Group 1: 生产年份 & 工程代码 */}
           <div className="flex gap-[8px] w-full">
-            <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] h-[44px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
-              <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
+            <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] h-[44px] px-[10px] sm:px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+              <div className="flex items-center gap-[6px] sm:gap-[10px] shrink-0">
                 <Calendar size={26} className="text-slate-900 dark:text-white p-[2px] shrink-0" strokeWidth={1.5} />
                 <span className="text-[13px] sm:text-[14px] font-[600] text-slate-500 dark:text-[#cbd5e1] whitespace-nowrap">生产年份</span>
               </div>
@@ -117,13 +117,14 @@ export default function HomeView({
                 inputMode="numeric"
                 value={modelYear}
                 onChange={(e) => setModelYear(e.target.value.replace(/\D/g, ''))}
+                maxLength={2}
                 placeholder=""
-                className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[16px] flex-1 min-w-0 ml-2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal"
+                className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[16px] flex-1 min-w-0 ml-1 sm:ml-2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal"
               />
             </div>
 
-            <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] h-[44px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
-              <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
+            <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] h-[44px] px-[10px] sm:px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+              <div className="flex items-center gap-[6px] sm:gap-[10px] shrink-0">
                 <Code size={26} className="text-slate-900 dark:text-white p-[2px] shrink-0" strokeWidth={1.5} />
                 <span className="text-[13px] sm:text-[14px] font-[600] text-slate-500 dark:text-[#cbd5e1] whitespace-nowrap">工程代码</span>
               </div>
@@ -137,19 +138,19 @@ export default function HomeView({
                 autoComplete="off"
                 spellCheck="false"
                 placeholder=""
-                className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[16px] flex-1 min-w-0 ml-2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal uppercase"
+                className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[16px] flex-1 min-w-0 ml-1 sm:ml-2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal uppercase"
               />
             </div>
           </div>
 
           {/* Group 2: 生产阶段 & 总里程数 */}
           <div className="flex gap-[8px] w-full">
-            <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] h-[44px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
-              <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
+            <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] h-[44px] px-[10px] sm:px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+              <div className="flex items-center gap-[6px] sm:gap-[10px] shrink-0">
                 <Layers size={26} className="text-slate-900 dark:text-white p-[2px] shrink-0" strokeWidth={1.5} />
                 <span className="text-[13px] sm:text-[14px] font-[600] text-slate-500 dark:text-[#cbd5e1] whitespace-nowrap">生产阶段</span>
               </div>
-              <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-4">
+              <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-1 sm:ml-4">
                 <CustomSelect
                   value={productionStage}
                   onChange={setProductionStage}
@@ -159,8 +160,8 @@ export default function HomeView({
                 />
               </div>
             </div>
-            <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] h-[44px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
-              <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
+            <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] h-[44px] px-[10px] sm:px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+              <div className="flex items-center gap-[6px] sm:gap-[10px] shrink-0">
                 <Gauge size={26} className="text-slate-900 dark:text-white p-[2px] shrink-0" strokeWidth={1.5} />
                 <span className="text-[13px] sm:text-[14px] font-[600] text-slate-500 dark:text-[#cbd5e1] whitespace-nowrap">总里程数</span>
               </div>
@@ -170,18 +171,18 @@ export default function HomeView({
                 value={mileage}
                 onChange={(e) => setMileage(e.target.value.replace(/\D/g, ''))}
                 placeholder=""
-                className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[16px] min-w-0 flex-1 ml-2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal"
+                className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[16px] min-w-0 flex-1 ml-1 sm:ml-2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal"
               />
             </div>
           </div>
           {/* Group 3: 测试环境 & 测试人员 */}
           <div className="flex gap-[8px] w-full">
-            <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] h-[44px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
-              <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
+            <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] h-[44px] px-[10px] sm:px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+              <div className="flex items-center gap-[6px] sm:gap-[10px] shrink-0">
                 <Monitor size={26} className="text-slate-900 dark:text-white p-[2px] shrink-0" strokeWidth={1.5} />
                 <span className="text-[13px] sm:text-[14px] font-[600] text-slate-500 dark:text-[#cbd5e1] whitespace-nowrap">测试环境</span>
               </div>
-              <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-4">
+              <div className="flex items-center justify-end gap-[4px] flex-1 min-w-0 ml-1 sm:ml-4">
                 <CustomSelect
                   value={testEnv}
                   onChange={setTestEnv}
@@ -191,8 +192,8 @@ export default function HomeView({
                 />
               </div>
             </div>
-            <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] h-[44px] px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
-              <div className="flex items-center gap-[8px] sm:gap-[14px] shrink-0">
+            <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] h-[44px] px-[10px] sm:px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+              <div className="flex items-center gap-[6px] sm:gap-[10px] shrink-0">
                 <User size={26} className="text-slate-900 dark:text-white p-[2px] shrink-0" strokeWidth={1.5} />
                 <span className="text-[13px] sm:text-[14px] font-[600] text-slate-500 dark:text-[#cbd5e1] whitespace-nowrap">测试人员</span>
               </div>
@@ -201,7 +202,7 @@ export default function HomeView({
                 value={tester}
                 onChange={(e) => setTester(e.target.value)}
                 placeholder=""
-                className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[16px] flex-1 min-w-0 ml-2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal"
+                className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[16px] flex-1 min-w-0 ml-1 sm:ml-2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal"
               />
             </div>
           </div>
@@ -323,7 +324,7 @@ export default function HomeView({
           {(!vehicleModel || !vin || !tester || !mileage) && (
             <div className="flex items-center gap-3 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-[10px] font-black uppercase tracking-widest mt-4">
               <Info size={16} className="shrink-0" />
-              <span>{`请填写 ${FIELD_LABELS.vin.split(' / ')[1]}, ${FIELD_LABELS.vehicleModel.split(' / ')[0]},  ${FIELD_LABELS.tester?.split(' / ')[0] || 'Tester'}, ${FIELD_LABELS.mileage?.split(' / ')[0] || 'Mileage'} 后再继续。`} </span>
+              <span>{`请填写 ${FIELD_LABELS.vin.split(' / ')[1]}, ${FIELD_LABELS.vehicleModel.split(' / ')[0]}, ${FIELD_LABELS.mileage?.split(' / ')[0] || 'Mileage'} ,  ${FIELD_LABELS.tester?.split(' / ')[0] || 'Tester'}后再继续执行测试。`} </span>
             </div>
           )}
         </div>

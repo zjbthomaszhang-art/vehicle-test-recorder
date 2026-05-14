@@ -46,7 +46,7 @@ function applyDataStyle(sheet, startRow = 2) {
       const headerCell = sheet.getRow(startRow - 1).getCell(colNumber);
       const headerText = String(headerCell ? headerCell.value : '');
 
-      if (headerText.includes('Result / 结果')) {
+      if (headerText === '结果') {
         const val = String(cell.value || '').trim();
         if (val === 'Pass') {
           cell.font = { color: { argb: COLOR_PASS }, bold: true };
@@ -58,7 +58,7 @@ function applyDataStyle(sheet, startRow = 2) {
           cell.font = { color: { argb: COLOR_NA }, bold: true };
           cell.alignment = { vertical: 'middle', horizontal: 'center' };
         }
-      } else if (headerText.includes('Time') || headerText.includes('Duration')) {
+      } else if (['开始时间','车辆执行时间','App反馈时间','车辆响应耗时(s)','App响应耗时(s)'].includes(headerText)) {
         cell.alignment = { vertical: 'middle', horizontal: 'right', wrapText: true };
       }
     });
@@ -75,25 +75,23 @@ async function addVehicleSheet(workbook, rows) {
   });
 
   sheet.columns = [
-    { header: 'No.', key: 'no', width: 6 },
-    { header: 'Case ID', key: 'id', width: 10 },
-    { header: 'Category / 类别', key: 'cat', width: 15 },
-    { header: 'Function Category / 功能分类', key: 'funcCat', width: 22 },
-    { header: 'Function / 功能', key: 'func', width: 25 },
-    { header: 'Content / 测试内容', key: 'content', width: 40 },
-    { header: 'Start Time', key: 'time', width: 15 },
-    { header: 'Result / 结果', key: 'result', width: 12 },
-    { header: 'Notes / 备注', key: 'notes', width: 50 },
+    { header: '用例编号', key: 'no',      width: 15 },
+    { header: '大类',     key: 'cat',     width: 12 },
+    { header: '功能分类', key: 'funcCat', width: 22 },
+    { header: '功能名称', key: 'func',    width: 25 },
+    { header: '期望结果', key: 'expected', width: 40 },
+    { header: '开始时间', key: 'time',    width: 15 },
+    { header: '结果',     key: 'result',  width: 10 },
+    { header: '备注',     key: 'notes',   width: 50 },
   ];
 
   rows.forEach(({ c, r }, i) => {
     sheet.addRow({
-      no: i + 1,
-      id: c.id,
+      no: c.case_number || c.id || (i + 1),
       cat: c.category || '',
       funcCat: c.function_category || c.functionCategory || '',
       func: c.function || '',
-      content: c.content || '',
+      expected: c.expected || '',
       time: getFmt(r.startTime || r.start_time),
       result: r.result || '',
       notes: r.notes || '',
@@ -102,7 +100,7 @@ async function addVehicleSheet(workbook, rows) {
 
   styleHeader(sheet.getRow(1));
   applyDataStyle(sheet);
-  sheet.autoFilter = 'A1:I1';
+  sheet.autoFilter = 'A1:H1';
 }
 
 async function addAppSheet(workbook, name, rows) {
@@ -111,19 +109,18 @@ async function addAppSheet(workbook, name, rows) {
   });
 
   sheet.columns = [
-    { header: 'No.', key: 'no', width: 6 },
-    { header: 'Case ID', key: 'id', width: 10 },
-    { header: 'Category / 类别', key: 'cat', width: 15 },
-    { header: 'Function Category / 功能分类', key: 'funcCat', width: 22 },
-    { header: 'Function / 功能', key: 'func', width: 25 },
-    { header: 'Content / 测试内容', key: 'content', width: 40 },
-    { header: 'Start Time', key: 'time', width: 15 },
-    { header: 'Car Exec Time', key: 'carT', width: 15 },
-    { header: 'App Feedback Time', key: 'appT', width: 15 },
-    { header: 'Car Duration (s)', key: 'carD', width: 14 },
-    { header: 'App Duration (s)', key: 'appD', width: 14 },
-    { header: 'Result / 结果', key: 'result', width: 12 },
-    { header: 'Notes / 备注', key: 'notes', width: 50 },
+    { header: '用例编号',       key: 'no',      width: 15 },
+    { header: '大类',           key: 'cat',     width: 12 },
+    { header: '功能分类',       key: 'funcCat', width: 22 },
+    { header: '功能名称',       key: 'func',    width: 25 },
+    { header: '期望结果',       key: 'expected', width: 40 },
+    { header: '开始时间',       key: 'time',    width: 15 },
+    { header: '车辆执行时间',   key: 'carT',    width: 15 },
+    { header: 'App反馈时间',    key: 'appT',    width: 15 },
+    { header: '车辆响应耗时(s)', key: 'carD',   width: 14 },
+    { header: 'App响应耗时(s)', key: 'appD',    width: 14 },
+    { header: '结果',           key: 'result',  width: 10 },
+    { header: '备注',           key: 'notes',   width: 50 },
   ];
 
   rows.forEach(({ c, r }, i) => {
@@ -138,12 +135,11 @@ async function addAppSheet(workbook, name, rows) {
     const appDur = (startMs && appMs && !isNaN(startMs) && !isNaN(appMs)) ? Number(((appMs - startMs) / 1000).toFixed(2)) : '';
 
     sheet.addRow({
-      no: i + 1,
-      id: c.id,
+      no: c.case_number || c.id || (i + 1),
       cat: c.category || '',
       funcCat: c.function_category || c.functionCategory || '',
       func: c.function || '',
-      content: c.content || '',
+      expected: c.expected || '',
       time: getFmt(startVal),
       carT: getFmt(carVal),
       appT: getFmt(appVal),
@@ -156,7 +152,7 @@ async function addAppSheet(workbook, name, rows) {
 
   styleHeader(sheet.getRow(1));
   applyDataStyle(sheet);
-  sheet.autoFilter = 'A1:M1';
+  sheet.autoFilter = 'A1:L1';
 }
 
 function setColWidths(ws, widths) {
@@ -321,15 +317,14 @@ router.post('/excel', async (req, res) => {
     // --- Screenshots ---
     const wsScreenshots = workbook.addWorksheet('截图');
     wsScreenshots.columns = [
-      { header: 'Case ID', key: 'id', width: 12 },
-      { header: 'Function / 功能', key: 'func', width: 30 },
-      { header: 'Photo Index', key: 'idx', width: 15 },
-      { header: 'Photo URL / Data', key: 'url', width: 100 },
+      { header: '功能名称',  key: 'func', width: 30 },
+      { header: '截图序号',  key: 'idx',  width: 12 },
+      { header: '截图地址',  key: 'url',  width: 100 },
     ];
     cases.forEach((c, idx) => {
       const media = (caseResults[idx] || {}).media || [];
       media.forEach((m, mIdx) => {
-        wsScreenshots.addRow({ id: c.id, func: c.function, idx: mIdx + 1, url: m.url || '' });
+        wsScreenshots.addRow({ func: c.function, idx: mIdx + 1, url: m.url || '' });
       });
     });
     styleHeader(wsScreenshots.getRow(1));

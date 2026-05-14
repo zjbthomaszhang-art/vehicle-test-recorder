@@ -33,9 +33,9 @@ async function initializeDatabase() {
                 category VARCHAR(255),
                 function_category VARCHAR(255) DEFAULT '',
                 \`function\` VARCHAR(255),
-                content TEXT,
-                type VARCHAR(50),
                 expected TEXT,
+                type VARCHAR(50),
+                hint TEXT,
                 updated_at DATETIME
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         `);
@@ -45,6 +45,35 @@ async function initializeDatabase() {
         if (casesCols.length === 0) {
             await db.query("ALTER TABLE cases ADD COLUMN is_active TINYINT DEFAULT 1");
             console.log("Added is_active column to cases table");
+        }
+
+        // Migration: Add sort_order to cases if it doesn't exist
+        const [sortOrderCols] = await db.query("SHOW COLUMNS FROM cases LIKE 'sort_order'");
+        if (sortOrderCols.length === 0) {
+            await db.query("ALTER TABLE cases ADD COLUMN sort_order INT DEFAULT 0");
+            console.log("Added sort_order column to cases table");
+        }
+
+        // Migration: Rename content→expected, expected→hint
+        // Step 1: If old 'expected' column exists AND 'hint' doesn't, rename expected→hint first
+        const [hintColPre] = await db.query("SHOW COLUMNS FROM cases LIKE 'hint'");
+        const [oldExpectedPre] = await db.query("SHOW COLUMNS FROM cases LIKE 'expected'");
+        const [contentColPre] = await db.query("SHOW COLUMNS FROM cases LIKE 'content'");
+        if (contentColPre.length > 0 && oldExpectedPre.length > 0 && hintColPre.length === 0) {
+            // Both content and expected exist → rename expected→hint first, then content→expected
+            await db.query("ALTER TABLE cases CHANGE COLUMN expected hint TEXT");
+            await db.query("ALTER TABLE cases CHANGE COLUMN content expected TEXT");
+            console.log("Migrated: content→expected, old expected→hint");
+        } else if (contentColPre.length > 0 && oldExpectedPre.length === 0) {
+            // Only content exists (no expected) → simple rename
+            await db.query("ALTER TABLE cases CHANGE COLUMN content expected TEXT");
+            console.log("Renamed content→expected in cases table");
+        }
+        // Step 2: Ensure hint column exists
+        const [hintColCheck] = await db.query("SHOW COLUMNS FROM cases LIKE 'hint'");
+        if (hintColCheck.length === 0) {
+            await db.query("ALTER TABLE cases ADD COLUMN hint TEXT");
+            console.log("Added hint column to cases table");
         }
 
         // Test Sessions Table
@@ -67,21 +96,48 @@ async function initializeDatabase() {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         `);
 
+        // Session Cases Table (snapshot of cases at the time of session creation)
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS session_cases (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                session_id INT NOT NULL,
+                original_case_id INT,
+                category VARCHAR(255),
+                function_category VARCHAR(255),
+                \`function\` VARCHAR(255),
+                expected TEXT,
+                type VARCHAR(50),
+                hint TEXT,
+                case_number VARCHAR(50),
+                sort_order INT DEFAULT 0,
+                INDEX (session_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        `);
+
         // Test Results Table
         await db.query(`
             CREATE TABLE IF NOT EXISTS test_results (
                 id INT PRIMARY KEY AUTO_INCREMENT,
                 session_id INT,
                 case_id INT,
+                session_case_id INT,
                 start_time DATETIME(3),
                 car_exec_time DATETIME(3),
                 app_feedback_time DATETIME(3),
                 result VARCHAR(50),
                 notes TEXT,
                 INDEX (session_id),
+                INDEX (session_case_id),
                 FOREIGN KEY (session_id) REFERENCES test_sessions(id) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         `);
+
+        // Migration: add session_case_id to test_results if missing
+        const [trCols] = await db.query("SHOW COLUMNS FROM test_results LIKE 'session_case_id'");
+        if (trCols.length === 0) {
+            await db.query("ALTER TABLE test_results ADD COLUMN session_case_id INT, ADD INDEX (session_case_id)");
+            console.log('Added session_case_id to test_results');
+        }
 
         // Bugs Table
         await db.query(`
@@ -89,13 +145,22 @@ async function initializeDatabase() {
                 id INT PRIMARY KEY AUTO_INCREMENT,
                 session_id INT,
                 case_id INT,
+                session_case_id INT,
                 description TEXT,
                 app_duration VARCHAR(50),
                 timestamp DATETIME(3),
+                media LONGTEXT,
                 INDEX (session_id),
                 FOREIGN KEY (session_id) REFERENCES test_sessions(id) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         `);
+
+        // Migration: add session_case_id to bugs if missing
+        const [bugCols] = await db.query("SHOW COLUMNS FROM bugs LIKE 'session_case_id'");
+        if (bugCols.length === 0) {
+            await db.query("ALTER TABLE bugs ADD COLUMN session_case_id INT");
+            console.log('Added session_case_id to bugs');
+        }
 
         // Metrics History Table (TSDB Simulator)
         await db.query(`
@@ -108,6 +173,17 @@ async function initializeDatabase() {
                 rx_kbps FLOAT,
                 tx_kbps FLOAT,
                 INDEX (timestamp)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        `);
+
+        // Tester Case Orders Table
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS tester_case_orders (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                tester_name VARCHAR(255) NOT NULL UNIQUE,
+                case_ids LONGTEXT NOT NULL,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_tester_name (tester_name)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         `);
 
@@ -2041,7 +2117,7 @@ async function initializeDatabase() {
 
             for (const c of initialCases) {
                 await db.query(
-                    "INSERT INTO cases (id, category, function_category, `function`, content, type, expected, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO cases (id, category, function_category, `function`, expected, type, hint, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                     [...c, getBeijingTime()]
                 );
             }

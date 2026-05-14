@@ -7,7 +7,7 @@ const router = express.Router();
 // Fetch all cases
 router.get('/', async (req, res) => {
     try {
-        const [rows] = await db.query("SELECT * FROM cases ORDER BY id ASC");
+        const [rows] = await db.query("SELECT * FROM cases ORDER BY sort_order ASC, id ASC");
         res.json(rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -16,19 +16,19 @@ router.get('/', async (req, res) => {
 
 // Add or Update a case
 router.post('/', async (req, res) => {
-    const { id, category, functionCategory, function: func, content, type, expected, is_active } = req.body;
+    const { id, category, functionCategory, function: func, expected, type, hint, is_active } = req.body;
     if (!category || !func) return res.status(400).json({ error: 'Category and Function are required' });
 
     const query = `
-        INSERT INTO cases (id, category, function_category, \`function\`, content, type, expected, is_active, updated_at)
+        INSERT INTO cases (id, category, function_category, \`function\`, expected, type, hint, is_active, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
           category=VALUES(category),
           function_category=VALUES(function_category),
           \`function\`=VALUES(\`function\`),
-          content=VALUES(content),
-          type=VALUES(type),
           expected=VALUES(expected),
+          type=VALUES(type),
+          hint=VALUES(hint),
           is_active=VALUES(is_active),
           updated_at=VALUES(updated_at)
     `;
@@ -39,15 +39,15 @@ router.post('/', async (req, res) => {
             isActiveVal = is_active;
         } else {
             const [existing] = await db.query(
-                "SELECT is_active FROM cases WHERE id = ? OR (category = ? AND function_category = ? AND `function` = ? AND content = ?) LIMIT 1",
-                [id, category, functionCategory || '', func, content]
+                "SELECT is_active FROM cases WHERE id = ? OR (category = ? AND function_category = ? AND `function` = ? AND expected = ?) LIMIT 1",
+                [id, category, functionCategory || '', func, expected]
             );
             if (existing && existing.length > 0) {
                 isActiveVal = existing[0].is_active;
             }
         }
 
-        const [result] = await db.query(query, [id, category, functionCategory || '', func, content, type, expected, isActiveVal, getBeijingTime()]);
+        const [result] = await db.query(query, [id || null, category, functionCategory || '', func, expected, type, hint, isActiveVal, getBeijingTime()]);
         res.json({ message: 'Case saved successfully', id: id || result.insertId });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -62,49 +62,55 @@ router.post('/bulk', async (req, res) => {
     }
 
     const query = `
-        INSERT INTO cases (id, category, function_category, \`function\`, content, type, expected, is_active, updated_at)
+        INSERT INTO cases (id, category, function_category, \`function\`, expected, type, hint, is_active, updated_at, sort_order)
         VALUES ?
         ON DUPLICATE KEY UPDATE
           category=VALUES(category),
           function_category=VALUES(function_category),
           \`function\`=VALUES(\`function\`),
-          content=VALUES(content),
-          type=VALUES(type),
           expected=VALUES(expected),
+          type=VALUES(type),
+          hint=VALUES(hint),
           is_active=VALUES(is_active),
-          updated_at=VALUES(updated_at)
+          updated_at=VALUES(updated_at),
+          sort_order=VALUES(sort_order)
     `;
 
     try {
-        const [existingCases] = await db.query("SELECT id, category, function_category, `function`, content, is_active FROM cases");
-        const mapById = new Map();
+        const [existingCases] = await db.query("SELECT id, category, function_category, `function`, expected, is_active FROM cases");
         const mapByText = new Map();
+        let maxId = 0;
 
         existingCases.forEach(c => {
-            mapById.set(String(c.id), c);
-            const textKey = `${c.category}::${c.function_category}::${c.function}::${c.content}`;
+            if (c.id > maxId) maxId = c.id;
+            const textKey = `${c.category}::${c.function_category}::${c.function}::${c.expected}`;
             mapByText.set(textKey, c);
         });
 
-        const values = cases.map(c => {
-            const textKey = `${c.category}::${c.functionCategory || ''}::${c.function}::${c.content}`;
+        const values = cases.map((c, index) => {
+            const textKey = `${c.category}::${c.functionCategory || ''}::${c.function}::${c.expected}`;
             const existingByText = mapByText.get(textKey);
-            const existingById = mapById.get(String(c.id));
 
             let isActive = 1;
-            if (c.is_active !== undefined) {
-                isActive = c.is_active;
-            } else if (existingByText) {
-                isActive = existingByText.is_active;
-            } else if (existingById) {
-                isActive = existingById.is_active;
+            let targetId;
+
+            if (existingByText) {
+                // Exact match found! Reuse the existing ID to inherit test results.
+                targetId = existingByText.id;
+                isActive = c.is_active !== undefined ? c.is_active : existingByText.is_active;
+            } else {
+                // No match found. This is a NEW case. Generate a new internal ID.
+                maxId++;
+                targetId = maxId;
+                isActive = c.is_active !== undefined ? c.is_active : 1;
             }
 
             return [
-                c.id, c.category, c.functionCategory || '', c.function, c.content, c.type, c.expected, isActive, getBeijingTime()
+                targetId, c.category, c.functionCategory || '', c.function, c.expected, c.type, c.hint, isActive, getBeijingTime(), index + 1
             ];
         });
-
+        // Push all existing cases to the bottom. The ones present in the import will be updated with their exact index.
+        await db.query("UPDATE cases SET sort_order = 999999");
         await db.query(query, [values]);
         res.json({ message: 'Bulk import successful', count: cases.length });
     } catch (err) {

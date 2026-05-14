@@ -2,11 +2,12 @@ import React, { useRef, useEffect, useState } from 'react';
 import {
   Camera, Bug, ChevronLeft, ChevronRight, ChevronDown, Clock, CheckCircle2, XCircle,
   Menu, X, MinusCircle, Info, Database, FileText, Home, FastForward, BadgeCheck,
-  Send, Link
+  Send, Link, Target
 } from 'lucide-react';
 import { formatTime } from '../utils/formatters.js';
 import { FIELD_LABELS } from '../constants/labels.js';
 import ImageLightbox from '../components/ImageLightbox.jsx';
+import TargetIcon from '../assets/sfsc.png';
 
 export default function TestView({
   cases, caseResults, bugs,
@@ -158,7 +159,7 @@ export default function TestView({
         <div className="flex justify-between items-center w-full">
           <div className="flex gap-[8px] items-center">
             <div className="bg-[#2563eb] rounded-[6px] px-[8px] py-[4px] flex items-center justify-center">
-               <span className="text-[9px] font-[900] text-white">CASE {activeCase.id}</span>
+               <span className="text-[9px] font-[900] text-white">{activeCase.category || 'CASE'}</span>
             </div>
             {(activeCase.function_category || activeCase.functionCategory) && (
               <div className="bg-[#3b82f6]/10 border border-[#3b82f6]/20 rounded-[6px] px-[8px] py-[4px] flex items-center justify-center">
@@ -166,19 +167,34 @@ export default function TestView({
               </div>
             )}
           </div>
-          <span className="text-[10px] font-[800] text-[#64748b]">进度 {currentCaseIndex + 1} / {cases.length}</span>
+          <span className="text-[12px] font-[800] text-[#64748b]">进度 {currentCaseIndex + 1} / {cases.length}</span>
         </div>
 
         {/* Title */}
         <h2 className="text-[20px] font-[900] text-slate-900 dark:text-[#f8fafc] mt-[16px]">{activeCase.function}</h2>
-        {/* Expected result in quotes */}
-        <p className="text-[12px] font-[600] text-slate-500 dark:text-[#cbd5e1] mt-[8px]">"{activeCase.content || FIELD_LABELS.noExpectedCriteria}"</p>
+        {/* Expected result */}
+        <div className="flex items-center gap-[6px] mt-[8px]">
+          <div 
+            className="w-[24px] h-[24px] shrink-0 bg-slate-500 dark:bg-[#cbd5e1]"
+            style={{
+              WebkitMaskImage: `url(${TargetIcon})`,
+              WebkitMaskSize: 'contain',
+              WebkitMaskRepeat: 'no-repeat',
+              WebkitMaskPosition: 'center',
+              maskImage: `url(${TargetIcon})`,
+              maskSize: 'contain',
+              maskRepeat: 'no-repeat',
+              maskPosition: 'center'
+            }}
+          />
+          <p className="text-[14px] font-[600] text-slate-500 dark:text-[#cbd5e1]">{activeCase.expected || FIELD_LABELS.noExpectedCriteria}</p>
+        </div>
 
         {/* Test steps / method in blue info box */}
-        {activeCase.expected && (
-          <div className="mt-[16px] w-full rounded-[12px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#334155] p-[16px] flex gap-[12px]">
-            <Info size={16} className="text-[#3b82f6] shrink-0 mt-[1px]" />
-            <span className="text-[11px] font-[500] text-slate-700 dark:text-[#cbd5e1] leading-relaxed break-words whitespace-pre-wrap">{activeCase.expected}</span>
+        {activeCase.hint && (
+          <div className="mt-[12px] w-full rounded-[10px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#334155] py-[8px] px-[12px] flex items-center gap-[8px]">
+            <Info size={14} className="text-[#3b82f6] shrink-0" />
+            <span className="text-[10px] font-[500] text-slate-700 dark:text-[#cbd5e1] leading-snug break-words whitespace-pre-wrap">{activeCase.hint}</span>
           </div>
         )}
 
@@ -195,7 +211,7 @@ export default function TestView({
              <div className={`w-[40px] h-[40px] rounded-[20px] flex items-center justify-center ${currentData.startTime ? 'bg-[#2563eb]' : 'bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none'}`}>
                 <span className={`text-[14px] font-[900] ${currentData.startTime ? 'text-white' : 'text-[#64748b]'}`}>01</span>
              </div>
-             <span className="text-[8px] font-[800] text-[#64748b]">开始</span>
+             <span className="text-[10px] font-[800] text-[#64748b]">开始</span>
              <span className={`text-[12px] font-[800] ${currentData.startTime ? 'text-[#3b82f6]' : 'text-[#1e293b]'}`}>
                {currentData.startTime ? formatTime(currentData.startTime) : '--:--:--'}
              </span>
@@ -207,7 +223,7 @@ export default function TestView({
                <div className={`w-[40px] h-[40px] rounded-[20px] flex items-center justify-center ${currentData.carExecTime ? 'bg-[#d97706]' : 'bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none'}`}>
                   <span className={`text-[14px] font-[900] ${currentData.carExecTime ? 'text-white' : 'text-[#64748b]'}`}>02</span>
                </div>
-               <span className="text-[8px] font-[800] text-[#64748b]">车辆执行</span>
+               <span className="text-[10px] font-[800] text-[#64748b]">车辆执行</span>
                <span className={`text-[12px] font-[800] ${currentData.carExecTime ? 'text-[#f59e0b]' : 'text-[#1e293b]'}`}>
                  {currentData.carExecTime ? formatTime(currentData.carExecTime) : '--:--:--'}
                </span>
@@ -222,7 +238,7 @@ export default function TestView({
                    {(activeCase.hideCarExec || activeCase.type === 'query') ? '02' : '03'}
                  </span>
               </div>
-              <span className="text-[8px] font-[800] text-[#64748b]">App反馈</span>
+              <span className="text-[10px] font-[800] text-[#64748b]">App反馈</span>
               <span className={`text-[12px] font-[800] ${currentData.appFeedbackTime ? 'text-[#34d399]' : 'text-[#1e293b]'}`}>
                 {currentData.appFeedbackTime ? formatTime(currentData.appFeedbackTime) : '--:--:--'}
               </span>
@@ -305,13 +321,14 @@ export default function TestView({
           </div>
         )}
 
-        <div className="mt-[16px] w-full h-[48px] rounded-[24px] border border-slate-200 dark:border-[#334155] flex items-center px-[20px] bg-transparent focus-within:border-[#3b82f6]/50 transition-colors">
-          <input
-            type="text"
+        <div className="mt-[16px] w-full min-h-[48px] rounded-[24px] border border-slate-200 dark:border-[#334155] flex items-start px-[20px] py-[13px] bg-transparent focus-within:border-[#3b82f6]/50 transition-colors">
+          <textarea
             placeholder="点击新增备注..."
             value={currentData.notes || ''}
             onChange={(e) => updateCurrentResult({ notes: e.target.value })}
-            className="w-full bg-transparent text-[13px] font-[500] text-slate-800 dark:text-slate-200 placeholder:text-[#64748b] focus:outline-none"
+            onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+            rows={1}
+            className="w-full bg-transparent text-[13px] font-[500] text-slate-800 dark:text-slate-200 placeholder:text-[#64748b] focus:outline-none resize-none overflow-hidden leading-[22px]"
           />
         </div>
       </main>
@@ -434,7 +451,7 @@ export default function TestView({
                     className={`px-[16px] py-[12px] rounded-[16px] border transition-all cursor-pointer flex items-center gap-[12px] active:scale-95 ${i === currentCaseIndex ? 'bg-[#2563eb] border-[#3b82f6]' : 'bg-transparent border-slate-200 dark:border-[#334155] hover:border-slate-200 dark:border-[#475569]'}`}
                   >
                     <div className={`w-[32px] h-[32px] rounded-[10px] flex items-center justify-center font-[900] text-[12px] shrink-0 ${i === currentCaseIndex ? 'bg-white/20 text-white' : 'bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none text-slate-500 dark:text-[#cbd5e1]'}`}>
-                      {c.id}
+                      {i + 1}
                     </div>
                     <div className="flex-1 min-w-0 flex flex-col gap-[4px]">
                       {funcCat && (
@@ -443,7 +460,10 @@ export default function TestView({
                         </span>
                       )}
                       <span className={`text-[13px] font-[900] leading-tight truncate ${i === currentCaseIndex ? 'text-white' : 'text-slate-900 dark:text-[#f8fafc]'}`}>{c.function}</span>
-                      <span className={`text-[11px] font-[500] truncate leading-none ${i === currentCaseIndex ? 'text-white/70' : 'text-[#64748b]'}`}>{c.content || c.expected || ''}</span>
+                      <div className="flex items-center gap-[4px]">
+                        <span className={`text-[11px] font-[500] truncate leading-none ${i === currentCaseIndex ? 'text-white/70' : 'text-[#64748b]'}`}>{c.content || c.expected || ''}</span>
+                        <span className={`text-[9px] font-[700] shrink-0 ${i === currentCaseIndex ? 'text-white/40' : 'text-slate-300 dark:text-[#475569]'}`}>#{c.id}</span>
+                      </div>
                     </div>
                     {caseResults[i]?.result === 'Pass' && <CheckCircle2 size={16} className="text-[#10b981] shrink-0" />}
                     {caseResults[i]?.result === 'Fail' && <XCircle size={16} className="text-[#ef4444] shrink-0" />}

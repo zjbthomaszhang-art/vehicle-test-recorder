@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Crown, Undo2, CheckCircle2, Upload, X, Link, Send } from 'lucide-react';
 import { exportExcelReport } from '../utils/exportExcel.js';
+import TargetIcon from '../assets/trophy.png';
 
 export default function ReportView({
   cases, caseResults, bugs,
@@ -42,8 +43,14 @@ export default function ReportView({
   const handleExportPDF = async () => {
     setIsExporting(true);
     try {
+      // Build a (case, result) pair list, then sort by case ID for consistent Excel output
+      const paired = cases.map((c, i) => ({ c, r: caseResults[i] }));
+      paired.sort((a, b) => Number(a.c.id) - Number(b.c.id));
+      const sortedCases = paired.map(p => p.c);
+      const sortedResults = paired.map(p => p.r);
+
       await exportExcelReport({
-        cases, caseResults, bugs,
+        cases: sortedCases, caseResults: sortedResults, bugs,
         vehicle: { vehicleModel, modelYear, vin, productionStage, address, architecture, iviModule, commModule, testEnv, tester, mileage },
       });
       setToast?.({ message: '报告导出成功', type: 'success' });
@@ -102,7 +109,19 @@ export default function ReportView({
               </span>
             </div>
             <div className="flex flex-col items-center gap-[4px]">
-              <Crown size={48} className="text-[#3b82f6]/50" />
+              <div 
+                className="w-[48px] h-[48px] bg-slate-500 dark:bg-slate-400 opacity-80"
+                style={{
+                  WebkitMaskImage: `url(${TargetIcon})`,
+                  WebkitMaskSize: 'contain',
+                  WebkitMaskRepeat: 'no-repeat',
+                  WebkitMaskPosition: 'center',
+                  maskImage: `url(${TargetIcon})`,
+                  maskSize: 'contain',
+                  maskRepeat: 'no-repeat',
+                  maskPosition: 'center'
+                }}
+              />
               <span className="text-[11px] font-normal text-[#64748b]">
                 {tester || 'ALPHA Tester'}
               </span>
@@ -156,7 +175,7 @@ export default function ReportView({
                 {/* 标题行 */}
                 <div className="flex justify-between items-center gap-[8px]">
                   <span className="text-[12px] font-[700] text-[#ef4444] truncate">
-                    Case {c.id} · {c.function_category || c.functionCategory} // {c.function}
+                    Case {c.case_number || c.id} · {c.function_category || c.functionCategory} // {c.function}
                   </span>
                   <span className="text-[10px] font-[900] text-[#ef4444] shrink-0 bg-[#ef4444]/15 px-[8px] py-[2px] rounded-full">FAIL</span>
                 </div>
@@ -231,7 +250,7 @@ export default function ReportView({
                     </div>
                     <div className="flex items-center gap-[8px]">
                       <Link size={16} className="text-[#64748b] shrink-0" />
-                      <span className="text-[12px] font-[600] text-slate-500 dark:text-[#cbd5e1]">关联用例：Case {bug.case_id} - {linkedCase?.function || '未知'}</span>
+                      <span className="text-[12px] font-[600] text-slate-500 dark:text-[#cbd5e1]">关联用例：Case {linkedCase?.case_number || bug.case_id} - {linkedCase?.function || '未知'}</span>
                     </div>
                     <span className="text-[14px] font-[600] text-slate-700 dark:text-[#cbd5e1] break-words leading-relaxed">{bug.description}</span>
                     {bug.media && bug.media.length > 0 && (

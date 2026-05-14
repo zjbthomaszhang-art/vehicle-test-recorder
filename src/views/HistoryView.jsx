@@ -63,12 +63,12 @@ export default function HistoryView({
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0f1523] text-slate-800 dark:text-slate-100 flex flex-col font-sans">
-      <header className="px-[24px] pt-[44px] pb-[8px] w-full z-10 shrink-0">
+      <header className="px-[16px] pt-[44px] pb-[8px] w-full z-10 shrink-0">
         <h1 className="text-[26px] font-[800] text-slate-900 dark:text-white leading-none tracking-tight">历史测试记录</h1>
       </header>
 
       <main 
-        className="flex-1 overflow-y-auto px-[24px] pt-[16px] pb-[100px] flex flex-col gap-[12px] custom-scrollbar"
+        className="flex-1 overflow-y-auto px-[16px] pt-[16px] pb-[100px] flex flex-col gap-[12px] custom-scrollbar"
         onScroll={handleScroll}
       >
         {/* FilterSection */}
@@ -108,7 +108,7 @@ export default function HistoryView({
             <div className="flex-1 min-w-0">
               <input 
                  type="text" placeholder="工程代码"
-                 className="bg-slate-100 dark:bg-[#0f172a] border border-slate-200 dark:border-[#334155] rounded-[8px] w-full h-[36px] px-[12px] text-[14px] placeholder:text-[12px] text-slate-900 dark:text-white focus:outline-none focus:border-[#3b82f6] outline-none uppercase"
+                 className="bg-slate-100 dark:bg-[#0f172a] border border-slate-200 dark:border-[#334155] rounded-[8px] w-full h-[36px] px-[12px] placeholder:text-[12px] text-slate-900 dark:text-white focus:outline-none focus:border-[#3b82f6] outline-none uppercase placeholder:font-normal text-[16px] font-[700]"
                  value={filterCode} 
                  onChange={e => setFilterCode(e.target.value)}
                  onBlur={e => setFilterCode(e.target.value.replace(/[^A-Za-z0-9-]/g, '').toUpperCase())}
@@ -120,7 +120,7 @@ export default function HistoryView({
             </div>
             <div className="flex-1 min-w-0">
               <CustomSelect
-                textColor="text-slate-900 dark:text-white text-[16px]"
+                textColor="text-slate-900 dark:text-white text-[16px] font-[700]"
                 value={filterArch}
                 onChange={setFilterArch}
                 options={[{value:'',label:'全部架构'}, ...ARCHITECTURES]}
@@ -153,8 +153,9 @@ export default function HistoryView({
            ) : filteredSessions.slice(0, displayedCount).map(sess => {
              const execCount = parseInt(sess.case_count) || 0;
              const passCount = parseInt(sess.pass_count) || 0;
+             const passFailCount = parseInt(sess.pass_fail_count) || 0;
              const execRate = totalCases > 0 ? ((execCount / totalCases) * 100).toFixed(0) : 0;
-             const passRate = execCount > 0 ? ((passCount / execCount) * 100).toFixed(0) : 0;
+             const passRate = passFailCount > 0 ? ((passCount / passFailCount) * 100).toFixed(0) : 0;
 
              return (
                <div key={sess.id} className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#334155] rounded-[20px] p-[14px] flex flex-col gap-[10px]">
@@ -168,7 +169,7 @@ export default function HistoryView({
                            {sess.timestamp ? String(sess.timestamp).substring(0, 16).replace(/-/g, '/') : ''}
                         </span>
                      </div>
-                     <span className={`text-[20px] font-[900] ${passRate >= 90 ? 'text-[#22c55e]' : (passRate >= 60 ? 'text-[#eab308]' : 'text-[#ef4444]')}`}>
+                     <span className={`text-[20px] font-[900] bg-clip-text text-transparent bg-gradient-to-br ${passRate >= 90 ? 'from-[#10b981] via-[#2dd4bf] to-[#3b82f6]' : (passRate >= 60 ? 'from-[#f59e0b] via-[#f97316] to-[#ec4899]' : 'from-[#ef4444] via-[#e11d48] to-[#9333ea]')}`}>
                         通过率 {passRate}%
                      </span>
                   </div>

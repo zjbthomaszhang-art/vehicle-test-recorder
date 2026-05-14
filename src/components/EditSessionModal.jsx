@@ -33,7 +33,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete, v
   const [lightbox, setLightbox] = useState(null);
   const [formData, setFormData] = useState({
     vehicleModel: session.vehicle_model || '',
-    model_year:   session.model_year || '',
+    model_year:   session.model_year ? String(session.model_year).slice(-2) : '',
     vin:          session.vin || '',
     productionStage: session.production_stage || '',
     testEnv:      session.test_env || '',
@@ -95,6 +95,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete, v
               inputMode="numeric"
               value={formData.model_year}
               onChange={set('model_year', v => v.replace(/\D/g, ''))}
+              maxLength={2}
               className={inputCls}
             />
           </FieldRow>
@@ -130,7 +131,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete, v
                     ...prev,
                     vin: rawVal, // Keep exact typed characters in state
                     ...(decoded.program_cd    ? { vehicleModel: decoded.program_cd }    : {}),
-                    ...(decoded.veh_manuf_year ? { model_year: decoded.veh_manuf_year } : {}),
+                    ...(decoded.veh_manuf_year ? { model_year: String(decoded.veh_manuf_year).slice(-2) } : {}),
                   }));
                 } else {
                   const decodedYear = decodeModelYearFromVin(cleanVal);
@@ -338,7 +339,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete, v
           </button>
         </div>
 
-        <input type="file" ref={photoInputRef} className="hidden" accept="image/*" onChange={handlePhotoUpload} />
+        <input type="file" ref={photoInputRef} className="hidden text-[16px] font-[700]" accept="image/*" onChange={handlePhotoUpload} />
 
         {/* Custom Confirm Dialog for Deletion */}
         {deleteConfirm && (

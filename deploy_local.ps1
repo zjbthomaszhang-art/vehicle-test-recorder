@@ -42,6 +42,8 @@ Upload "src/utils/vinDecoder.js"    "src/utils/vinDecoder.js"
 Upload "src/utils/formatters.js"    "src/utils/formatters.js"
 Upload "src/utils/syncManager.js"   "src/utils/syncManager.js"
 Upload "src/utils/photoUpload.js"   "src/utils/photoUpload.js"
+Upload "src/utils/caseNumbering.js" "src/utils/caseNumbering.js"
+Upload "src/utils/exportExcel.js"   "src/utils/exportExcel.js"
 
 # ── src/hooks & src/constants ──────────────────────────────────────
 Upload "src/hooks/useTheme.js"           "src/hooks/useTheme.js"
@@ -52,6 +54,11 @@ Upload "src/constants/labels.js"        "src/constants/labels.js"
 Upload "src/App.jsx"    "src/App.jsx"
 Upload "src/main.jsx"   "src/main.jsx"
 Upload "src/index.css"  "src/index.css"
+
+# ── src/assets ─────────────────────────────────────────────────────
+ssh -i $SSH_KEY -o StrictHostKeyChecking=no "${REMOTE_USER}@${REMOTE_HOST}" "mkdir -p ${REMOTE_DIR}/src/assets"
+Upload "src/assets/sfsc.png" "src/assets/sfsc.png"
+Upload "src/assets/trophy.png" "src/assets/trophy.png"
 
 # ── Config files ───────────────────────────────────────────────────
 Upload "tailwind.config.js"  "tailwind.config.js"
@@ -72,6 +79,7 @@ Upload "server/routes/upload.cjs"     "server/routes/upload.cjs"
 Upload "server/routes/metrics.cjs"    "server/routes/metrics.cjs"
 Upload "server/routes/dbViewer.cjs"   "server/routes/dbViewer.cjs"
 Upload "server/routes/vinRules.cjs"   "server/routes/vinRules.cjs"
+Upload "server/routes/caseOrders.cjs" "server/routes/caseOrders.cjs"
 
 # ── nginx config ───────────────────────────────────────────────────
 scp -i $SSH_KEY -o StrictHostKeyChecking=no -r nginx "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/"
@@ -79,9 +87,14 @@ scp -i $SSH_KEY -o StrictHostKeyChecking=no -r nginx "${REMOTE_USER}@${REMOTE_HO
 Write-Host "Upload complete." -ForegroundColor DarkGray
 
 
-Write-Host "`n[2/3] Building on server and deploying..." -ForegroundColor Yellow
+Write-Host "`n[2/3] Building locally..." -ForegroundColor Yellow
+npm run build
+if ($LASTEXITCODE -ne 0) { throw "Local build failed" }
 
-$remoteScript = "set -e; cd ~/vehicle-test-recorder; echo '>>> Installing dependencies...'; /usr/bin/npm install; echo '>>> Building...'; /usr/bin/npm run build; echo '>>> Deploying...'; sudo rm -rf /var/www/vehicle-test-recorder/dist; sudo cp -r dist /var/www/vehicle-test-recorder/; sudo chown -R www-data:www-data /var/www/vehicle-test-recorder; /usr/bin/pm2 restart vehicle-recorder || /usr/bin/pm2 start /home/admin/vehicle-test-recorder/server/index.cjs --name vehicle-recorder --cwd /home/admin/vehicle-test-recorder; echo '>>> Done!'"
+Write-Host "`n[3/3] Uploading dist and deploying..." -ForegroundColor Yellow
+scp -i $SSH_KEY -o StrictHostKeyChecking=no -r dist "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/"
+
+$remoteScript = "set -e; cd ~/vehicle-test-recorder; echo '>>> Installing dependencies...'; /usr/bin/npm install --omit=dev; echo '>>> Deploying...'; sudo rm -rf /var/www/vehicle-test-recorder/dist; sudo cp -r dist /var/www/vehicle-test-recorder/; sudo chown -R www-data:www-data /var/www/vehicle-test-recorder; /usr/bin/pm2 restart vehicle-recorder || /usr/bin/pm2 start /home/admin/vehicle-test-recorder/server/index.cjs --name vehicle-recorder --cwd /home/admin/vehicle-test-recorder; echo '>>> Done!'"
 
 ssh -i $SSH_KEY -o StrictHostKeyChecking=no "${REMOTE_USER}@${REMOTE_HOST}" $remoteScript
 

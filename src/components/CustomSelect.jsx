@@ -103,7 +103,8 @@ export default function CustomSelect({
     };
   }, [isOpen]);
 
-  const selectedOpt = options.find(o => (typeof o === 'string' ? o : o.value) === value) || null;
+  const normalize = (v) => (v == null ? '' : String(v).toLowerCase());
+  const selectedOpt = options.find(o => normalize(typeof o === 'string' ? o : o.value) === normalize(value)) || null;
   const displayLabel = selectedOpt
     ? (typeof selectedOpt === 'string' ? selectedOpt : selectedOpt.label)
     : null;
@@ -152,7 +153,7 @@ export default function CustomSelect({
                 const optValue = typeof opt === 'string' ? opt : opt.value;
                 const optLabel = typeof opt === 'string' ? opt : opt.label;
                 const isRealOption = optValue != null && optValue !== '';
-                const isSelected = value === optValue && isRealOption;
+                const isSelected = normalize(value) === normalize(optValue) && isRealOption;
                 
                 return (
                   <div

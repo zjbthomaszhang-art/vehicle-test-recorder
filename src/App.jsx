@@ -4,6 +4,7 @@ import { FIELD_LABELS } from './constants/labels.js';
 import { createEmptyResult, compressImage } from './utils/formatters.js';
 import { syncManager } from './utils/syncManager.js';
 import { uploadPhoto } from './utils/photoUpload.js';
+import { assignHierarchicalNumbers } from './utils/caseNumbering.js';
 
 // Views
 import HomeView from './views/HomeView.jsx';
@@ -28,6 +29,8 @@ export default function NDLBRecorder() {
 
   // --- Test Cases ---
   const [cases, setCases] = useState(INITIAL_CASES);
+  // sessionCases: snapshot of cases bound to the current session (immutable after session creation)
+  const [sessionCases, setSessionCases] = useState([]);
 
   // Load cases from backend on mount
   useEffect(() => {
@@ -38,9 +41,11 @@ export default function NDLBRecorder() {
       })
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
-          const sorted = [...data].sort((a, b) => Number(a.id) - Number(b.id));
-          setCases(sorted);
-          setCaseResults(sorted.map(() => createEmptyResult()));
+          const sorted = [...data].sort((a, b) => Number(a.sort_order) - Number(b.sort_order) || Number(a.id) - Number(b.id));
+          const numbered = assignHierarchicalNumbers(sorted);
+          setCases(numbered);
+          setTestCases(numbered); // default: same as master
+          setCaseResults(numbered.map(() => createEmptyResult()));
         }
       })
       .catch(err => console.error('Failed to fetch cases:', err));
@@ -58,6 +63,30 @@ export default function NDLBRecorder() {
   const [envPhotos, setEnvPhotos] = useState([]);
   const [testEnv, setTestEnv] = useState('');
   const [tester, setTester] = useState('');
+
+  // testCases: cases ordered per tester's preference (used in TestView/ReportView)
+  // cases: master list sorted by ID (used everywhere else)
+  const [testCases, setTestCases] = useState([]);
+
+  // Apply a tester's custom order to the master case list
+  const applyTesterOrder = async (testerName, masterCases) => {
+    if (!testerName) return masterCases;
+    try {
+      const res = await fetch(`${API_BASE}/case-orders/${encodeURIComponent(testerName)}`);
+      if (!res.ok) return masterCases;
+      const data = await res.json();
+      const ids = data.case_ids;
+      if (!Array.isArray(ids) || ids.length === 0) return masterCases;
+      // Reorder: first pick cases matching saved order, append any unlisted ones at the end
+      const idMap = new Map(masterCases.map(c => [String(c.id), c]));
+      const ordered = ids.map(id => idMap.get(String(id))).filter(Boolean);
+      const listed = new Set(ids.map(String));
+      const remaining = masterCases.filter(c => !listed.has(String(c.id)));
+      return [...ordered, ...remaining];
+    } catch {
+      return masterCases;
+    }
+  };
   const [mileage, setMileage] = useState('');
   const [remarks, setRemarks] = useState('');
   const [vinRules, setVinRules] = useState([]);
@@ -79,8 +108,10 @@ export default function NDLBRecorder() {
   // Track previous results refs for auto-save detection
   const prevResultsRef = useRef([]);
   const sessionIdRef = useRef(currentSessionId);
+  const testCasesRef = useRef([]);  // always in sync with testCases state
   const saveQueueRef = useRef(Promise.resolve());
   useEffect(() => { sessionIdRef.current = currentSessionId; }, [currentSessionId]);
+  useEffect(() => { testCasesRef.current = testCases; }, [testCases]);
   const [historySessions, setHistorySessions] = useState([]);
   const [allBugs, setAllBugs] = useState([]);
   const [topFailed, setTopFailed] = useState([]);
@@ -200,12 +231,13 @@ export default function NDLBRecorder() {
   }, [toast]);
 
 
-  // Sync caseResults length when cases change
+  // Sync caseResults length when cases change (use testCases order if available)
   useEffect(() => {
-    if (caseResults.length !== cases.length) {
-      setCaseResults(cases.map((_, i) => caseResults[i] || createEmptyResult()));
+    const activeCases = testCases.length > 0 ? testCases : cases;
+    if (caseResults.length !== activeCases.length) {
+      setCaseResults(activeCases.map((_, i) => caseResults[i] || createEmptyResult()));
     }
-  }, [cases]);
+  }, [cases, testCases]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const clearFormFields = () => {
     setVehicleModel(''); setModelYear(''); setVin(''); setAddress('');
@@ -222,6 +254,7 @@ export default function NDLBRecorder() {
     setBugs([]);
     setCurrentCaseIndex(0);
     setCurrentSessionId(null);
+    setSessionCases([]);
   };
 
   const handleFullReset = () => {
@@ -239,7 +272,6 @@ export default function NDLBRecorder() {
 
   // Continue an existing session from HistoryView — restores all fields + test results from DB
   const handleContinueSession = async (sess) => {
-    // 1. Set vehicle fields immediately from the list data
     setVehicleModel(sess.vehicle_model || '');
     setModelYear(sess.model_year || '');
     setVin(sess.vin || '');
@@ -260,48 +292,65 @@ export default function NDLBRecorder() {
       setEnvPhotos([]);
     }
 
-    // 2. Fetch full session details to restore individual test results
     try {
       const res = await fetch(`${API_BASE}/test-sessions/${sess.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.results && Array.isArray(data.results)) {
-          // Map DB results back to caseResults format, keyed by case_id
-          const resultMap = {};
-          data.results.forEach(r => {
-            resultMap[r.case_id] = {
-              startTime: r.start_time ? new Date(r.start_time).getTime() : null,
-              carExecTime: r.car_exec_time ? new Date(r.car_exec_time).getTime() : null,
-              appFeedbackTime: r.app_feedback_time ? new Date(r.app_feedback_time).getTime() : null,
-              result: r.result || '',
-              notes: r.notes || '',
-              media: [],
-            };
-          });
-          const restored = cases.map(c => resultMap[c.id] || createEmptyResult());
-          setCaseResults(restored);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
 
-          // 3. Jump to the first case that has no result yet
-          const firstUntested = restored.findIndex(r => !r.result);
-          setCurrentCaseIndex(firstUntested >= 0 ? firstUntested : 0);
-        } else {
-          setCaseResults(cases.map(() => createEmptyResult()));
-          setCurrentCaseIndex(0);
-        }
+      // Use session_cases snapshot as the case list for this session
+      let casesForSession;
+      if (data.sessionCases && data.sessionCases.length > 0) {
+        // Snapshot exists: use it directly (normalize field names)
+        casesForSession = data.sessionCases.map(sc => ({
+          ...sc,
+          functionCategory: sc.function_category,
+        }));
+        setSessionCases(casesForSession);
       } else {
-        setCaseResults(cases.map(() => createEmptyResult()));
+        // Old session without snapshot: fall back to current case library + tester order
+        const ordered = await applyTesterOrder(sess.tester || '', cases);
+        casesForSession = ordered;
+        setSessionCases([]);
+      }
+
+      setTestCases(casesForSession);
+
+      if (data.results && Array.isArray(data.results)) {
+        // Map results by session_case_id (preferred) or case_id (fallback)
+        const resultMap = {};
+        data.results.forEach(r => {
+          const key = r.session_case_id || r.case_id;
+          if (key) resultMap[key] = {
+            startTime: r.start_time ? new Date(r.start_time).getTime() : null,
+            carExecTime: r.car_exec_time ? new Date(r.car_exec_time).getTime() : null,
+            appFeedbackTime: r.app_feedback_time ? new Date(r.app_feedback_time).getTime() : null,
+            result: r.result || '',
+            notes: r.notes || '',
+            media: [],
+          };
+        });
+        const restored = casesForSession.map(c => {
+          // Prefer session_case_id lookup, then original_case_id, then id
+          return resultMap[c.id] || resultMap[c.original_case_id] || createEmptyResult();
+        });
+        setCaseResults(restored);
+        const firstUntested = restored.findIndex(r => !r.result);
+        setCurrentCaseIndex(firstUntested >= 0 ? firstUntested : 0);
+      } else {
+        setCaseResults(casesForSession.map(() => createEmptyResult()));
         setCurrentCaseIndex(0);
       }
     } catch (err) {
       console.error('Failed to load session results:', err);
-      setCaseResults(cases.map(() => createEmptyResult()));
+      const fallback = await applyTesterOrder(sess.tester || '', cases);
+      setTestCases(fallback);
+      setSessionCases([]);
+      setCaseResults(fallback.map(() => createEmptyResult()));
       setCurrentCaseIndex(0);
     }
 
-    // 4. Restore session bugs from the global allBugs cache
     const sessionBugs = allBugs.filter(b => String(b.session_id) === String(sess.id));
     setBugs(sessionBugs);
-
     setCurrentSessionId(sess.id);
     setView('test');
   };
@@ -322,19 +371,27 @@ export default function NDLBRecorder() {
     if (type === 'app') updateCurrentResult({ appFeedbackTime: now });
   };
 
-  const buildSessionData = (sessionId = null) => ({
-    sessionId: sessionId || currentSessionId,
-    vehicle: { vehicleModel, model_year: modelYear, vin, production_stage: productionStage, address, architecture, iviModule, commModule, test_env: testEnv, envPhotos, tester, mileage, remarks },
-    results: caseResults.map((res, idx) => ({
-      case_id: cases[idx].id,
-      start_time: res.startTime,
-      car_exec_time: res.carExecTime,
-      app_feedback_time: res.appFeedbackTime,
-      result: res.result,
-      notes: res.notes,
-      media: res.media
-    }))
-  });
+  const buildSessionData = (sessionId = null) => {
+    const activeCases = testCasesRef.current.length > 0 ? testCasesRef.current : cases;
+    // Prefer session_case_id (snapshot ID) over original case_id
+    return {
+      sessionId: sessionId || currentSessionId,
+      vehicle: { vehicleModel, model_year: modelYear, vin, production_stage: productionStage, address, architecture, iviModule, commModule, test_env: testEnv, envPhotos, tester, mileage, remarks },
+      results: caseResults.map((res, idx) => {
+        const c = activeCases[idx] || cases[idx];
+        return {
+          case_id: c?.original_case_id || c?.id,          // original case library ID
+          session_case_id: c?.original_case_id ? c.id : null, // snapshot ID (only set if using sessionCases)
+          start_time: res.startTime,
+          car_exec_time: res.carExecTime,
+          app_feedback_time: res.appFeedbackTime,
+          result: res.result,
+          notes: res.notes,
+          media: res.media
+        };
+      })
+    };
+  };
 
   // Silent auto-save (no toast, no loading indicator)
   const autoSave = () => {
@@ -447,7 +504,8 @@ export default function NDLBRecorder() {
       }
     }
 
-    const activeCase = cases[currentCaseIndex];
+    const activeCaseList = testCasesRef.current.length > 0 ? testCasesRef.current : cases;
+    const activeCase = activeCaseList[currentCaseIndex];
     const currentData = caseResults[currentCaseIndex];
 
     if (!currentData.notes || currentData.notes.trim() === '') {
@@ -531,14 +589,12 @@ export default function NDLBRecorder() {
     }
   };
 
-  // --- Auto-create session when first entering test view (retries when back online) ---
+  // --- Auto-create session when first entering test view ---
   const isCreatingSessionRef = useRef(false);
   useEffect(() => {
-    // Reset result tracking when entering test
     if (view === 'test') {
       prevResultsRef.current = caseResults.map(r => r.result);
     }
-    // Create session if: on test view, online, no real session yet, not already creating
     if (view === 'test' && isOnline && !sessionIdRef.current && !isCreatingSessionRef.current) {
       isCreatingSessionRef.current = true;
       saveSession(true)
@@ -546,15 +602,23 @@ export default function NDLBRecorder() {
           const sid = data?.sessionId;
           if (sid && !String(sid).startsWith('offline-')) {
             setCurrentSessionId(sid);
-            console.log('[AutoSession] Created:', sid);
-          } else {
-            console.warn('[AutoSession] No real session ID yet:', sid);
+            // Store the session_cases snapshot returned from the server
+            if (data.sessionCases && Array.isArray(data.sessionCases)) {
+              const snapshotCases = data.sessionCases.map(sc => ({
+                ...sc,
+                functionCategory: sc.function_category,
+              }));
+              setSessionCases(snapshotCases);
+              setTestCases(snapshotCases);
+              setCaseResults(snapshotCases.map((_, i) => caseResults[i] || createEmptyResult()));
+            }
+            console.log('[AutoSession] Created:', sid, 'with', data.sessionCases?.length, 'snapshot cases');
           }
         })
         .catch(err => console.error('[AutoSession] Failed:', err))
         .finally(() => { isCreatingSessionRef.current = false; });
     }
-  }, [view, isOnline]); // isOnline added: retries when backend comes back up
+  }, [view, isOnline]);
 
   // --- Auto-save when any case result (verdict) changes ---
   useEffect(() => {
@@ -573,7 +637,7 @@ export default function NDLBRecorder() {
 
   // --- Route to correct view ---
   const commonTestProps = {
-    cases, caseResults, bugs,
+    cases: testCases, caseResults, bugs,
     currentCaseIndex, setCurrentCaseIndex,
     vehicleModel, modelYear, vin,
     updateCurrentResult, handleTimeClick,
@@ -613,7 +677,7 @@ export default function NDLBRecorder() {
       {view === 'test' && <TestView {...commonTestProps} />}
       {view === 'report' && (
         <ReportView
-          cases={cases} caseResults={caseResults} bugs={bugs}
+          cases={testCases} caseResults={caseResults} bugs={bugs}
           vehicleModel={vehicleModel} modelYear={modelYear} vin={vin}
           productionStage={productionStage} testEnv={testEnv}
           address={address} architecture={architecture}
@@ -625,7 +689,7 @@ export default function NDLBRecorder() {
         />
       )}
       {view === 'admin' && (
-        <AdminView cases={cases} setCases={setCases} setView={setView} setToast={setToast} />
+        <AdminView cases={cases} setCases={setCases} setView={setView} setToast={setToast} API_BASE={API_BASE} />
       )}
       {view === 'dashboard' && (
         <DashboardView API_BASE={API_BASE} cases={cases} bugs={allBugs} historySessions={historySessions} topFailed={topFailed} setView={setView} />
@@ -726,7 +790,7 @@ export default function NDLBRecorder() {
         />
       )}
 
-      <input type="file" ref={photoInputRef} className="hidden" accept="image/*" onChange={handlePhotoUpload} />
+      <input type="file" ref={photoInputRef} className="hidden text-[16px] font-[700]" accept="image/*" onChange={handlePhotoUpload} />
       <Toast toast={toast} />
 
       {/* Global Mobile Navigator */}
@@ -734,16 +798,21 @@ export default function NDLBRecorder() {
         <MobileNavigator
           currentView={view}
           setView={setView}
-          onTestPress={() => {
+          onTestPress={async () => {
             if (view === 'home') {
               if (!vehicleModel || !vin || !tester || !mileage) {
                 setToast({ message: '执行验证测试前，请先完善测试信息。', type: 'error' });
                 return;
               }
-              // Already on home — go straight to test
+              // Apply tester's custom case order before entering test
+              // Note: session_cases snapshot will be created & returned when saveSession fires
+              const ordered = await applyTesterOrder(tester, cases);
+              setTestCases(ordered);
+              setSessionCases([]);   // will be populated after auto-session creation
+              setCaseResults(ordered.map(() => createEmptyResult()));
+              setCurrentCaseIndex(0);
               setView('test');
             } else {
-              // From any other view — clear only the form fields
               clearFormFields();
               setView('home');
             }

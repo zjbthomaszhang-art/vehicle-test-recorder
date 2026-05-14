@@ -7,15 +7,24 @@ const router = express.Router();
 // Fetch bugs with optional filters
 router.get('/', async (req, res) => {
     const { session_id, case_id } = req.query;
-    let query = "SELECT * FROM bugs WHERE 1=1";
+    let query = `
+        SELECT b.*, 
+               COALESCE(sc.function_category, c.function_category, sc.category, c.category) as function_category,
+               COALESCE(sc.\`function\`, c.\`function\`) as \`function\`,
+               COALESCE(sc.expected, c.expected) as expected
+        FROM bugs b
+        LEFT JOIN session_cases sc ON b.session_case_id = sc.id
+        LEFT JOIN cases c ON b.case_id = c.id
+        WHERE 1=1
+    `;
     const params = [];
 
     if (session_id) {
-        query += " AND session_id = ?";
+        query += " AND b.session_id = ?";
         params.push(session_id);
     }
     if (case_id) {
-        query += " AND case_id = ?";
+        query += " AND b.case_id = ?";
         params.push(case_id);
     }
 
