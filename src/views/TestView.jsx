@@ -68,6 +68,11 @@ export default function TestView({
   const minSwipeDistance = 70;
 
   const validateTimeFields = () => {
+    // 选了不适用，可以直接跳过时间校验
+    if (currentData.result === 'N/A' || currentData.result === 'NA') {
+      return true;
+    }
+
     if (activeCase.type === 'query') {
       if (!currentData.appFeedbackTime) {
         setToast({ message: '请先记录 App 反馈时间', type: 'error' });
