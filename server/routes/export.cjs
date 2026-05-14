@@ -3,13 +3,6 @@ const ExcelJS = require('exceljs');
 
 const router = express.Router();
 
-// Professional colors
-const COLOR_HEADER_BG = 'FF44546A';
-const COLOR_HEADER_TEXT = 'FFFFFFFF';
-const COLOR_PASS = 'FF00B050'; // Green
-const COLOR_FAIL = 'FFFF0000'; // Red
-const COLOR_NA   = 'FF808080'; // Gray
-
 const BORDER_STYLE = {
   top: { style: 'thin', color: { argb: 'FF000000' } },
   left: { style: 'thin', color: { argb: 'FF000000' } },
@@ -17,332 +10,286 @@ const BORDER_STYLE = {
   right: { style: 'thin', color: { argb: 'FF000000' } },
 };
 
-function styleHeader(row) {
-  row.eachCell((cell) => {
-    cell.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: COLOR_HEADER_BG },
-    };
-    cell.font = {
-      color: { argb: COLOR_HEADER_TEXT },
-      bold: true,
-      size: 11,
-    };
-    cell.alignment = { vertical: 'middle', horizontal: 'center' };
-    cell.border = BORDER_STYLE;
-  });
-  row.height = 25;
-}
-
-function applyDataStyle(sheet, startRow = 2) {
-  sheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
-    if (rowNumber < startRow) return;
-    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-      cell.border = BORDER_STYLE;
-      cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
-
-      // Highlight Result column
-      const headerCell = sheet.getRow(startRow - 1).getCell(colNumber);
-      const headerText = String(headerCell ? headerCell.value : '');
-
-      if (headerText === '结果') {
-        const val = String(cell.value || '').trim();
-        if (val === 'Pass') {
-          cell.font = { color: { argb: COLOR_PASS }, bold: true };
-          cell.alignment = { vertical: 'middle', horizontal: 'center' };
-        } else if (val === 'Fail') {
-          cell.font = { color: { argb: COLOR_FAIL }, bold: true };
-          cell.alignment = { vertical: 'middle', horizontal: 'center' };
-        } else if (val === 'N/A') {
-          cell.font = { color: { argb: COLOR_NA }, bold: true };
-          cell.alignment = { vertical: 'middle', horizontal: 'center' };
-        }
-      } else if (['开始时间','车辆执行时间','App反馈时间','车辆响应耗时(s)','App响应耗时(s)'].includes(headerText)) {
-        cell.alignment = { vertical: 'middle', horizontal: 'right', wrapText: true };
-      }
-    });
-  });
-}
-
 function getFmt(v) {
-  return (v && !isNaN(new Date(v).getTime())) ? new Date(v).toTimeString().slice(0, 8) : '';
+  if (!v) return '/';
+  const d = new Date(v);
+  if (isNaN(d.getTime())) return '/';
+  return d.toTimeString().slice(0, 8);
 }
 
-async function addVehicleSheet(workbook, rows) {
-  const sheet = workbook.addWorksheet('车辆服务', {
-    views: [{ state: 'frozen', ySplit: 1 }]
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+}
+
+function drawTemplateHeaders(sheet, title, info, isApp) {
+  sheet.views = [{ showGridLines: false, state: 'frozen', ySplit: 15 }];
+
+  sheet.getCell('C2').value = title;
+  sheet.getCell('C2').font = { size: 16, bold: true, name: '微软雅黑' };
+  
+  sheet.getCell('D5').value = '日期：';
+  sheet.getCell('E5').value = info.date;
+  sheet.getCell('G5').value = '测试人员：';
+  sheet.getCell('H5').value = info.tester;
+
+  sheet.getCell('D7').value = '车型：';
+  sheet.getCell('E7').value = info.model;
+  sheet.getCell('G7').value = 'VIN：';
+  sheet.getCell('H7').value = info.vin;
+
+  sheet.getCell('D9').value = '里程：';
+  sheet.getCell('E9').value = info.mileage;
+  sheet.getCell('G9').value = 'STID：';
+  sheet.getCell('H9').value = info.stid;
+
+  sheet.getCell('D11').value = '测试城市：';
+  sheet.getCell('E11').value = info.city;
+  
+  if (isApp) {
+    sheet.getCell('G11').value = '手机版本：';
+    sheet.getCell('H11').value = info.appVersion;
+  } else {
+    sheet.getCell('G11').value = '测试地点：';
+    sheet.getCell('H11').value = info.address;
+  }
+
+  [5, 7, 9, 11].forEach(r => {
+    sheet.getCell(`D${r}`).font = { bold: true, name: '微软雅黑', size: 11 };
+    sheet.getCell(`E${r}`).font = { bold: false, name: '微软雅黑', size: 11 };
+    sheet.getCell(`G${r}`).font = { bold: true, name: '微软雅黑', size: 11 };
+    sheet.getCell(`H${r}`).font = { bold: false, name: '微软雅黑', size: 11 };
+    
+    sheet.getCell(`D${r}`).alignment = { horizontal: 'right', vertical: 'middle' };
+    sheet.getCell(`E${r}`).alignment = { horizontal: 'left', vertical: 'middle' };
+    sheet.getCell(`G${r}`).alignment = { horizontal: 'right', vertical: 'middle' };
+    sheet.getCell(`H${r}`).alignment = { horizontal: 'left', vertical: 'middle' };
   });
 
-  sheet.columns = [
-    { header: '用例编号', key: 'no',      width: 15 },
-    { header: '大类',     key: 'cat',     width: 12 },
-    { header: '功能分类', key: 'funcCat', width: 22 },
-    { header: '功能名称', key: 'func',    width: 25 },
-    { header: '期望结果', key: 'expected', width: 40 },
-    { header: '开始时间', key: 'time',    width: 15 },
-    { header: '结果',     key: 'result',  width: 10 },
-    { header: '备注',     key: 'notes',   width: 50 },
-  ];
+  sheet.getCell('C13').value = '详细测试数据';
+  sheet.getCell('C13').font = { bold: true, size: 12, name: '微软雅黑' };
 
-  rows.forEach(({ c, r }, i) => {
-    sheet.addRow({
-      no: c.case_number || c.id || (i + 1),
-      cat: c.category || '',
-      funcCat: c.function_category || c.functionCategory || '',
-      func: c.function || '',
-      expected: c.expected || '',
-      time: getFmt(r.startTime || r.start_time),
-      result: r.result || '',
-      notes: r.notes || '',
+  // Set widths
+  sheet.getColumn('A').width = 2;
+  sheet.getColumn('B').width = 2;
+  sheet.getColumn('C').width = 8;  // No.
+  sheet.getColumn('D').width = 16; // 功能大类
+  sheet.getColumn('E').width = 25; // 功能
+  sheet.getColumn('F').width = 30; // 测试内容
+  sheet.getColumn('G').width = 20; // 测试开始时间
+  sheet.getColumn('H').width = 16; // 结果 / 执行时长
+  sheet.getColumn('I').width = 16; // 备注 / 反馈时长
+  sheet.getColumn('J').width = 14; // 最终结果
+  sheet.getColumn('K').width = 25; // 备注
+}
+
+function applyDataStyles(sheet, rowNum, colCount) {
+  const row = sheet.getRow(rowNum);
+  for (let i = 1; i <= colCount; i++) {
+    const cell = row.getCell(i + 2); // Start from C
+    cell.border = BORDER_STYLE;
+    cell.font = { name: '微软雅黑', size: 10 };
+    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    
+    // Left align text columns like 功能大类, 功能, 测试内容, 备注
+    if (i === 2 || i === 3 || i === 4 || i === colCount) {
+      cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+    }
+
+    // Colors for result
+    const val = String(cell.value || '').trim();
+    if (val === 'Pass') {
+      cell.font = { color: { argb: 'FF00B050' }, bold: true, name: '微软雅黑', size: 10 };
+    } else if (val === 'Fail') {
+      cell.font = { color: { argb: 'FFFF0000' }, bold: true, name: '微软雅黑', size: 10 };
+    } else if (val === 'N/A' || val === 'NA') {
+      cell.font = { color: { argb: 'FF808080' }, bold: true, name: '微软雅黑', size: 10 };
+    }
+  }
+}
+
+async function buildExport(req, res) {
+  const { cases = [], caseResults = [], bugs = [], vehicle = {} } = req.body;
+  const { vehicleModel = '', modelYear = '', vin = '', address = '', tester = '', mileage = '' } = vehicle;
+  
+  // Extract city from address heuristically
+  let city = '';
+  if (address) {
+    if (address.includes('市')) {
+      city = address.split('市')[0] + '市';
+    } else {
+      city = address;
+    }
+  }
+
+  const info = {
+    date: formatDate(new Date()),
+    tester: tester || '',
+    model: `${modelYear ? 'MY' + modelYear : ''} ${vehicleModel}`.trim(),
+    vin: vin || '',
+    mileage: mileage ? `${mileage}KM` : '',
+    stid: '',
+    city: city,
+    address: address || '',
+    appVersion: '11.0.5' // Default placeholder
+  };
+
+  const workbook = new ExcelJS.Workbook();
+  
+  // --- Cover Page ---
+  const wsCover = workbook.addWorksheet('Cover page');
+  wsCover.views = [{ showGridLines: false }];
+  wsCover.getCell('C5').value = 'Vehicle Test Report';
+  wsCover.getCell('C5').font = { size: 24, bold: true, name: '微软雅黑' };
+
+  // --- 车辆服务 Sheet ---
+  const wsVehicle = workbook.addWorksheet('车辆服务');
+  drawTemplateHeaders(wsVehicle, `${vehicleModel}车辆按键验证测试- 车辆服务`, info, false);
+  
+  // Header Row 15
+  const vHeaders = ["No.", "功能大类", "功能", "测试内容", "测试时间\\n测试开始时间         ", "最终结果:\\nPass/Fail", "备注"];
+  const vRow15 = wsVehicle.getRow(15);
+  vRow15.height = 35;
+  vHeaders.forEach((h, idx) => {
+    const cell = vRow15.getCell(idx + 3);
+    cell.value = h.replace(/\\n/g, '\n');
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE7E6E6' } };
+    cell.font = { bold: true, name: '微软雅黑', size: 10 };
+    cell.border = BORDER_STYLE;
+    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+  });
+
+  const vehicleRows = cases.map((c, i) => ({ c, r: caseResults[i] || {} })).filter(({ c }) => c.category === '车辆服务');
+  vehicleRows.forEach(({ c, r }, idx) => {
+    const rNum = 16 + idx;
+    const row = wsVehicle.getRow(rNum);
+    row.getCell('C').value = c.case_number || c.id || (idx + 1);
+    row.getCell('D').value = c.function_category || c.functionCategory || c.category || '';
+    row.getCell('E').value = c.function || '';
+    row.getCell('F').value = c.expected || '';
+    row.getCell('G').value = getFmt(r.startTime || r.start_time);
+    row.getCell('H').value = r.result || '/';
+    row.getCell('I').value = r.notes || '';
+    applyDataStyles(wsVehicle, rNum, 7);
+  });
+
+  // --- 手机APP Sheets ---
+  const addAppSheetWithData = (sheetName, titleSuffix) => {
+    const wsApp = workbook.addWorksheet(sheetName);
+    drawTemplateHeaders(wsApp, `${vehicleModel}车辆手机APP验证测试- ${titleSuffix}`, info, true);
+    
+    const aHeaders = ["No.", "功能大类", "功能", "测试内容", "测试开始时间        ", "车辆执行时长/秒", "APP反馈时长/秒", "最终结果:\\nPass/Fail", "备注"];
+    const aRow15 = wsApp.getRow(15);
+    aRow15.height = 35;
+    aHeaders.forEach((h, idx) => {
+      const cell = aRow15.getCell(idx + 3);
+      cell.value = h.replace(/\\n/g, '\n');
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE7E6E6' } };
+      cell.font = { bold: true, name: '微软雅黑', size: 10 };
+      cell.border = BORDER_STYLE;
+      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    });
+
+    const appRows = cases.map((c, i) => ({ c, r: caseResults[i] || {} })).filter(({ c }) => c.category === '手机应用' && (c.function_category || c.functionCategory) === sheetName);
+    appRows.forEach(({ c, r }, idx) => {
+      const rNum = 16 + idx;
+      const row = wsApp.getRow(rNum);
+      
+      const startVal = r.startTime || r.start_time;
+      const carVal   = r.carExecTime || r.car_exec_time;
+      const appVal   = r.appFeedbackTime || r.app_feedback_time;
+      const startMs  = startVal ? new Date(startVal).getTime() : null;
+      const carMs    = carVal ? new Date(carVal).getTime() : null;
+      const appMs    = appVal ? new Date(appVal).getTime() : null;
+
+      const carDur = (startMs && carMs && !isNaN(startMs) && !isNaN(carMs)) ? Number(((carMs - startMs) / 1000).toFixed(2)) : '/';
+      const appDur = (startMs && appMs && !isNaN(startMs) && !isNaN(appMs)) ? Number(((appMs - startMs) / 1000).toFixed(2)) : '/';
+
+      row.getCell('C').value = c.case_number || c.id || (idx + 1);
+      row.getCell('D').value = c.function_category || c.functionCategory || c.category || '';
+      row.getCell('E').value = c.function || '';
+      row.getCell('F').value = c.expected || '';
+      row.getCell('G').value = getFmt(startVal);
+      row.getCell('H').value = carDur;
+      row.getCell('I').value = appDur;
+      row.getCell('J').value = r.result || '/';
+      row.getCell('K').value = r.notes || '';
+      applyDataStyles(wsApp, rNum, 9);
+    });
+  };
+
+  addAppSheetWithData('手机APP-iOS', '手机APP-iOS');
+  addAppSheetWithData('手机APP-Android', '手机APP-Android');
+
+  // --- SGM 问题清单 ---
+  const wsBugs = workbook.addWorksheet('SGM问题清单 ');
+  wsBugs.views = [{ state: 'frozen', ySplit: 1 }];
+  wsBugs.columns = [
+    { header: '序号', key: 'no', width: 8 },
+    { header: '测试车型', key: 'model', width: 25 },
+    { header: 'VIN', key: 'vin', width: 20 },
+    { header: '测试地点', key: 'loc', width: 22 },
+    { header: '里程数 (KM)', key: 'mil', width: 14 },
+    { header: '发现人', key: 'user', width: 12 },
+    { header: '问题提出时间', key: 'time', width: 20 },
+    { header: '问题描述', key: 'desc', width: 60 },
+  ];
+  const bugHeader = wsBugs.getRow(1);
+  bugHeader.eachCell(c => {
+    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF44546A' } };
+    c.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+    c.alignment = { vertical: 'middle', horizontal: 'center' };
+  });
+  bugs.forEach((bug, i) => {
+    wsBugs.addRow({
+      no: i + 1,
+      model: `${modelYear ? 'MY' + modelYear : ''} ${vehicleModel}`,
+      vin, loc: address, mil: mileage, user: tester,
+      time: bug.timestamp ? String(bug.timestamp).substring(0, 16) : '',
+      desc: bug.description,
     });
   });
 
-  styleHeader(sheet.getRow(1));
-  applyDataStyle(sheet);
-  sheet.autoFilter = 'A1:H1';
-}
-
-async function addAppSheet(workbook, name, rows) {
-  const sheet = workbook.addWorksheet(name, {
-    views: [{ state: 'frozen', ySplit: 1 }]
-  });
-
-  sheet.columns = [
-    { header: '用例编号',       key: 'no',      width: 15 },
-    { header: '大类',           key: 'cat',     width: 12 },
-    { header: '功能分类',       key: 'funcCat', width: 22 },
-    { header: '功能名称',       key: 'func',    width: 25 },
-    { header: '期望结果',       key: 'expected', width: 40 },
-    { header: '开始时间',       key: 'time',    width: 15 },
-    { header: '车辆执行时间',   key: 'carT',    width: 15 },
-    { header: 'App反馈时间',    key: 'appT',    width: 15 },
-    { header: '车辆响应耗时(s)', key: 'carD',   width: 14 },
-    { header: 'App响应耗时(s)', key: 'appD',    width: 14 },
-    { header: '结果',           key: 'result',  width: 10 },
-    { header: '备注',           key: 'notes',   width: 50 },
+  // --- 截图 ---
+  const wsScreenshots = workbook.addWorksheet('截图');
+  wsScreenshots.columns = [
+    { header: '功能名称',  key: 'func', width: 30 },
+    { header: '截图序号',  key: 'idx',  width: 12 },
+    { header: '截图地址',  key: 'url',  width: 100 },
   ];
-
-  rows.forEach(({ c, r }, i) => {
-    const startVal = r.startTime || r.start_time;
-    const carVal   = r.carExecTime || r.car_exec_time;
-    const appVal   = r.appFeedbackTime || r.app_feedback_time;
-    const startMs  = startVal ? new Date(startVal).getTime() : null;
-    const carMs    = carVal ? new Date(carVal).getTime() : null;
-    const appMs    = appVal ? new Date(appVal).getTime() : null;
-
-    const carDur = (startMs && carMs && !isNaN(startMs) && !isNaN(carMs)) ? Number(((carMs - startMs) / 1000).toFixed(2)) : '';
-    const appDur = (startMs && appMs && !isNaN(startMs) && !isNaN(appMs)) ? Number(((appMs - startMs) / 1000).toFixed(2)) : '';
-
-    sheet.addRow({
-      no: c.case_number || c.id || (i + 1),
-      cat: c.category || '',
-      funcCat: c.function_category || c.functionCategory || '',
-      func: c.function || '',
-      expected: c.expected || '',
-      time: getFmt(startVal),
-      carT: getFmt(carVal),
-      appT: getFmt(appVal),
-      carD: carDur,
-      appD: appDur,
-      result: r.result || '',
-      notes: r.notes || '',
+  const shotHeader = wsScreenshots.getRow(1);
+  shotHeader.eachCell(c => {
+    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF44546A' } };
+    c.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+    c.alignment = { vertical: 'middle', horizontal: 'center' };
+  });
+  cases.forEach((c, idx) => {
+    const media = (caseResults[idx] || {}).media || [];
+    media.forEach((m, mIdx) => {
+      wsScreenshots.addRow({ func: c.function, idx: mIdx + 1, url: m.url || '' });
     });
   });
 
-  styleHeader(sheet.getRow(1));
-  applyDataStyle(sheet);
-  sheet.autoFilter = 'A1:L1';
+  // --- Response ---
+  const safeModel = (vehicleModel || 'Report').replace(/[^a-z0-9]/gi, '_');
+  const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const filename = `${dateStr}_VehicleTest_${safeModel}.xlsx`;
+
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`);
+  
+  await workbook.xlsx.write(res);
+  res.end();
 }
 
-function setColWidths(ws, widths) {
-  // Dummy to avoid errors if called, though we'll use sheet.columns
-}
-
-/**
- * POST /api/export/excel
- * Body: { cases, caseResults, bugs, vehicle }
- * Returns: xlsx binary stream with Content-Disposition: attachment
- */
 router.post('/excel', async (req, res) => {
   try {
-    const { cases = [], caseResults = [], bugs = [], vehicle = {} } = req.body;
-    const { vehicleModel, modelYear, vin, productionStage, address, architecture, iviModule, commModule, testEnv, tester, mileage } = vehicle;
-
-    const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'Vehicle Test Recorder';
-    workbook.lastModifiedBy = 'Vehicle Test Recorder';
-    workbook.created = new Date();
-
-    // --- Cover Page Dashboard ---
-    const wsCover = workbook.addWorksheet('Cover Page');
-    wsCover.views = [{ showGridLines: false }];
-    wsCover.properties.defaultRowHeight = 24;
-
-    // Helper for cards
-    const drawCard = (ws, r1, c1, r2, c2, bg = 'FFFFFFFF', borderCol = 'FFD9D9D9', hasBorder = true) => {
-      if (r1 !== r2 || c1 !== c2) ws.mergeCells(r1, c1, r2, c2);
-      const cell = ws.getCell(r1, c1);
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
-      if (hasBorder) {
-        cell.border = {
-          top: { style: 'thin', color: { argb: borderCol } },
-          left: { style: 'thin', color: { argb: borderCol } },
-          bottom: { style: 'thin', color: { argb: borderCol } },
-          right: { style: 'thin', color: { argb: borderCol } },
-        };
-      }
-      return cell;
-    };
-
-    // 1. Header
-    wsCover.getRow(2).height = 45;
-    const cellTitle = wsCover.getCell(2, 2);
-    cellTitle.value = 'Summary';
-    cellTitle.font = { size: 36, bold: true, italic: true, color: { argb: 'FF1A1C1E' } };
-    
-    const dateStr = new Date().toLocaleDateString('en-CA').replace(/-/g, '/');
-    const cellSub = wsCover.getCell(3, 2);
-    cellSub.value = `VALIDATION TEST REPORT • ${dateStr}`;
-    cellSub.font = { size: 11, color: { argb: 'FF8E9196' }, bold: true };
-
-    // 2. Info Block (Airier table)
-    const infoRows = [
-      ['YEAR / MODEL / VIN', `${modelYear ? 'MY' + modelYear : ''} / ${vehicleModel || ''} / ${vin || ''}`],
-      ['PRODUCTION STAGE',   productionStage || 'PPV'],
-      ['SYSTEM ARCH CONFIG', architecture || 'GA - INFO - TCP'],
-      ['TESTING ADDRESS',    address || 'sh'],
-      ['TEST ENVIRONMENT',   testEnv || '测试'],
-      ['TESTER',             tester || 'tester'],
-    ];
-    infoRows.forEach((pair, idx) => {
-      const r = 5 + (idx * 2);
-      wsCover.mergeCells(r, 2, r, 3);
-      const row = wsCover.getRow(r);
-      row.height = 30;
-      row.getCell(2).value = pair[0];
-      row.getCell(2).font = { size: 9, color: { argb: 'FFB0B3B8' }, bold: true };
-      row.getCell(3).value = pair[1];
-      row.getCell(3).font = { size: 11, bold: true, color: { argb: 'FF1A1C1E' } };
-      row.getCell(3).alignment = { horizontal: 'right', vertical: 'middle' };
-      // Bottom border for separator
-      row.getCell(2).border = { bottom: { style: 'thin', color: { argb: 'FFF0F0F0' } } };
-      row.getCell(3).border = { bottom: { style: 'thin', color: { argb: 'FFF0F0F0' } } };
-    });
-
-    // 3. Stats Tiles
-    const totalPass = caseResults.filter(r => r.result === 'Pass').length;
-    const totalFail = caseResults.filter(r => r.result === 'Fail').length;
-    const totalNA   = caseResults.filter(r => r.result === 'N/A').length;
-
-    // Grid layout for tiles
-    const statsRow = 15;
-    wsCover.getRow(statsRow).height = 80;
-
-    // Total
-    const cTot = drawCard(wsCover, statsRow, 2, statsRow, 2, 'FF2B60E2', 'FF2B60E2');
-    cTot.richText = [
-      { text: `${cases.length}\n`, font: { size: 28, color: { argb: 'FFFFFFFF' }, bold: true } },
-      { text: 'TOTAL CASES', font: { size: 9, color: { argb: 'FFFFFFFF' }, bold: true } }
-    ];
-    cTot.alignment = { wrapText: true, horizontal: 'center', vertical: 'middle' };
-
-    // Bugs
-    const cBug = drawCard(wsCover, statsRow, 3, statsRow, 3, 'FFFFFFFF', 'FFF0F0F0');
-    cBug.richText = [
-      { text: `${bugs.length}\n`, font: { size: 28, color: { argb: 'FFFF4D4D' }, bold: true } },
-      { text: 'OPEN BUGS', font: { size: 9, color: { argb: 'FF8E9196' }, bold: true } }
-    ];
-    cBug.alignment = { wrapText: true, horizontal: 'center', vertical: 'middle' };
-
-    // Row 17 for small badges
-    const badgeRow = 17;
-    wsCover.getRow(badgeRow).height = 35;
-    
-    const bPass = drawCard(wsCover, badgeRow, 2, badgeRow, 2, 'FFF0FFF0', 'FFC6EFCE');
-    bPass.value = `PASS ${totalPass}`;
-    bPass.font = { size: 11, bold: true, color: { argb: 'FF00B050' } };
-    bPass.alignment = { horizontal: 'center', vertical: 'middle' };
-
-    const bFail = drawCard(wsCover, badgeRow, 3, badgeRow, 3, 'FFFFF0F0', 'FFFFCCCC');
-    bFail.value = `FAIL ${totalFail}`;
-    bFail.font = { size: 11, bold: true, color: { argb: 'FFFF0000' } };
-    bFail.alignment = { horizontal: 'center', vertical: 'middle' };
-
-    const bNA = drawCard(wsCover, badgeRow, 4, badgeRow, 4, 'FFF5F5F5', 'FFD9D9D9');
-    bNA.value = `N/A ${totalNA}`;
-    bNA.font = { size: 11, bold: true, color: { argb: 'FF808080' } };
-    bNA.alignment = { horizontal: 'center', vertical: 'middle' };
-
-    wsCover.getColumn(1).width = 4;
-    wsCover.getColumn(2).width = 30;
-    wsCover.getColumn(3).width = 40;
-    wsCover.getColumn(4).width = 20;
-
-    // --- Sheets ---
-    const vehicleRows = cases.map((c, i) => ({ c, r: caseResults[i] || {} })).filter(({ c }) => c.category === '车辆服务');
-    await addVehicleSheet(workbook, vehicleRows);
-
-    const iosRows = cases.map((c, i) => ({ c, r: caseResults[i] || {} })).filter(({ c }) => c.category === '手机应用' && (c.function_category || c.functionCategory) === '手机APP-iOS');
-    await addAppSheet(workbook, '手机APP-iOS', iosRows);
-
-    const androidRows = cases.map((c, i) => ({ c, r: caseResults[i] || {} })).filter(({ c }) => c.category === '手机应用' && (c.function_category || c.functionCategory) === '手机APP-Android');
-    await addAppSheet(workbook, '手机APP-Android', androidRows);
-
-    // --- SGM 问题清单 ---
-    const wsBugs = workbook.addWorksheet('SGM问题清单', { views: [{ state: 'frozen', ySplit: 1 }] });
-    wsBugs.columns = [
-      { header: '序号', key: 'no', width: 8 },
-      { header: '测试车型', key: 'model', width: 25 },
-      { header: 'VIN', key: 'vin', width: 20 },
-      { header: '测试地点', key: 'loc', width: 22 },
-      { header: '里程数 (KM)', key: 'mil', width: 14 },
-      { header: '发现人', key: 'user', width: 12 },
-      { header: '问题提出时间', key: 'time', width: 20 },
-      { header: '问题描述', key: 'desc', width: 60 },
-    ];
-    bugs.forEach((bug, i) => {
-      wsBugs.addRow({
-        no: i + 1,
-        model: `MY${modelYear} ${vehicleModel}`,
-        vin, loc: address, mil: mileage, user: tester,
-        time: bug.timestamp ? String(bug.timestamp).substring(0, 16) : '',
-        desc: bug.description,
-      });
-    });
-    styleHeader(wsBugs.getRow(1));
-    applyDataStyle(wsBugs);
-    wsBugs.autoFilter = 'A1:H1';
-
-    // --- Screenshots ---
-    const wsScreenshots = workbook.addWorksheet('截图');
-    wsScreenshots.columns = [
-      { header: '功能名称',  key: 'func', width: 30 },
-      { header: '截图序号',  key: 'idx',  width: 12 },
-      { header: '截图地址',  key: 'url',  width: 100 },
-    ];
-    cases.forEach((c, idx) => {
-      const media = (caseResults[idx] || {}).media || [];
-      media.forEach((m, mIdx) => {
-        wsScreenshots.addRow({ func: c.function, idx: mIdx + 1, url: m.url || '' });
-      });
-    });
-    styleHeader(wsScreenshots.getRow(1));
-    applyDataStyle(wsScreenshots);
-
-    // --- Response ---
-    const safeModel = (vehicleModel || 'Report').replace(/[^a-z0-9]/gi, '_');
-    const date = new Date().toISOString().slice(0, 10);
-    const filename = `VehicleTest_${safeModel}_${date}.xlsx`;
-
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`);
-    
-    await workbook.xlsx.write(res);
-    res.end();
+    await buildExport(req, res);
   } catch (err) {
     console.error('[export] ExcelJS Error:', err);
-    res.status(500).send('Error generating beautified report');
+    res.status(500).send('Error generating report');
   }
 });
 
