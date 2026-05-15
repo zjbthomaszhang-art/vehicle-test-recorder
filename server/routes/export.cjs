@@ -202,8 +202,6 @@ function applyDataStyles(sheet, rowNum, colCount) {
     } else {
       if ([4, 5, 6, 11].includes(cIdx)) align.horizontal = 'left';
       else if (cIdx === 7) align.horizontal = 'right';
-      else if (cIdx === 8) align.horizontal = 'center';
-      else if (cIdx === 9) align.horizontal = 'right';
     }
     cell.alignment = align;
 
@@ -401,6 +399,13 @@ function applyCoverAndTocSizing(ws, isCover) {
     const wsApp = workbook.addWorksheet(sheetName);
     drawTemplateHeaders(wsApp, `${vehicleModel}车辆手机APP验证测试- ${titleSuffix}`, info, true);
     
+    const appColWidths = [
+      5.125, 6.625, 10.625, 14.625, 25.375, 32.375, 17.375, 25.625, 17, 25.625, 13, 6.625, 0.625, 4.625, 12.625
+    ];
+    appColWidths.forEach((w, i) => {
+      wsApp.getColumn(i + 1).width = w;
+    });
+
     const aHeaders = ["No.", "功能大类", "功能", "测试内容", "测试开始时间        ", "车辆执行时长/秒", "APP反馈时长/秒", "最终结果:\\nPass/Fail", "备注"];
     const aRow15 = wsApp.getRow(15);
     aRow15.height = 45.95;
@@ -416,10 +421,8 @@ function applyCoverAndTocSizing(ws, isCover) {
         bottom: { style: 'thin', color: { argb: 'FF87C0F6' } }
       };
       let align = { vertical: 'middle', horizontal: 'center', wrapText: true };
-      if ([4, 5, 6, 11].includes(idx + 3)) align.horizontal = 'left';
+      if ([4, 5, 6].includes(idx + 3)) align.horizontal = 'left';
       else if (idx + 3 === 7) align.horizontal = 'right';
-      else if (idx + 3 === 8) align.horizontal = 'center';
-      else if (idx + 3 === 9) align.horizontal = 'right';
       cell.alignment = align;
     });
 
@@ -454,7 +457,7 @@ function applyCoverAndTocSizing(ws, isCover) {
     wsApp.getRow(aEndRow + 1).height = 30;
     wsApp.getRow(aEndRow + 2).height = 30;
     wsApp.getRow(aEndRow + 3).height = 30;
-    drawThemeFrame(wsApp, 2, 11, aEndRow + 3, arrowId, onstarId, bgId, circleId, leftCircleId, 12, 1);
+    drawThemeFrame(wsApp, 2, 13, aEndRow + 3, arrowId, onstarId, bgId, circleId, leftCircleId, 14, 1, 11);
   };
 
   addAppSheetWithData('手机APP-iOS', '手机APP-iOS');
