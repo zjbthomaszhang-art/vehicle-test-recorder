@@ -28,8 +28,22 @@ function formatDate(dateStr) {
 function drawTemplateHeaders(sheet, title, info, isApp) {
   sheet.views = [{ showGridLines: false, state: 'frozen', ySplit: 15 }];
 
+  const colWidths = [
+    5.125, 6.625, 10.625, 14.625, 25.375, 32.375, 17.375, 25.625, 13, 6.625, 0.625, 4.625, 
+    12.625, 12.625, 12.625, 12.625, 12.625, 12.625, 12.625, 12.625
+  ];
+  colWidths.forEach((w, i) => {
+    sheet.getColumn(i + 1).width = w;
+  });
+
+  const heights = [35.1, 30, 24.95, 30, 30, 15, 30, 15, 30, 15, 30, 30, 39.95, 15];
+  for (let r = 1; r <= 14; r++) {
+    const row = sheet.getRow(r);
+    row.height = heights[r - 1];
+  }
+
   sheet.getCell('C2').value = title;
-  sheet.getCell('C2').font = { size: 16, bold: true, name: '微软雅黑' };
+  sheet.getCell('C2').font = { size: 28, color: { argb: 'FFFFFFFF' }, name: '微软雅黑' };
   
   sheet.getCell('D5').value = '日期：';
   sheet.getCell('E5').value = info.date;
@@ -58,10 +72,13 @@ function drawTemplateHeaders(sheet, title, info, isApp) {
   }
 
   [5, 7, 9, 11].forEach(r => {
-    sheet.getCell(`D${r}`).font = { bold: true, name: '微软雅黑', size: 11 };
-    sheet.getCell(`E${r}`).font = { bold: false, name: '微软雅黑', size: 11 };
-    sheet.getCell(`G${r}`).font = { bold: true, name: '微软雅黑', size: 11 };
-    sheet.getCell(`H${r}`).font = { bold: false, name: '微软雅黑', size: 11 };
+    const fontLabel = { bold: true, name: '微软雅黑', size: 11, color: { argb: 'FF404040' } };
+    const fontValue = { bold: false, name: '微软雅黑', size: 11, color: { argb: 'FF404040' } };
+    
+    sheet.getCell(`D${r}`).font = fontLabel;
+    sheet.getCell(`E${r}`).font = fontValue;
+    sheet.getCell(`G${r}`).font = fontLabel;
+    sheet.getCell(`H${r}`).font = fontValue;
     
     sheet.getCell(`D${r}`).alignment = { horizontal: 'right', vertical: 'middle' };
     sheet.getCell(`E${r}`).alignment = { horizontal: 'left', vertical: 'middle' };
@@ -70,20 +87,7 @@ function drawTemplateHeaders(sheet, title, info, isApp) {
   });
 
   sheet.getCell('C13').value = '详细测试数据';
-  sheet.getCell('C13').font = { bold: true, size: 12, name: '微软雅黑' };
-
-  // Set widths
-  sheet.getColumn('A').width = 2;
-  sheet.getColumn('B').width = 2;
-  sheet.getColumn('C').width = 8;  // No.
-  sheet.getColumn('D').width = 16; // 功能大类
-  sheet.getColumn('E').width = 25; // 功能
-  sheet.getColumn('F').width = 30; // 测试内容
-  sheet.getColumn('G').width = 20; // 测试开始时间
-  sheet.getColumn('H').width = 16; // 结果 / 执行时长
-  sheet.getColumn('I').width = 16; // 备注 / 反馈时长
-  sheet.getColumn('J').width = 14; // 最终结果
-  sheet.getColumn('K').width = 25; // 备注
+  sheet.getCell('C13').font = { size: 15, color: { argb: 'FF404040' }, name: '微软雅黑' };
 }
 function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarId, bgId) {
   for (let r = 1; r <= maxRow; r++) {
@@ -144,10 +148,11 @@ function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarI
 
 function applyDataStyles(sheet, rowNum, colCount) {
   const row = sheet.getRow(rowNum);
+  row.height = 30;
   for (let i = 1; i <= colCount; i++) {
     const cell = row.getCell(i + 2); // Start from C
     cell.border = BORDER_STYLE;
-    cell.font = { name: '微软雅黑', size: 10 };
+    cell.font = { name: '微软雅黑', size: 10, color: { argb: 'FF404040' } };
     cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
     
     // Left align text columns like 功能大类, 功能, 测试内容, 备注
@@ -301,12 +306,12 @@ function applyCoverAndTocSizing(ws, isCover) {
   // Header Row 15
   const vHeaders = ["No.", "功能大类", "功能", "测试内容", "测试时间\\n测试开始时间         ", "最终结果:\\nPass/Fail", "备注"];
   const vRow15 = wsVehicle.getRow(15);
-  vRow15.height = 35;
+  vRow15.height = 45.95;
   vHeaders.forEach((h, idx) => {
     const cell = vRow15.getCell(idx + 3);
     cell.value = h.replace(/\\n/g, '\n');
-    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE7E6E6' } };
-    cell.font = { bold: true, name: '微软雅黑', size: 10 };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF69AEF3' } };
+    cell.font = { size: 12, color: { argb: 'FFFFFFFF' }, name: '微软雅黑' };
     cell.border = BORDER_STYLE;
     cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
   });
@@ -334,12 +339,12 @@ function applyCoverAndTocSizing(ws, isCover) {
     
     const aHeaders = ["No.", "功能大类", "功能", "测试内容", "测试开始时间        ", "车辆执行时长/秒", "APP反馈时长/秒", "最终结果:\\nPass/Fail", "备注"];
     const aRow15 = wsApp.getRow(15);
-    aRow15.height = 35;
+    aRow15.height = 45.95;
     aHeaders.forEach((h, idx) => {
       const cell = aRow15.getCell(idx + 3);
       cell.value = h.replace(/\\n/g, '\n');
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE7E6E6' } };
-      cell.font = { bold: true, name: '微软雅黑', size: 10 };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF69AEF3' } };
+      cell.font = { size: 12, color: { argb: 'FFFFFFFF' }, name: '微软雅黑' };
       cell.border = BORDER_STYLE;
       cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
     });
