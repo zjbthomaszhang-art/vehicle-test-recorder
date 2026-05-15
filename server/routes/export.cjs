@@ -110,7 +110,7 @@ function drawTemplateHeaders(sheet, title, info, isApp) {
 }
 function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarId, bgId) {
   for (let r = 1; r <= maxRow; r++) {
-    for (let c = 1; c <= whiteColEnd + 1; c++) {
+    for (let c = 1; c <= whiteColEnd + 2; c++) {
       const cell = ws.getCell(r, c);
       // Skip if cell already has a fill (like table headers/data)
       if (cell.fill && cell.fill.type !== 'none') continue;
@@ -357,7 +357,7 @@ function applyCoverAndTocSizing(ws, isCover) {
     applyDataStyles(wsVehicle, rNum, 7);
   });
 
-  drawThemeFrame(wsVehicle, 3, 11, Math.max(60, wsVehicle.rowCount + 10), arrowId, onstarId, bgId);
+  drawThemeFrame(wsVehicle, 2, 10, Math.max(60, wsVehicle.rowCount + 10), arrowId, onstarId, bgId);
 
   // --- 手机APP Sheets ---
   const addAppSheetWithData = (sheetName, titleSuffix) => {
@@ -408,7 +408,7 @@ function applyCoverAndTocSizing(ws, isCover) {
       applyDataStyles(wsApp, rNum, 9);
     });
 
-    drawThemeFrame(wsApp, 3, 11, Math.max(60, wsApp.rowCount + 10), arrowId, onstarId, bgId);
+    drawThemeFrame(wsApp, 2, 10, Math.max(60, wsApp.rowCount + 10), arrowId, onstarId, bgId);
   };
 
   addAppSheetWithData('手机APP-iOS', '手机APP-iOS');
