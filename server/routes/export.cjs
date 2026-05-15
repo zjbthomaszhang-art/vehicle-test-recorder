@@ -84,6 +84,50 @@ function drawTemplateHeaders(sheet, title, info, isApp) {
   sheet.getColumn('J').width = 14; // 最终结果
   sheet.getColumn('K').width = 25; // 备注
 }
+function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow) {
+  for (let r = 1; r <= maxRow; r++) {
+    for (let c = 1; c <= whiteColEnd + 2; c++) {
+      const cell = ws.getCell(r, c);
+      // Skip if cell already has a fill (like table headers/data)
+      if (cell.fill && cell.fill.type !== 'none') continue;
+
+      if (r <= 3) {
+        // Top header bar
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF69AEF3' } };
+        // Remove borders in top margin
+        cell.border = {};
+      } else {
+        if (c < whiteColStart) {
+          // Left margin
+          if (c === whiteColStart - 1) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4A98ED' } }; // Approximate gradient
+          } else {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF69AEF3' } };
+          }
+          cell.border = {};
+        } else if (c > whiteColEnd) {
+          // Right margin
+          if (c === whiteColEnd + 1) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4A98ED' } };
+          } else {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF69AEF3' } };
+          }
+          cell.border = {};
+        } else {
+          // White page background
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+        }
+      }
+    }
+  }
+
+  // Draw "OnStar" placeholder at top right
+  ws.mergeCells(1, whiteColEnd, 3, whiteColEnd + 1);
+  const logoCell = ws.getCell(1, whiteColEnd);
+  logoCell.value = 'OnStar 安吉星';
+  logoCell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 16, italic: true };
+  logoCell.alignment = { vertical: 'middle', horizontal: 'right' };
+}
 
 function applyDataStyles(sheet, rowNum, colCount) {
   const row = sheet.getRow(rowNum);
