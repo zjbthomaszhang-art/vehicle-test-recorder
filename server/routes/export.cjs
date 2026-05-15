@@ -99,7 +99,7 @@ function drawTemplateHeaders(sheet, title, info, isApp) {
     sheet.getCell(`H${r}`).alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
   });
 
-  for (let c = 3; c <= 11; c++) {
+  for (let c = 3; c <= 9; c++) {
     sheet.getCell(12, c).border = { bottom: { style: 'dashed', color: { argb: 'FF8EA9DB' } } };
   }
 
@@ -166,19 +166,31 @@ function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarI
 function applyDataStyles(sheet, rowNum, colCount) {
   const row = sheet.getRow(rowNum);
   row.height = 30;
+  
+  const noCell = row.getCell(3);
+  const noVal = parseInt(noCell.value, 10);
+  const isEven = !isNaN(noVal) && noVal % 2 === 0;
+  const fillColor = isEven ? 'FFF2F2F2' : 'FFFFFFFF';
+
   for (let i = 1; i <= colCount; i++) {
-    const cell = row.getCell(i + 2); // Start from C
+    const cIdx = i + 2; // Start from C
+    const cell = row.getCell(cIdx);
     cell.border = {
       left: { style: 'thin', color: { argb: 'FFE6E6E6' } },
       right: { style: 'thin', color: { argb: 'FFE6E6E6' } }
     };
     cell.font = { name: '微软雅黑', size: 10, color: { argb: 'FF404040' } };
-    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fillColor } };
     
-    // Left align text columns like 功能大类, 功能, 测试内容, 备注
-    if (i === 2 || i === 3 || i === 4 || i === colCount) {
-      cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+    let align = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    if (colCount === 7) {
+      if ([4, 5, 6, 7, 9].includes(cIdx)) align.horizontal = 'left';
+      else if (cIdx === 8) align.horizontal = 'right';
+    } else {
+      if ([4, 5, 6, 7, 11].includes(cIdx)) align.horizontal = 'left';
+      else if ([8, 9].includes(cIdx)) align.horizontal = 'right';
     }
+    cell.alignment = align;
 
     // Colors for result
     const val = String(cell.value || '').trim();
@@ -338,7 +350,10 @@ function applyCoverAndTocSizing(ws, isCover) {
       top: { style: 'thin', color: { argb: 'FF87C0F6' } },
       bottom: { style: 'thin', color: { argb: 'FF87C0F6' } }
     };
-    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    let align = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    if ([4, 5, 6, 7, 9].includes(idx + 3)) align.horizontal = 'left';
+    else if (idx + 3 === 8) align.horizontal = 'right';
+    cell.alignment = align;
   });
 
   const vehicleRows = cases.map((c, i) => ({ c, r: caseResults[i] || {} })).filter(({ c }) => c.category === '车辆服务');
@@ -376,7 +391,10 @@ function applyCoverAndTocSizing(ws, isCover) {
         top: { style: 'thin', color: { argb: 'FF87C0F6' } },
         bottom: { style: 'thin', color: { argb: 'FF87C0F6' } }
       };
-      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      let align = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      if ([4, 5, 6, 7, 11].includes(idx + 3)) align.horizontal = 'left';
+      else if ([8, 9].includes(idx + 3)) align.horizontal = 'right';
+      cell.alignment = align;
     });
 
     const appRows = cases.map((c, i) => ({ c, r: caseResults[i] || {} })).filter(({ c }) => c.category === '手机应用' && (c.function_category || c.functionCategory) === sheetName);
