@@ -273,30 +273,111 @@ async function buildExport(req, res) {
 
   // --- SGM 问题清单 ---
   const wsBugs = workbook.addWorksheet('SGM问题清单');
-  wsBugs.views = [{ state: 'frozen', ySplit: 1 }];
-  wsBugs.columns = [
-    { header: '序号', key: 'no', width: 8 },
-    { header: '测试车型', key: 'model', width: 25 },
-    { header: 'VIN', key: 'vin', width: 20 },
-    { header: '测试地点', key: 'loc', width: 22 },
-    { header: '里程数 (KM)', key: 'mil', width: 14 },
-    { header: '发现人', key: 'user', width: 12 },
-    { header: '问题提出时间', key: 'time', width: 20 },
-    { header: '问题描述', key: 'desc', width: 60 },
+  wsBugs.views = [{ state: 'frozen', ySplit: 3 }];
+  
+  // Title Row
+  wsBugs.mergeCells('A1:V1');
+  const bugTitle = wsBugs.getCell('A1');
+  bugTitle.value = 'Onstar功能测试问题清单';
+  bugTitle.font = { size: 16, bold: true, name: '微软雅黑' };
+  bugTitle.alignment = { vertical: 'middle', horizontal: 'center' };
+  wsBugs.getRow(1).height = 30;
+
+  const bugCols = [
+    { key: 'id', title: 'ID', width: 5, color: 'FFDDEBF7' },
+    { key: 'model', title: '车型\\nmotorcycle type', width: 10, color: 'FFDDEBF7' },
+    { key: 'phase', title: '生产阶段\\nBuild Phase', width: 10, color: 'FFDDEBF7' },
+    { key: 'source', title: '问题来源\\nSource', width: 10, color: 'FFDDEBF7' },
+    { key: 'loc', title: '试验地点\\nTest Place', width: 15, color: 'FFDDEBF7' },
+    { key: 'vin', title: 'VIN', width: 22, color: 'FFDDEBF7' },
+    { key: 'mil', title: '里程数\\nOdo.', width: 12, color: 'FFDDEBF7' },
+    { key: 'finder', title: '发现人\\nFinder', width: 10, color: 'FFDDEBF7' },
+    { key: 'approve', title: '问题审批\\nApprove', width: 10, color: 'FFDDEBF7' },
+    { key: 'date', title: '问题提出日期\\nIssue Identify Date', width: 14, color: 'FFDDEBF7' },
+    { key: 'time', title: '问题提出时间\\nIssue Identify Time', width: 14, color: 'FFDDEBF7' },
+    { key: 'smt', title: 'SMT', width: 8, color: 'FFDDEBF7', parent: '问题描述\\nVerbatim(Issue Explained)' },
+    { key: 'desc', title: '详细描述', width: 40, color: 'FFDDEBF7', parent: '问题描述\\nVerbatim(Issue Explained)' },
+    { key: 'defect', title: '缺陷模式', width: 12, color: 'FFDDEBF7', parent: '问题描述\\nVerbatim(Issue Explained)' },
+    { key: 'note', title: '备注', width: 15, color: 'FFDDEBF7' },
+    { key: 'rate', title: '问题严重性\\nRate', width: 10, color: 'FFDDEBF7' },
+    { key: 'pic', title: '详图\\nPicture', width: 10, color: 'FFDDEBF7' },
+    { key: 'freq', title: '频次\\nFrequence', width: 10, color: 'FFDDEBF7' },
+    { key: 'dept', title: '责任部门', width: 12, color: 'FFFFC000' },
+    { key: 'pqe', title: 'PQE', width: 10, color: 'FFFFC000' },
+    { key: 'sup', title: '供应商\\nSupplier', width: 12, color: 'FFFFC000' },
+    { key: 'status', title: '调查状态\\nAnalysis Process', width: 15, color: 'FFFFC000' }
   ];
-  const bugHeader = wsBugs.getRow(1);
-  bugHeader.eachCell(c => {
-    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF44546A' } };
-    c.font = { color: { argb: 'FFFFFFFF' }, bold: true };
-    c.alignment = { vertical: 'middle', horizontal: 'center' };
+
+  wsBugs.columns = bugCols.map(c => ({ key: c.key, width: c.width }));
+  
+  const r2 = wsBugs.getRow(2);
+  const r3 = wsBugs.getRow(3);
+  r2.height = 30;
+  r3.height = 25;
+
+  let colIdx = 1;
+  bugCols.forEach((c) => {
+    if (c.parent) {
+      r3.getCell(colIdx).value = c.title.replace(/\\n/g, '\n');
+    } else {
+      wsBugs.mergeCells(2, colIdx, 3, colIdx);
+      r2.getCell(colIdx).value = c.title.replace(/\\n/g, '\n');
+    }
+    
+    // Style both rows for safety
+    [r2.getCell(colIdx), r3.getCell(colIdx)].forEach(cell => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: c.color } };
+      cell.border = BORDER_STYLE;
+      cell.font = { size: 9, bold: true, name: '微软雅黑' };
+      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    });
+    colIdx++;
   });
+
+  // Merge the parent "问题描述" header across columns 12, 13, 14
+  wsBugs.mergeCells(2, 12, 2, 14);
+  const descHeader = wsBugs.getCell(2, 12);
+  descHeader.value = '问题描述\nVerbatim(Issue Explained)';
+  descHeader.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+
   bugs.forEach((bug, i) => {
+    const d = bug.timestamp ? new Date(bug.timestamp) : new Date();
     wsBugs.addRow({
-      no: i + 1,
-      model: `${modelYear ? 'MY' + modelYear : ''} ${vehicleModel}`,
-      vin, loc: address, mil: mileage, user: tester,
-      time: bug.timestamp ? String(bug.timestamp).substring(0, 16) : '',
+      id: i + 1,
+      model: `${modelYear ? 'MY' + modelYear : ''} ${vehicleModel}`.trim() || '557',
+      phase: '',
+      source: '',
+      loc: location,
+      vin: vin,
+      mil: mileage ? `${mileage}KM` : '',
+      finder: tester,
+      approve: '',
+      date: `${d.getMonth() + 1}月${d.getDate()}日`,
+      time: d.toTimeString().slice(0, 5),
+      smt: '',
       desc: bug.description,
+      defect: '',
+      note: '',
+      rate: '',
+      pic: '',
+      freq: '',
+      dept: '',
+      pqe: '',
+      sup: '',
+      status: ''
+    });
+    
+    // Apply borders and font to data row
+    const row = wsBugs.lastRow;
+    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+      if (colNumber <= bugCols.length) {
+        cell.border = BORDER_STYLE;
+        cell.font = { size: 9, name: '微软雅黑' };
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        if (colNumber === 13) {
+          cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+        }
+      }
     });
   });
 
