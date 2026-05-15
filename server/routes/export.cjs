@@ -121,14 +121,16 @@ function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarI
 
   if (arrowId !== undefined) {
     ws.addImage(arrowId, {
-      tl: { col: 1.2, row: 0.4 },
-      br: { col: 2.2, row: 2.1 }
+      tl: { nativeCol: 1, nativeColOff: 270510, nativeRow: 0, nativeRowOff: 440055 },
+      ext: { width: 44, height: 43 },
+      editAs: 'absolute' // keep image from resizing with cells
     });
   }
   if (onstarId !== undefined) {
     ws.addImage(onstarId, {
-      tl: { col: 7.8, row: 0.2 },
-      br: { col: 9.1, row: 2.1 }
+      tl: { nativeCol: 7, nativeColOff: 1661310, nativeRow: 0, nativeRowOff: 262741 },
+      ext: { width: 176, height: 73 },
+      editAs: 'absolute'
     });
   }
 }
