@@ -106,14 +106,17 @@ function drawTemplateHeaders(sheet, title, info, isApp) {
   sheet.getCell('C13').value = '详细测试数据';
   sheet.getCell('C13').font = { size: 15, color: { argb: 'FF404040' }, name: '微软雅黑' };
 }
-function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarId, bgId, circleId, leftCircleId) {
+function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarId, bgId, circleId, leftCircleId, rightMarginCol, bottomMarginRows) {
+  const rMarginCol = rightMarginCol || (whiteColEnd + 2);
+  const bMarginRows = bottomMarginRows || 3;
+
   for (let r = 1; r <= maxRow; r++) {
-    for (let c = 1; c <= whiteColEnd + 1; c++) {
+    for (let c = 1; c <= rMarginCol; c++) {
       const cell = ws.getCell(r, c);
       // Skip if cell already has a fill (like table headers/data)
       if (cell.fill && cell.fill.type !== 'none') continue;
 
-      if (r <= 3 || r >= maxRow - 2) {
+      if (r <= 3 || r > maxRow - bMarginRows) {
         // Top and Bottom header bar
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF69AEF3' } };
         // Remove borders in margin
@@ -390,7 +393,8 @@ function applyCoverAndTocSizing(ws, isCover) {
   const vEndRow = wsVehicle.rowCount;
   wsVehicle.getRow(vEndRow + 1).height = 30;
   wsVehicle.getRow(vEndRow + 2).height = 30;
-  drawThemeFrame(wsVehicle, 2, 11, vEndRow + 5, arrowId, onstarId, bgId, circleId, leftCircleId);
+  wsVehicle.getRow(vEndRow + 3).height = 30;
+  drawThemeFrame(wsVehicle, 2, 11, vEndRow + 3, arrowId, onstarId, bgId, circleId, leftCircleId, 12, 1);
 
   // --- 手机APP Sheets ---
   const addAppSheetWithData = (sheetName, titleSuffix) => {
@@ -449,7 +453,8 @@ function applyCoverAndTocSizing(ws, isCover) {
     const aEndRow = wsApp.rowCount;
     wsApp.getRow(aEndRow + 1).height = 30;
     wsApp.getRow(aEndRow + 2).height = 30;
-    drawThemeFrame(wsApp, 2, 11, aEndRow + 5, arrowId, onstarId, bgId, circleId, leftCircleId);
+    wsApp.getRow(aEndRow + 3).height = 30;
+    drawThemeFrame(wsApp, 2, 11, aEndRow + 3, arrowId, onstarId, bgId, circleId, leftCircleId, 12, 1);
   };
 
   addAppSheetWithData('手机APP-iOS', '手机APP-iOS');
