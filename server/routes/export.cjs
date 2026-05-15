@@ -106,9 +106,9 @@ function drawTemplateHeaders(sheet, title, info, isApp) {
   sheet.getCell('C13').value = '详细测试数据';
   sheet.getCell('C13').font = { size: 15, color: { argb: 'FF404040' }, name: '微软雅黑' };
 }
-function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarId, bgId, circleId) {
+function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarId, bgId, circleId, leftCircleId) {
   for (let r = 1; r <= maxRow; r++) {
-    for (let c = 1; c <= whiteColEnd + 2; c++) {
+    for (let c = 1; c <= whiteColEnd + 1; c++) {
       const cell = ws.getCell(r, c);
       // Skip if cell already has a fill (like table headers/data)
       if (cell.fill && cell.fill.type !== 'none') continue;
@@ -158,12 +158,14 @@ function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarI
   }
   if (circleId !== undefined) {
     ws.addImage(circleId, {
-      tl: { nativeCol: 0, nativeColOff: 246459, nativeRow: 11, nativeRowOff: 238125 },
+      tl: { nativeCol: 9, nativeColOff: 435768, nativeRow: 11, nativeRowOff: 238125 },
       ext: { width: 30, height: 30 },
       editAs: 'absolute'
     });
-    ws.addImage(circleId, {
-      tl: { nativeCol: 9, nativeColOff: 435768, nativeRow: 11, nativeRowOff: 238125 },
+  }
+  if (leftCircleId !== undefined) {
+    ws.addImage(leftCircleId, {
+      tl: { nativeCol: 0, nativeColOff: 246459, nativeRow: 11, nativeRowOff: 238125 },
       ext: { width: 30, height: 30 },
       editAs: 'absolute'
     });
@@ -252,11 +254,13 @@ async function buildExport(req, res) {
   let onstarId;
   let bgId;
   let circleId;
+  let leftCircleId;
   try {
     arrowId = workbook.addImage({ filename: path.join(__dirname, '../assets/arrow.png'), extension: 'png' });
     onstarId = workbook.addImage({ filename: path.join(__dirname, '../assets/安吉星.png'), extension: 'png' });
     bgId = workbook.addImage({ filename: path.join(__dirname, '../assets/渐变色底图.png'), extension: 'png' });
     circleId = workbook.addImage({ filename: path.join(__dirname, '../assets/圆.png'), extension: 'png' });
+    leftCircleId = workbook.addImage({ filename: path.join(__dirname, '../assets/左侧打孔圆.png'), extension: 'png' });
   } catch (e) {
     console.error('Error loading images:', e);
   }
@@ -386,7 +390,7 @@ function applyCoverAndTocSizing(ws, isCover) {
   const vEndRow = wsVehicle.rowCount;
   wsVehicle.getRow(vEndRow + 1).height = 30;
   wsVehicle.getRow(vEndRow + 2).height = 30;
-  drawThemeFrame(wsVehicle, 2, 11, vEndRow + 5, arrowId, onstarId, bgId, circleId);
+  drawThemeFrame(wsVehicle, 2, 11, vEndRow + 5, arrowId, onstarId, bgId, circleId, leftCircleId);
 
   // --- 手机APP Sheets ---
   const addAppSheetWithData = (sheetName, titleSuffix) => {
@@ -445,7 +449,7 @@ function applyCoverAndTocSizing(ws, isCover) {
     const aEndRow = wsApp.rowCount;
     wsApp.getRow(aEndRow + 1).height = 30;
     wsApp.getRow(aEndRow + 2).height = 30;
-    drawThemeFrame(wsApp, 2, 11, aEndRow + 5, arrowId, onstarId, bgId, circleId);
+    drawThemeFrame(wsApp, 2, 11, aEndRow + 5, arrowId, onstarId, bgId, circleId, leftCircleId);
   };
 
   addAppSheetWithData('手机APP-iOS', '手机APP-iOS');
