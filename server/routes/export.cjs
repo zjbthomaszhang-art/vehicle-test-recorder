@@ -128,8 +128,8 @@ function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarI
   }
   if (bgId !== undefined) {
     ws.addImage(bgId, {
-      tl: { nativeCol: 7, nativeColOff: 200000, nativeRow: 1, nativeRowOff: 0 },
-      br: { nativeCol: 10, nativeColOff: 0, nativeRow: 3, nativeRowOff: 0 },
+      tl: { nativeCol: 7, nativeColOff: 0, nativeRow: 1, nativeRowOff: 0 },
+      br: { nativeCol: 9, nativeColOff: 0, nativeRow: 3, nativeRowOff: 0 },
       editAs: 'absolute'
     });
   }
