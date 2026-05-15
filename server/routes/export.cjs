@@ -225,7 +225,7 @@ function applyCoverAndTocSizing(ws, isCover) {
   const tocHeights = [35.1, 30, 24.95, 30, 15, 30, 15, 30, 15, 30, 30, 39.95, 15, 45.95, 39, 50.1, 39, 39];
   const heights = isCover ? coverHeights : tocHeights;
 
-  for (let r = 1; r <= 50; r++) {
+  for (let r = 1; r <= 53; r++) {
     const row = ws.getRow(r);
     row.height = heights[r - 1] !== undefined ? heights[r - 1] : 30;
   }
@@ -268,15 +268,15 @@ function applyCoverAndTocSizing(ws, isCover) {
   wsToc.views = [{ showGridLines: false }];
   applyCoverAndTocSizing(wsToc, false);
   
-  wsToc.getCell('C9').value = 'Table of Contents';
-  wsToc.getCell('C9').font = { size: 16, bold: true, name: '微软雅黑' };
+  wsToc.getCell('D10').value = 'Table of Contents';
+  wsToc.getCell('D10').font = { size: 20, bold: true, name: '微软雅黑', color: { argb: 'FF000000' } };
   
-  for (let c = 3; c <= 8; c++) {
+  for (let c = 4; c <= 8; c++) {
     wsToc.getRow(10).getCell(c).border = { bottom: { style: 'thin', color: { argb: 'FF000000' } } };
   }
 
-  wsToc.getCell('C12').value = 'Contents';
-  wsToc.getCell('C12').font = { size: 14, bold: true, name: '微软雅黑' };
+  wsToc.getCell('D12').value = 'Contents';
+  wsToc.getCell('D12').font = { size: 20, bold: true, name: '微软雅黑', color: { argb: 'FF000000' } };
 
   const tocLinks = [
     { row: 14, text: '车辆服务', target: "'车辆服务'!A1" },
@@ -287,9 +287,9 @@ function applyCoverAndTocSizing(ws, isCover) {
   ];
 
   tocLinks.forEach((link) => {
-    const cell = wsToc.getCell(`C${link.row}`);
+    const cell = wsToc.getCell(`D${link.row}`);
     cell.value = { text: link.text, hyperlink: `#${link.target}` };
-    cell.font = { size: 12, name: '微软雅黑', color: { argb: 'FF0563C1' }, underline: true };
+    cell.font = { size: 20, name: '微软雅黑', color: { argb: 'FF0563C1' }, underline: true };
   });
 
   drawThemeFrame(wsToc, 2, 10, 53, arrowId, onstarId, bgId);
