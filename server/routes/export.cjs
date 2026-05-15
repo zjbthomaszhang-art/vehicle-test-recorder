@@ -98,16 +98,13 @@ function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow) {
         cell.border = {};
       } else {
         if (c < whiteColStart) {
-          // Left margin
-          if (c === whiteColStart - 1) {
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4A98ED' } }; // Approximate gradient
-          } else {
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF69AEF3' } };
-          }
+          // Left margin (solid blue)
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF69AEF3' } };
           cell.border = {};
         } else if (c > whiteColEnd) {
           // Right margin
           if (c === whiteColEnd + 1) {
+            // Drop shadow / gradient approximation
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4A98ED' } };
           } else {
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF69AEF3' } };
@@ -188,31 +185,61 @@ async function buildExport(req, res) {
 
   const workbook = new ExcelJS.Workbook();
   
+function applyCoverAndTocSizing(ws, isCover) {
+  const colWidths = [
+    5.125, 6.625, 10.625, 14.625, 25.375, 32.375, 17.375, 25.625, 13, 6.625, 0.625, 4.625, 
+    12.625, 12.625, 12.625, 12.625, 12.625, 12.625, 12.625, 12.625
+  ];
+  colWidths.forEach((w, i) => {
+    ws.getColumn(i + 1).width = w;
+  });
+
+  const coverHeights = [35.1, 30, 24.95, 30, 30, 15, 30, 15, 30, 15, 30, 30, 39.95, 15, 45.95];
+  const tocHeights = [35.1, 30, 24.95, 30, 15, 30, 15, 30, 15, 30, 30, 39.95, 15, 45.95, 39, 50.1, 39, 39];
+  const heights = isCover ? coverHeights : tocHeights;
+
+  for (let r = 1; r <= 50; r++) {
+    const row = ws.getRow(r);
+    row.height = heights[r - 1] !== undefined ? heights[r - 1] : 30;
+  }
+}
+
   // --- Cover Page ---
   const wsCover = workbook.addWorksheet('Cover page');
   wsCover.views = [{ showGridLines: false }];
+  applyCoverAndTocSizing(wsCover, true);
   
   const pureModel = vehicleModel ? vehicleModel.replace(/^MY\d{2}\s*/i, '').replace(/^U/i, '') : '557';
   
-  wsCover.getCell('C11').value = `${pureModel}车辆手机APP验证测试`;
-  wsCover.getCell('C11').font = { size: 20, bold: true, name: '微软雅黑' };
+  wsCover.mergeCells('D11:H12');
+  const covTitle = wsCover.getCell('D11');
+  covTitle.value = `${pureModel}车辆手机APP验证测试`;
+  covTitle.font = { size: 24, bold: true, name: '微软雅黑', color: { argb: 'FF595959' } };
+  covTitle.alignment = { vertical: 'middle', horizontal: 'left' };
   
-  wsCover.getCell('C13').value = `${pureModel} Vehicle Mobile APP Validation Test`;
-  wsCover.getCell('C13').font = { size: 12, name: '微软雅黑', color: { argb: 'FF595959' } };
+  wsCover.mergeCells('D13:H13');
+  const covSub = wsCover.getCell('D13');
+  covSub.value = `${pureModel} Vehicle Mobile APP Validation Test`;
+  covSub.font = { size: 12, name: '微软雅黑', color: { argb: 'FF595959' } };
+  covSub.alignment = { vertical: 'middle', horizontal: 'left' };
   
-  for (let c = 3; c <= 8; c++) {
+  for (let c = 4; c <= 8; c++) {
     wsCover.getRow(14).getCell(c).border = { bottom: { style: 'thin', color: { argb: 'FF000000' } } };
   }
 
   const d = new Date();
-  wsCover.getCell('C17').value = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-  wsCover.getCell('C17').font = { size: 12, name: '微软雅黑' };
+  wsCover.mergeCells('D16:H16');
+  const covDate = wsCover.getCell('D16');
+  covDate.value = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  covDate.font = { size: 11, name: '微软雅黑', color: { argb: 'FF595959' } };
+  covDate.alignment = { vertical: 'middle', horizontal: 'left' };
 
   drawThemeFrame(wsCover, 2, 10, 50);
 
   // --- Table of contents ---
   const wsToc = workbook.addWorksheet('Table of contents-->');
   wsToc.views = [{ showGridLines: false }];
+  applyCoverAndTocSizing(wsToc, false);
   
   wsToc.getCell('C9').value = 'Table of Contents';
   wsToc.getCell('C9').font = { size: 16, bold: true, name: '微软雅黑' };
