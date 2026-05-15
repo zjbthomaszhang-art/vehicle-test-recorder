@@ -1,5 +1,6 @@
 const express = require('express');
 const ExcelJS = require('exceljs');
+const path = require('path');
 
 const router = express.Router();
 
@@ -84,7 +85,7 @@ function drawTemplateHeaders(sheet, title, info, isApp) {
   sheet.getColumn('J').width = 14; // 最终结果
   sheet.getColumn('K').width = 25; // 备注
 }
-function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow) {
+function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarId) {
   for (let r = 1; r <= maxRow; r++) {
     for (let c = 1; c <= whiteColEnd + 2; c++) {
       const cell = ws.getCell(r, c);
@@ -118,12 +119,18 @@ function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow) {
     }
   }
 
-  // Draw "OnStar" placeholder at top right
-  ws.mergeCells(1, whiteColEnd, 3, whiteColEnd + 1);
-  const logoCell = ws.getCell(1, whiteColEnd);
-  logoCell.value = 'OnStar 安吉星';
-  logoCell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 16, italic: true };
-  logoCell.alignment = { vertical: 'middle', horizontal: 'right' };
+  if (arrowId !== undefined) {
+    ws.addImage(arrowId, {
+      tl: { col: 1.2, row: 0.4 },
+      br: { col: 2.2, row: 2.1 }
+    });
+  }
+  if (onstarId !== undefined) {
+    ws.addImage(onstarId, {
+      tl: { col: 7.8, row: 0.2 },
+      br: { col: 9.1, row: 2.1 }
+    });
+  }
 }
 
 function applyDataStyles(sheet, rowNum, colCount) {
@@ -185,6 +192,15 @@ async function buildExport(req, res) {
 
   const workbook = new ExcelJS.Workbook();
   
+  let arrowId;
+  let onstarId;
+  try {
+    arrowId = workbook.addImage({ filename: path.join(__dirname, '../assets/arrow.png'), extension: 'png' });
+    onstarId = workbook.addImage({ filename: path.join(__dirname, '../assets/安吉星.png'), extension: 'png' });
+  } catch (e) {
+    console.error('Error loading images:', e);
+  }
+  
 function applyCoverAndTocSizing(ws, isCover) {
   const colWidths = [
     5.125, 6.625, 10.625, 14.625, 25.375, 32.375, 17.375, 25.625, 13, 6.625, 0.625, 4.625, 
@@ -214,13 +230,13 @@ function applyCoverAndTocSizing(ws, isCover) {
   wsCover.mergeCells('D11:H12');
   const covTitle = wsCover.getCell('D11');
   covTitle.value = `${pureModel}车辆手机APP验证测试`;
-  covTitle.font = { size: 24, bold: true, name: '微软雅黑', color: { argb: 'FF595959' } };
+  covTitle.font = { size: 36, bold: true, name: '微软雅黑', color: { argb: 'FF595959' } };
   covTitle.alignment = { vertical: 'middle', horizontal: 'left' };
   
   wsCover.mergeCells('D13:H13');
   const covSub = wsCover.getCell('D13');
   covSub.value = `${pureModel} Vehicle Mobile APP Validation Test`;
-  covSub.font = { size: 12, name: '微软雅黑', color: { argb: 'FF595959' } };
+  covSub.font = { size: 18, name: '微软雅黑 Light', color: { argb: 'FF595959' } };
   covSub.alignment = { vertical: 'middle', horizontal: 'left' };
   
   for (let c = 4; c <= 8; c++) {
@@ -231,10 +247,10 @@ function applyCoverAndTocSizing(ws, isCover) {
   wsCover.mergeCells('D16:H16');
   const covDate = wsCover.getCell('D16');
   covDate.value = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-  covDate.font = { size: 11, name: '微软雅黑', color: { argb: 'FF595959' } };
+  covDate.font = { size: 18, name: '微软雅黑', color: { argb: 'FF595959' } };
   covDate.alignment = { vertical: 'middle', horizontal: 'left' };
 
-  drawThemeFrame(wsCover, 2, 10, 50);
+  drawThemeFrame(wsCover, 2, 10, 50, arrowId, onstarId);
 
   // --- Table of contents ---
   const wsToc = workbook.addWorksheet('Table of contents-->');
@@ -265,7 +281,7 @@ function applyCoverAndTocSizing(ws, isCover) {
     cell.font = { size: 12, name: '微软雅黑', color: { argb: 'FF0563C1' }, underline: true };
   });
 
-  drawThemeFrame(wsToc, 2, 10, 50);
+  drawThemeFrame(wsToc, 2, 10, 50, arrowId, onstarId);
 
   // --- 车辆服务 Sheet ---
   const wsVehicle = workbook.addWorksheet('车辆服务');
@@ -298,7 +314,7 @@ function applyCoverAndTocSizing(ws, isCover) {
     applyDataStyles(wsVehicle, rNum, 7);
   });
 
-  drawThemeFrame(wsVehicle, 3, 11, Math.max(60, wsVehicle.rowCount + 10));
+  drawThemeFrame(wsVehicle, 3, 11, Math.max(60, wsVehicle.rowCount + 10), arrowId, onstarId);
 
   // --- 手机APP Sheets ---
   const addAppSheetWithData = (sheetName, titleSuffix) => {
@@ -344,7 +360,7 @@ function applyCoverAndTocSizing(ws, isCover) {
       applyDataStyles(wsApp, rNum, 9);
     });
 
-    drawThemeFrame(wsApp, 3, 11, Math.max(60, wsApp.rowCount + 10));
+    drawThemeFrame(wsApp, 3, 11, Math.max(60, wsApp.rowCount + 10), arrowId, onstarId);
   };
 
   addAppSheetWithData('手机APP-iOS', '手机APP-iOS');
