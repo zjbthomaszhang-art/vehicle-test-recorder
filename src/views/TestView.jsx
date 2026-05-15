@@ -68,8 +68,8 @@ export default function TestView({
   const minSwipeDistance = 70;
 
   const validateTimeFields = () => {
-    // 选了不适用，可以直接跳过时间校验
-    if (currentData.result === 'N/A' || currentData.result === 'NA') {
+    // 选了不适用 或 未通过，都可以直接跳过时间校验
+    if (currentData.result === 'N/A' || currentData.result === 'NA' || currentData.result === 'Fail') {
       return true;
     }
 
