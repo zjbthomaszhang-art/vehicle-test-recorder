@@ -78,10 +78,8 @@ function drawTemplateHeaders(sheet, title, info, isApp) {
     
     const valFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF6FAFD' } };
     const valBorder = {
-      left: { style: 'thin', color: { argb: 'FFE6E6E6' } },
-      top: { style: 'thin', color: { argb: 'FFE6E6E6' } },
-      right: { style: 'thin', color: { argb: 'FFE6E6E6' } },
-      bottom: { style: 'thin', color: { argb: 'FFE6E6E6' } }
+      left: { style: 'thin', color: { argb: 'FFDAEEF3' } },
+      top: { style: 'thin', color: { argb: 'FFDAEEF3' } }
     };
 
     sheet.getCell(`D${r}`).font = fontLabel;
