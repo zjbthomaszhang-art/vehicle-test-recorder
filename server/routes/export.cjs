@@ -116,14 +116,17 @@ async function buildExport(req, res) {
   
   // Extract city from address heuristically
   let city = '';
+  let location = address || '';
   if (address) {
     const cityIndex = address.indexOf('市');
     const provIndex = address.indexOf('省');
     
     if (cityIndex !== -1) {
       city = address.substring(0, cityIndex + 1);
+      location = address.substring(cityIndex + 1);
     } else if (provIndex !== -1) {
       city = address.substring(0, provIndex + 1);
+      location = address.substring(provIndex + 1);
     }
   }
 
@@ -135,8 +138,8 @@ async function buildExport(req, res) {
     mileage: mileage ? `${mileage}KM` : '',
     stid: '',
     city: city,
-    address: address || '',
-    appVersion: '11.0.5' // Default placeholder
+    address: location,
+    appVersion: ''
   };
 
   const workbook = new ExcelJS.Workbook();
@@ -160,6 +163,34 @@ async function buildExport(req, res) {
   const d = new Date();
   wsCover.getCell('C17').value = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
   wsCover.getCell('C17').font = { size: 12, name: '微软雅黑' };
+
+  // --- Table of contents ---
+  const wsToc = workbook.addWorksheet('Table of contents-->');
+  wsToc.views = [{ showGridLines: false }];
+  
+  wsToc.getCell('C9').value = 'Table of Contents';
+  wsToc.getCell('C9').font = { size: 16, bold: true, name: '微软雅黑' };
+  
+  for (let c = 3; c <= 8; c++) {
+    wsToc.getRow(10).getCell(c).border = { bottom: { style: 'thin', color: { argb: 'FF000000' } } };
+  }
+
+  wsToc.getCell('C12').value = 'Contents';
+  wsToc.getCell('C12').font = { size: 14, bold: true, name: '微软雅黑' };
+
+  const tocLinks = [
+    { row: 14, text: '车辆服务', target: "'车辆服务'!A1" },
+    { row: 15, text: '手机APP-iOS', target: "'手机APP-iOS'!A1" },
+    { row: 16, text: '手机APP-Android', target: "'手机APP-Android'!A1" },
+    { row: 17, text: 'SGM问题清单', target: "'SGM问题清单'!A1" },
+    { row: 18, text: '截图', target: "'截图'!A1" }
+  ];
+
+  tocLinks.forEach((link) => {
+    const cell = wsToc.getCell(`C${link.row}`);
+    cell.value = { text: link.text, hyperlink: `#${link.target}` };
+    cell.font = { size: 12, name: '微软雅黑', color: { argb: 'FF0563C1' }, underline: true };
+  });
 
   // --- 车辆服务 Sheet ---
   const wsVehicle = workbook.addWorksheet('车辆服务');
@@ -241,7 +272,7 @@ async function buildExport(req, res) {
   addAppSheetWithData('手机APP-Android', '手机APP-Android');
 
   // --- SGM 问题清单 ---
-  const wsBugs = workbook.addWorksheet('SGM问题清单 ');
+  const wsBugs = workbook.addWorksheet('SGM问题清单');
   wsBugs.views = [{ state: 'frozen', ySplit: 1 }];
   wsBugs.columns = [
     { header: '序号', key: 'no', width: 8 },
