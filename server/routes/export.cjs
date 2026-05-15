@@ -127,7 +127,15 @@ function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarI
           // Right margin
           if (c === whiteColEnd + 1) {
             // Drop shadow / gradient approximation
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4A98ED' } };
+            cell.fill = {
+              type: 'gradient',
+              gradient: 'linear',
+              degree: 0,
+              stops: [
+                { position: 0, color: { argb: 'FF4A98ED' } },
+                { position: 1, color: { argb: 'FF69AEF3' } }
+              ]
+            };
           } else {
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF69AEF3' } };
           }
@@ -163,7 +171,7 @@ function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarI
   }
   if (circleId !== undefined) {
     ws.addImage(circleId, {
-      tl: { nativeCol: 1, nativeColOff: 342900, nativeRow: 11, nativeRowOff: 238125 },
+      tl: { nativeCol: 0, nativeColOff: 246459, nativeRow: 11, nativeRowOff: 238125 },
       ext: { width: 30, height: 30 },
       editAs: 'absolute'
     });
