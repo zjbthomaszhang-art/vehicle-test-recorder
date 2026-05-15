@@ -117,10 +117,13 @@ async function buildExport(req, res) {
   // Extract city from address heuristically
   let city = '';
   if (address) {
-    if (address.includes('市')) {
-      city = address.split('市')[0] + '市';
-    } else {
-      city = address;
+    const cityIndex = address.indexOf('市');
+    const provIndex = address.indexOf('省');
+    
+    if (cityIndex !== -1) {
+      city = address.substring(0, cityIndex + 1);
+    } else if (provIndex !== -1) {
+      city = address.substring(0, provIndex + 1);
     }
   }
 
@@ -141,12 +144,26 @@ async function buildExport(req, res) {
   // --- Cover Page ---
   const wsCover = workbook.addWorksheet('Cover page');
   wsCover.views = [{ showGridLines: false }];
-  wsCover.getCell('C5').value = 'Vehicle Test Report';
-  wsCover.getCell('C5').font = { size: 24, bold: true, name: '微软雅黑' };
+  
+  const pureModel = vehicleModel ? vehicleModel.replace(/^MY\d{2}\s*/i, '').replace(/^U/i, '') : '557';
+  
+  wsCover.getCell('C11').value = `${pureModel}车辆手机APP验证测试`;
+  wsCover.getCell('C11').font = { size: 20, bold: true, name: '微软雅黑' };
+  
+  wsCover.getCell('C13').value = `${pureModel} Vehicle Mobile APP Validation Test`;
+  wsCover.getCell('C13').font = { size: 12, name: '微软雅黑', color: { argb: 'FF595959' } };
+  
+  for (let c = 3; c <= 8; c++) {
+    wsCover.getRow(14).getCell(c).border = { bottom: { style: 'thin', color: { argb: 'FF000000' } } };
+  }
+
+  const d = new Date();
+  wsCover.getCell('C17').value = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  wsCover.getCell('C17').font = { size: 12, name: '微软雅黑' };
 
   // --- 车辆服务 Sheet ---
   const wsVehicle = workbook.addWorksheet('车辆服务');
-  drawTemplateHeaders(wsVehicle, `${vehicleModel}车辆按键验证测试- 车辆服务`, info, false);
+  drawTemplateHeaders(wsVehicle, `${vehicleModel}车辆手机APP验证测试- 车辆服务`, info, false);
   
   // Header Row 15
   const vHeaders = ["No.", "功能大类", "功能", "测试内容", "测试时间\\n测试开始时间         ", "最终结果:\\nPass/Fail", "备注"];
@@ -165,7 +182,7 @@ async function buildExport(req, res) {
   vehicleRows.forEach(({ c, r }, idx) => {
     const rNum = 16 + idx;
     const row = wsVehicle.getRow(rNum);
-    row.getCell('C').value = c.case_number || c.id || (idx + 1);
+      row.getCell('C').value = idx + 1;
     row.getCell('D').value = c.function_category || c.functionCategory || c.category || '';
     row.getCell('E').value = c.function || '';
     row.getCell('F').value = c.expected || '';
@@ -207,7 +224,7 @@ async function buildExport(req, res) {
       const carDur = (startMs && carMs && !isNaN(startMs) && !isNaN(carMs)) ? Number(((carMs - startMs) / 1000).toFixed(2)) : '/';
       const appDur = (startMs && appMs && !isNaN(startMs) && !isNaN(appMs)) ? Number(((appMs - startMs) / 1000).toFixed(2)) : '/';
 
-      row.getCell('C').value = c.case_number || c.id || (idx + 1);
+        row.getCell('C').value = idx + 1;
       row.getCell('D').value = c.function_category || c.functionCategory || c.category || '';
       row.getCell('E').value = c.function || '';
       row.getCell('F').value = c.expected || '';
