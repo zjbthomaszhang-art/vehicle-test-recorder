@@ -232,13 +232,13 @@ function applyCoverAndTocSizing(ws, isCover) {
   wsCover.mergeCells('D11:H12');
   const covTitle = wsCover.getCell('D11');
   covTitle.value = `${pureModel}车辆手机APP验证测试`;
-  covTitle.font = { size: 36, bold: true, name: '微软雅黑', color: { argb: 'FF595959' } };
+  covTitle.font = { size: 36, bold: true, name: '微软雅黑', color: { argb: 'FF404040' } };
   covTitle.alignment = { vertical: 'middle', horizontal: 'left' };
   
   wsCover.mergeCells('D13:H13');
   const covSub = wsCover.getCell('D13');
   covSub.value = `${pureModel} Vehicle Mobile APP Validation Test`;
-  covSub.font = { size: 18, name: '微软雅黑 Light', color: { argb: 'FF595959' } };
+  covSub.font = { size: 18, name: '微软雅黑 Light', color: { argb: 'FF404040' } };
   covSub.alignment = { vertical: 'middle', horizontal: 'left' };
   
   for (let c = 4; c <= 8; c++) {
@@ -249,7 +249,7 @@ function applyCoverAndTocSizing(ws, isCover) {
   wsCover.mergeCells('D16:H16');
   const covDate = wsCover.getCell('D16');
   covDate.value = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-  covDate.font = { size: 18, name: '微软雅黑', color: { argb: 'FF595959' } };
+  covDate.font = { size: 18, name: '微软雅黑', color: { argb: 'FF404040' } };
   covDate.alignment = { vertical: 'middle', horizontal: 'left' };
 
   drawThemeFrame(wsCover, 2, 10, 50, arrowId, onstarId);
