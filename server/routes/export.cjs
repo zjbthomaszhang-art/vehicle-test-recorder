@@ -164,6 +164,8 @@ async function buildExport(req, res) {
   wsCover.getCell('C17').value = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
   wsCover.getCell('C17').font = { size: 12, name: '微软雅黑' };
 
+  drawThemeFrame(wsCover, 2, 10, 50);
+
   // --- Table of contents ---
   const wsToc = workbook.addWorksheet('Table of contents-->');
   wsToc.views = [{ showGridLines: false }];
@@ -191,6 +193,8 @@ async function buildExport(req, res) {
     cell.value = { text: link.text, hyperlink: `#${link.target}` };
     cell.font = { size: 12, name: '微软雅黑', color: { argb: 'FF0563C1' }, underline: true };
   });
+
+  drawThemeFrame(wsToc, 2, 10, 50);
 
   // --- 车辆服务 Sheet ---
   const wsVehicle = workbook.addWorksheet('车辆服务');
@@ -222,6 +226,8 @@ async function buildExport(req, res) {
     row.getCell('I').value = r.notes || '';
     applyDataStyles(wsVehicle, rNum, 7);
   });
+
+  drawThemeFrame(wsVehicle, 3, 11, Math.max(60, wsVehicle.rowCount + 10));
 
   // --- 手机APP Sheets ---
   const addAppSheetWithData = (sheetName, titleSuffix) => {
@@ -266,6 +272,8 @@ async function buildExport(req, res) {
       row.getCell('K').value = r.notes || '';
       applyDataStyles(wsApp, rNum, 9);
     });
+
+    drawThemeFrame(wsApp, 3, 11, Math.max(60, wsApp.rowCount + 10));
   };
 
   addAppSheetWithData('手机APP-iOS', '手机APP-iOS');
