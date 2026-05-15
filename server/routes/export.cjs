@@ -125,20 +125,7 @@ function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarI
           cell.border = {};
         } else if (c > whiteColEnd) {
           // Right margin
-          if (c === whiteColEnd + 1) {
-            // Drop shadow / gradient approximation
-            cell.fill = {
-              type: 'gradient',
-              gradient: 'linear',
-              degree: 0,
-              stops: [
-                { position: 0, color: { argb: 'FF4A98ED' } },
-                { position: 1, color: { argb: 'FF69AEF3' } }
-              ]
-            };
-          } else {
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF69AEF3' } };
-          }
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF69AEF3' } };
           cell.border = {};
         } else {
           // White page background
@@ -175,12 +162,8 @@ function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarI
       ext: { width: 30, height: 30 },
       editAs: 'absolute'
     });
-    const rightColIndex = whiteColEnd - 1;
-    const colWidths = [5.125, 6.625, 10.625, 14.625, 25.375, 32.375, 17.375, 25.625, 13, 6.625, 0.625, 4.625, 12.625, 12.625, 12.625, 12.625, 12.625, 12.625, 12.625, 12.625];
-    const wChar = colWidths[rightColIndex] || 6.625;
-    const offsetEmu = Math.floor(wChar * 7 + 5 - 15) * 9525;
     ws.addImage(circleId, {
-      tl: { nativeCol: rightColIndex, nativeColOff: offsetEmu, nativeRow: 11, nativeRowOff: 238125 },
+      tl: { nativeCol: 9, nativeColOff: 435768, nativeRow: 11, nativeRowOff: 238125 },
       ext: { width: 30, height: 30 },
       editAs: 'absolute'
     });
@@ -358,7 +341,7 @@ function applyCoverAndTocSizing(ws, isCover) {
     cell.font = { size: 20, name: '微软雅黑', color: { argb: 'FF0563C1' }, underline: true };
   });
 
-  drawThemeFrame(wsToc, 2, 10, 53, arrowId, onstarId, bgId, circleId);
+  drawThemeFrame(wsToc, 2, 10, 53, arrowId, onstarId, bgId);
 
   // --- 车辆服务 Sheet ---
   const wsVehicle = workbook.addWorksheet('车辆服务');
@@ -400,7 +383,10 @@ function applyCoverAndTocSizing(ws, isCover) {
     applyDataStyles(wsVehicle, rNum, 7);
   });
 
-  drawThemeFrame(wsVehicle, 2, 10, Math.max(60, wsVehicle.rowCount + 10), arrowId, onstarId, bgId, circleId);
+  const vEndRow = wsVehicle.rowCount;
+  wsVehicle.getRow(vEndRow + 1).height = 30;
+  wsVehicle.getRow(vEndRow + 2).height = 30;
+  drawThemeFrame(wsVehicle, 2, 11, vEndRow + 5, arrowId, onstarId, bgId, circleId);
 
   // --- 手机APP Sheets ---
   const addAppSheetWithData = (sheetName, titleSuffix) => {
@@ -456,7 +442,10 @@ function applyCoverAndTocSizing(ws, isCover) {
       applyDataStyles(wsApp, rNum, 9);
     });
 
-    drawThemeFrame(wsApp, 2, 10, Math.max(60, wsApp.rowCount + 10), arrowId, onstarId, bgId, circleId);
+    const aEndRow = wsApp.rowCount;
+    wsApp.getRow(aEndRow + 1).height = 30;
+    wsApp.getRow(aEndRow + 2).height = 30;
+    drawThemeFrame(wsApp, 2, 11, aEndRow + 5, arrowId, onstarId, bgId, circleId);
   };
 
   addAppSheetWithData('手机APP-iOS', '手机APP-iOS');
