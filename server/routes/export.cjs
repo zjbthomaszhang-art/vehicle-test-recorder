@@ -92,10 +92,10 @@ function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarI
       // Skip if cell already has a fill (like table headers/data)
       if (cell.fill && cell.fill.type !== 'none') continue;
 
-      if (r <= 3) {
-        // Top header bar
+      if (r <= 3 || r >= maxRow - 2) {
+        // Top and Bottom header bar
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF69AEF3' } };
-        // Remove borders in top margin
+        // Remove borders in margin
         cell.border = {};
       } else {
         if (c < whiteColStart) {
@@ -128,7 +128,7 @@ function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarI
   }
   if (bgId !== undefined) {
     ws.addImage(bgId, {
-      tl: { nativeCol: 7, nativeColOff: 200000, nativeRow: 0, nativeRowOff: 0 },
+      tl: { nativeCol: 7, nativeColOff: 200000, nativeRow: 1, nativeRowOff: 0 },
       br: { nativeCol: 10, nativeColOff: 0, nativeRow: 3, nativeRowOff: 0 },
       editAs: 'absolute'
     });
@@ -261,7 +261,7 @@ function applyCoverAndTocSizing(ws, isCover) {
   covDate.font = { size: 18, name: '微软雅黑', color: { argb: 'FF404040' } };
   covDate.alignment = { vertical: 'middle', horizontal: 'left' };
 
-  drawThemeFrame(wsCover, 2, 10, 50, arrowId, onstarId, bgId);
+  drawThemeFrame(wsCover, 2, 10, 53, arrowId, onstarId, bgId);
 
   // --- Table of contents ---
   const wsToc = workbook.addWorksheet('Table of contents-->');
@@ -292,7 +292,7 @@ function applyCoverAndTocSizing(ws, isCover) {
     cell.font = { size: 12, name: '微软雅黑', color: { argb: 'FF0563C1' }, underline: true };
   });
 
-  drawThemeFrame(wsToc, 2, 10, 50, arrowId, onstarId, bgId);
+  drawThemeFrame(wsToc, 2, 10, 53, arrowId, onstarId, bgId);
 
   // --- 车辆服务 Sheet ---
   const wsVehicle = workbook.addWorksheet('车辆服务');
