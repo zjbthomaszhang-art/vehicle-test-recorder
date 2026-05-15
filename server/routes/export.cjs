@@ -106,7 +106,7 @@ function drawTemplateHeaders(sheet, title, info, isApp) {
   sheet.getCell('C13').value = '详细测试数据';
   sheet.getCell('C13').font = { size: 15, color: { argb: 'FF404040' }, name: '微软雅黑' };
 }
-function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarId, bgId) {
+function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarId, bgId, circleId) {
   for (let r = 1; r <= maxRow; r++) {
     for (let c = 1; c <= whiteColEnd + 2; c++) {
       const cell = ws.getCell(r, c);
@@ -161,6 +161,22 @@ function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarI
       editAs: 'absolute'
     });
   }
+  if (circleId !== undefined) {
+    ws.addImage(circleId, {
+      tl: { nativeCol: 1, nativeColOff: 342900, nativeRow: 11, nativeRowOff: 238125 },
+      ext: { width: 30, height: 30 },
+      editAs: 'absolute'
+    });
+    const rightColIndex = whiteColEnd - 1;
+    const colWidths = [5.125, 6.625, 10.625, 14.625, 25.375, 32.375, 17.375, 25.625, 13, 6.625, 0.625, 4.625, 12.625, 12.625, 12.625, 12.625, 12.625, 12.625, 12.625, 12.625];
+    const wChar = colWidths[rightColIndex] || 6.625;
+    const offsetEmu = Math.floor(wChar * 7 + 5 - 15) * 9525;
+    ws.addImage(circleId, {
+      tl: { nativeCol: rightColIndex, nativeColOff: offsetEmu, nativeRow: 11, nativeRowOff: 238125 },
+      ext: { width: 30, height: 30 },
+      editAs: 'absolute'
+    });
+  }
 }
 
 function applyDataStyles(sheet, rowNum, colCount) {
@@ -184,11 +200,14 @@ function applyDataStyles(sheet, rowNum, colCount) {
     
     let align = { vertical: 'middle', horizontal: 'center', wrapText: true };
     if (colCount === 7) {
-      if ([4, 5, 6, 7, 9].includes(cIdx)) align.horizontal = 'left';
-      else if (cIdx === 8) align.horizontal = 'right';
+      if ([4, 5, 6, 9].includes(cIdx)) align.horizontal = 'left';
+      else if (cIdx === 7) align.horizontal = 'right';
+      else if (cIdx === 8) align.horizontal = 'center';
     } else {
-      if ([4, 5, 6, 7, 11].includes(cIdx)) align.horizontal = 'left';
-      else if ([8, 9].includes(cIdx)) align.horizontal = 'right';
+      if ([4, 5, 6, 11].includes(cIdx)) align.horizontal = 'left';
+      else if (cIdx === 7) align.horizontal = 'right';
+      else if (cIdx === 8) align.horizontal = 'center';
+      else if (cIdx === 9) align.horizontal = 'right';
     }
     cell.alignment = align;
 
@@ -241,10 +260,12 @@ async function buildExport(req, res) {
   let arrowId;
   let onstarId;
   let bgId;
+  let circleId;
   try {
     arrowId = workbook.addImage({ filename: path.join(__dirname, '../assets/arrow.png'), extension: 'png' });
     onstarId = workbook.addImage({ filename: path.join(__dirname, '../assets/安吉星.png'), extension: 'png' });
     bgId = workbook.addImage({ filename: path.join(__dirname, '../assets/渐变色底图.png'), extension: 'png' });
+    circleId = workbook.addImage({ filename: path.join(__dirname, '../assets/圆.png'), extension: 'png' });
   } catch (e) {
     console.error('Error loading images:', e);
   }
@@ -329,7 +350,7 @@ function applyCoverAndTocSizing(ws, isCover) {
     cell.font = { size: 20, name: '微软雅黑', color: { argb: 'FF0563C1' }, underline: true };
   });
 
-  drawThemeFrame(wsToc, 2, 10, 53, arrowId, onstarId, bgId);
+  drawThemeFrame(wsToc, 2, 10, 53, arrowId, onstarId, bgId, circleId);
 
   // --- 车辆服务 Sheet ---
   const wsVehicle = workbook.addWorksheet('车辆服务');
@@ -351,8 +372,9 @@ function applyCoverAndTocSizing(ws, isCover) {
       bottom: { style: 'thin', color: { argb: 'FF87C0F6' } }
     };
     let align = { vertical: 'middle', horizontal: 'center', wrapText: true };
-    if ([4, 5, 6, 7, 9].includes(idx + 3)) align.horizontal = 'left';
-    else if (idx + 3 === 8) align.horizontal = 'right';
+    if ([4, 5, 6, 9].includes(idx + 3)) align.horizontal = 'left';
+    else if (idx + 3 === 7) align.horizontal = 'right';
+    else if (idx + 3 === 8) align.horizontal = 'center';
     cell.alignment = align;
   });
 
@@ -370,7 +392,7 @@ function applyCoverAndTocSizing(ws, isCover) {
     applyDataStyles(wsVehicle, rNum, 7);
   });
 
-  drawThemeFrame(wsVehicle, 2, 10, Math.max(60, wsVehicle.rowCount + 10), arrowId, onstarId, bgId);
+  drawThemeFrame(wsVehicle, 2, 10, Math.max(60, wsVehicle.rowCount + 10), arrowId, onstarId, bgId, circleId);
 
   // --- 手机APP Sheets ---
   const addAppSheetWithData = (sheetName, titleSuffix) => {
@@ -392,8 +414,10 @@ function applyCoverAndTocSizing(ws, isCover) {
         bottom: { style: 'thin', color: { argb: 'FF87C0F6' } }
       };
       let align = { vertical: 'middle', horizontal: 'center', wrapText: true };
-      if ([4, 5, 6, 7, 11].includes(idx + 3)) align.horizontal = 'left';
-      else if ([8, 9].includes(idx + 3)) align.horizontal = 'right';
+      if ([4, 5, 6, 11].includes(idx + 3)) align.horizontal = 'left';
+      else if (idx + 3 === 7) align.horizontal = 'right';
+      else if (idx + 3 === 8) align.horizontal = 'center';
+      else if (idx + 3 === 9) align.horizontal = 'right';
       cell.alignment = align;
     });
 
@@ -424,7 +448,7 @@ function applyCoverAndTocSizing(ws, isCover) {
       applyDataStyles(wsApp, rNum, 9);
     });
 
-    drawThemeFrame(wsApp, 2, 10, Math.max(60, wsApp.rowCount + 10), arrowId, onstarId, bgId);
+    drawThemeFrame(wsApp, 2, 10, Math.max(60, wsApp.rowCount + 10), arrowId, onstarId, bgId, circleId);
   };
 
   addAppSheetWithData('手机APP-iOS', '手机APP-iOS');
