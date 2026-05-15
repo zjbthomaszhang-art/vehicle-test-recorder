@@ -26,7 +26,7 @@ function formatDate(dateStr) {
 }
 
 function drawTemplateHeaders(sheet, title, info, isApp) {
-  sheet.views = [{ showGridLines: false, state: 'frozen', ySplit: 15 }];
+  sheet.views = [{ showGridLines: false }];
 
   const colWidths = [
     5.125, 6.625, 10.625, 14.625, 25.375, 32.375, 17.375, 25.625, 13, 6.625, 0.625, 4.625, 
@@ -44,6 +44,7 @@ function drawTemplateHeaders(sheet, title, info, isApp) {
 
   sheet.getCell('C2').value = title;
   sheet.getCell('C2').font = { size: 28, color: { argb: 'FFFFFFFF' }, name: '微软雅黑' };
+  sheet.getCell('C2').alignment = { horizontal: 'left', vertical: 'middle', indent: 2 };
   
   sheet.getCell('D5').value = '日期：';
   sheet.getCell('E5').value = info.date;
@@ -75,23 +76,41 @@ function drawTemplateHeaders(sheet, title, info, isApp) {
     const fontLabel = { bold: true, name: '微软雅黑', size: 11, color: { argb: 'FF404040' } };
     const fontValue = { bold: false, name: '微软雅黑', size: 11, color: { argb: 'FF404040' } };
     
+    const valFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF6FAFD' } };
+    const valBorder = {
+      left: { style: 'thin', color: { argb: 'FFE6E6E6' } },
+      top: { style: 'thin', color: { argb: 'FFE6E6E6' } },
+      right: { style: 'thin', color: { argb: 'FFE6E6E6' } },
+      bottom: { style: 'thin', color: { argb: 'FFE6E6E6' } }
+    };
+
     sheet.getCell(`D${r}`).font = fontLabel;
-    sheet.getCell(`E${r}`).font = fontValue;
-    sheet.getCell(`G${r}`).font = fontLabel;
-    sheet.getCell(`H${r}`).font = fontValue;
-    
     sheet.getCell(`D${r}`).alignment = { horizontal: 'right', vertical: 'middle' };
-    sheet.getCell(`E${r}`).alignment = { horizontal: 'left', vertical: 'middle' };
+
+    sheet.getCell(`G${r}`).font = fontLabel;
     sheet.getCell(`G${r}`).alignment = { horizontal: 'right', vertical: 'middle' };
-    sheet.getCell(`H${r}`).alignment = { horizontal: 'left', vertical: 'middle' };
+
+    sheet.getCell(`E${r}`).font = fontValue;
+    sheet.getCell(`E${r}`).fill = valFill;
+    sheet.getCell(`E${r}`).border = valBorder;
+    sheet.getCell(`E${r}`).alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+
+    sheet.getCell(`H${r}`).font = fontValue;
+    sheet.getCell(`H${r}`).fill = valFill;
+    sheet.getCell(`H${r}`).border = valBorder;
+    sheet.getCell(`H${r}`).alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
   });
+
+  for (let c = 3; c <= 11; c++) {
+    sheet.getCell(12, c).border = { bottom: { style: 'dashed', color: { argb: 'FF8EA9DB' } } };
+  }
 
   sheet.getCell('C13').value = '详细测试数据';
   sheet.getCell('C13').font = { size: 15, color: { argb: 'FF404040' }, name: '微软雅黑' };
 }
 function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarId, bgId) {
   for (let r = 1; r <= maxRow; r++) {
-    for (let c = 1; c <= whiteColEnd + 2; c++) {
+    for (let c = 1; c <= whiteColEnd + 1; c++) {
       const cell = ws.getCell(r, c);
       // Skip if cell already has a fill (like table headers/data)
       if (cell.fill && cell.fill.type !== 'none') continue;
@@ -151,7 +170,10 @@ function applyDataStyles(sheet, rowNum, colCount) {
   row.height = 30;
   for (let i = 1; i <= colCount; i++) {
     const cell = row.getCell(i + 2); // Start from C
-    cell.border = BORDER_STYLE;
+    cell.border = {
+      left: { style: 'thin', color: { argb: 'FFE6E6E6' } },
+      right: { style: 'thin', color: { argb: 'FFE6E6E6' } }
+    };
     cell.font = { name: '微软雅黑', size: 10, color: { argb: 'FF404040' } };
     cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
     
@@ -312,7 +334,12 @@ function applyCoverAndTocSizing(ws, isCover) {
     cell.value = h.replace(/\\n/g, '\n');
     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF69AEF3' } };
     cell.font = { size: 12, color: { argb: 'FFFFFFFF' }, name: '微软雅黑' };
-    cell.border = BORDER_STYLE;
+    cell.border = {
+      left: { style: 'thin', color: { argb: 'FF87C0F6' } },
+      right: { style: 'thin', color: { argb: 'FF87C0F6' } },
+      top: { style: 'thin', color: { argb: 'FF87C0F6' } },
+      bottom: { style: 'thin', color: { argb: 'FF87C0F6' } }
+    };
     cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
   });
 
@@ -345,7 +372,12 @@ function applyCoverAndTocSizing(ws, isCover) {
       cell.value = h.replace(/\\n/g, '\n');
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF69AEF3' } };
       cell.font = { size: 12, color: { argb: 'FFFFFFFF' }, name: '微软雅黑' };
-      cell.border = BORDER_STYLE;
+      cell.border = {
+        left: { style: 'thin', color: { argb: 'FF87C0F6' } },
+        right: { style: 'thin', color: { argb: 'FF87C0F6' } },
+        top: { style: 'thin', color: { argb: 'FF87C0F6' } },
+        bottom: { style: 'thin', color: { argb: 'FF87C0F6' } }
+      };
       cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
     });
 
