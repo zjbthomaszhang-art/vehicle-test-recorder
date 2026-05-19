@@ -91,7 +91,41 @@ export default function TestView({
     return true;
   };
 
+  const requiresScreenshot = (c) => {
+    const cat = String(c.category || '');
+    const funcCat = String(c.function_category || c.functionCategory || '');
+    const func = String(c.function || '');
+    const desc = String(c.content || c.expected || '');
+
+    if (cat.includes('车辆服务') && funcCat.includes('蓝键') && func.includes('发送OVD') && desc.includes('添加OVD截图')) return true;
+    if (cat.includes('车辆服务') && funcCat.includes('车机屏') && func.includes('应用程序') && desc.includes('拍照记录')) return true;
+    if (cat.includes('车辆服务') && funcCat.includes('TASK') && func.includes('TAN') && desc.includes('车机APP收到告警短信')) return true;
+    if (cat.includes('手机应用') && funcCat.includes('iOS') && func.includes('刷新车况') && func.includes('点火') && desc.includes('手机应用显示正常')) return true;
+    if (cat.includes('手机应用') && funcCat.includes('iOS') && func.includes('查询套餐包') && desc.includes('添加截图')) return true;
+    
+    return false;
+  };
+
+  const handleResultClick = (result) => {
+    if ((result === 'Pass' || result === 'Fail') && requiresScreenshot(activeCase)) {
+      if (!currentData.media || currentData.media.length === 0) {
+        setToast({ message: '此测试案例必须先上传截图，才能判定结果', type: 'error' });
+        return;
+      }
+    }
+    updateCurrentResult({ result, ...(!currentData.startTime ? { startTime: Date.now() } : {}) });
+  };
+
   const handleNextClick = () => {
+    if (currentData.result === 'Pass' || currentData.result === 'Fail') {
+      if (requiresScreenshot(activeCase)) {
+        if (!currentData.media || currentData.media.length === 0) {
+          setToast({ message: '此测试案例必须上传截图', type: 'error' });
+          return;
+        }
+      }
+    }
+
     if (validateTimeFields()) {
       nextCase();
     }
@@ -279,15 +313,15 @@ export default function TestView({
 
         {/* Buttons vRowD */}
         <div className="mt-[16px] w-full flex justify-between items-center gap-[12px]">
-          <button onClick={() => updateCurrentResult({ result: 'Pass', ...(!currentData.startTime ? { startTime: Date.now() } : {}) })} className={`flex-1 h-[64px] rounded-[16px] flex flex-col justify-center items-center gap-[4px] border ${currentData.result === 'Pass' ? 'border-[#10b981]' : 'border-slate-200 dark:border-[#334155]'} bg-transparent transition-all active:scale-95`}>
+          <button onClick={() => handleResultClick('Pass')} className={`flex-1 h-[64px] rounded-[16px] flex flex-col justify-center items-center gap-[4px] border ${currentData.result === 'Pass' ? 'border-[#10b981]' : 'border-slate-200 dark:border-[#334155]'} bg-transparent transition-all active:scale-95`}>
             <CheckCircle2 size={20} className={currentData.result === 'Pass' ? 'text-[#10b981]' : 'text-[#64748b]'} />
             <span className={`text-[11px] font-[900] ${currentData.result === 'Pass' ? 'text-[#10b981]' : 'text-[#64748b]'}`}>通过</span>
           </button>
-          <button onClick={() => updateCurrentResult({ result: 'Fail', ...(!currentData.startTime ? { startTime: Date.now() } : {}) })} className={`flex-1 h-[64px] rounded-[16px] flex flex-col justify-center items-center gap-[4px] border ${currentData.result === 'Fail' ? 'border-[#ef4444]' : 'border-slate-200 dark:border-[#334155]'} bg-transparent transition-all active:scale-95`}>
+          <button onClick={() => handleResultClick('Fail')} className={`flex-1 h-[64px] rounded-[16px] flex flex-col justify-center items-center gap-[4px] border ${currentData.result === 'Fail' ? 'border-[#ef4444]' : 'border-slate-200 dark:border-[#334155]'} bg-transparent transition-all active:scale-95`}>
              <XCircle size={20} className={currentData.result === 'Fail' ? 'text-[#ef4444]' : 'text-[#64748b]'} />
              <span className={`text-[11px] font-[900] ${currentData.result === 'Fail' ? 'text-[#ef4444]' : 'text-[#64748b]'}`}>未通过</span>
           </button>
-          <button onClick={() => updateCurrentResult({ result: 'N/A', ...(!currentData.startTime ? { startTime: Date.now() } : {}) })} className={`flex-1 h-[64px] rounded-[16px] flex flex-col justify-center items-center gap-[4px] border ${currentData.result === 'N/A' ? 'border-[#94a3b8]' : 'border-slate-200 dark:border-[#334155]'} bg-transparent transition-all active:scale-95`}>
+          <button onClick={() => handleResultClick('N/A')} className={`flex-1 h-[64px] rounded-[16px] flex flex-col justify-center items-center gap-[4px] border ${currentData.result === 'N/A' ? 'border-[#94a3b8]' : 'border-slate-200 dark:border-[#334155]'} bg-transparent transition-all active:scale-95`}>
             <MinusCircle size={20} className={currentData.result === 'N/A' ? 'text-slate-500 dark:text-[#cbd5e1]' : 'text-[#64748b]'} />
             <span className={`text-[11px] font-[900] ${currentData.result === 'N/A' ? 'text-slate-500 dark:text-[#cbd5e1]' : 'text-[#64748b]'}`}>不适用</span>
           </button>

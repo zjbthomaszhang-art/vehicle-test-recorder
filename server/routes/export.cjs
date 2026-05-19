@@ -1,6 +1,14 @@
 const express = require('express');
 const ExcelJS = require('exceljs');
 const path = require('path');
+const fs = require('fs');
+
+let sharp;
+try {
+  sharp = require('sharp');
+} catch (e) {
+  console.warn('[export] sharp 未安装，图片二次压缩不可用');
+}
 
 const router = express.Router();
 
@@ -99,14 +107,15 @@ function drawTemplateHeaders(sheet, title, info, isApp) {
     sheet.getCell(`H${r}`).alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
   });
 
-  for (let c = 3; c <= 9; c++) {
+  const dashedEndCol = isApp ? 11 : 9;
+  for (let c = 3; c <= dashedEndCol; c++) {
     sheet.getCell(12, c).border = { bottom: { style: 'dashed', color: { argb: 'FF8EA9DB' } } };
   }
 
   sheet.getCell('C13').value = '详细测试数据';
   sheet.getCell('C13').font = { size: 15, color: { argb: 'FF404040' }, name: '微软雅黑' };
 }
-function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarId, bgId, circleId, leftCircleId, rightMarginCol, bottomMarginRows) {
+function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarId, bgId, circleId, leftCircleId, rightMarginCol, bottomMarginRows, rightCircleNativeCol, rightCircleColOff, logoNativeCol, logoColOff, bgBrCol) {
   const rMarginCol = rightMarginCol || (whiteColEnd + 2);
   const bMarginRows = bottomMarginRows || 3;
 
@@ -128,7 +137,20 @@ function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarI
           cell.border = {};
         } else if (c > whiteColEnd) {
           // Right margin
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF69AEF3' } };
+          if (c === whiteColEnd + 1) {
+            // Horizontal gradient
+            cell.fill = {
+              type: 'gradient',
+              gradient: 'linear',
+              degree: 0,
+              stops: [
+                { position: 0, color: { argb: 'FF4A98ED' } },
+                { position: 1, color: { argb: 'FF69AEF3' } }
+              ]
+            };
+          } else {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF69AEF3' } };
+          }
           cell.border = {};
         } else {
           // White page background
@@ -148,20 +170,20 @@ function drawThemeFrame(ws, whiteColStart, whiteColEnd, maxRow, arrowId, onstarI
   if (bgId !== undefined) {
     ws.addImage(bgId, {
       tl: { nativeCol: 7, nativeColOff: 0, nativeRow: 1, nativeRowOff: 0 },
-      br: { nativeCol: 9, nativeColOff: 0, nativeRow: 3, nativeRowOff: 0 },
+      br: { nativeCol: bgBrCol !== undefined ? bgBrCol : 9, nativeColOff: 0, nativeRow: 3, nativeRowOff: 0 },
       editAs: 'absolute'
     });
   }
   if (onstarId !== undefined) {
     ws.addImage(onstarId, {
-      tl: { nativeCol: 7, nativeColOff: 1661310, nativeRow: 0, nativeRowOff: 262741 },
+      tl: { nativeCol: logoNativeCol !== undefined ? logoNativeCol : 7, nativeColOff: logoColOff !== undefined ? logoColOff : 1661310, nativeRow: 0, nativeRowOff: 262741 },
       ext: { width: 176, height: 73 },
       editAs: 'absolute'
     });
   }
   if (circleId !== undefined) {
     ws.addImage(circleId, {
-      tl: { nativeCol: 9, nativeColOff: 435768, nativeRow: 11, nativeRowOff: 238125 },
+      tl: { nativeCol: rightCircleNativeCol !== undefined ? rightCircleNativeCol : 9, nativeColOff: rightCircleColOff !== undefined ? rightCircleColOff : 435768, nativeRow: 11, nativeRowOff: 238125 },
       ext: { width: 30, height: 30 },
       editAs: 'absolute'
     });
@@ -196,7 +218,7 @@ function applyDataStyles(sheet, rowNum, colCount) {
     
     let align = { vertical: 'middle', horizontal: 'center', wrapText: true };
     if (colCount === 7) {
-      if ([4, 5, 6, 9].includes(cIdx)) align.horizontal = 'left';
+      if ([4, 5, 6].includes(cIdx)) align.horizontal = 'left';
       else if (cIdx === 7) align.horizontal = 'right';
       else if (cIdx === 8) align.horizontal = 'center';
     } else {
@@ -392,7 +414,7 @@ function applyCoverAndTocSizing(ws, isCover) {
   wsVehicle.getRow(vEndRow + 1).height = 30;
   wsVehicle.getRow(vEndRow + 2).height = 30;
   wsVehicle.getRow(vEndRow + 3).height = 30;
-  drawThemeFrame(wsVehicle, 2, 11, vEndRow + 3, arrowId, onstarId, bgId, circleId, leftCircleId, 12, 1);
+  drawThemeFrame(wsVehicle, 2, 10, vEndRow + 3, arrowId, onstarId, bgId, circleId, undefined, 12, 1, 9, 369093);
 
   // --- 手机APP Sheets ---
   const addAppSheetWithData = (sheetName, titleSuffix) => {
@@ -457,7 +479,9 @@ function applyCoverAndTocSizing(ws, isCover) {
     wsApp.getRow(aEndRow + 1).height = 30;
     wsApp.getRow(aEndRow + 2).height = 30;
     wsApp.getRow(aEndRow + 3).height = 30;
-    drawThemeFrame(wsApp, 2, 13, aEndRow + 3, arrowId, onstarId, bgId, circleId, leftCircleId, 14, 1, 11);
+    drawThemeFrame(wsApp, 2, 12, aEndRow + 3, arrowId, onstarId, bgId, circleId, leftCircleId, 14, 1, 11, 364113, 9, 1642260, 11);
+
+
   };
 
   addAppSheetWithData('手机APP-iOS', '手机APP-iOS');
@@ -476,28 +500,28 @@ function applyCoverAndTocSizing(ws, isCover) {
   wsBugs.getRow(1).height = 30;
 
   const bugCols = [
-    { key: 'id', title: 'ID', width: 5, color: 'FFDDEBF7' },
-    { key: 'model', title: '车型\\nmotorcycle type', width: 10, color: 'FFDDEBF7' },
-    { key: 'phase', title: '生产阶段\\nBuild Phase', width: 10, color: 'FFDDEBF7' },
-    { key: 'source', title: '问题来源\\nSource', width: 10, color: 'FFDDEBF7' },
-    { key: 'loc', title: '试验地点\\nTest Place', width: 15, color: 'FFDDEBF7' },
-    { key: 'vin', title: 'VIN', width: 22, color: 'FFDDEBF7' },
-    { key: 'mil', title: '里程数\\nOdo.', width: 12, color: 'FFDDEBF7' },
-    { key: 'finder', title: '发现人\\nFinder', width: 10, color: 'FFDDEBF7' },
-    { key: 'approve', title: '问题审批\\nApprove', width: 10, color: 'FFDDEBF7' },
-    { key: 'date', title: '问题提出日期\\nIssue Identify Date', width: 14, color: 'FFDDEBF7' },
-    { key: 'time', title: '问题提出时间\\nIssue Identify Time', width: 14, color: 'FFDDEBF7' },
-    { key: 'smt', title: 'SMT', width: 8, color: 'FFDDEBF7', parent: '问题描述\\nVerbatim(Issue Explained)' },
-    { key: 'desc', title: '详细描述', width: 40, color: 'FFDDEBF7', parent: '问题描述\\nVerbatim(Issue Explained)' },
-    { key: 'defect', title: '缺陷模式', width: 12, color: 'FFDDEBF7', parent: '问题描述\\nVerbatim(Issue Explained)' },
-    { key: 'note', title: '备注', width: 15, color: 'FFDDEBF7' },
-    { key: 'rate', title: '问题严重性\\nRate', width: 10, color: 'FFDDEBF7' },
-    { key: 'pic', title: '详图\\nPicture', width: 10, color: 'FFDDEBF7' },
-    { key: 'freq', title: '频次\\nFrequence', width: 10, color: 'FFDDEBF7' },
-    { key: 'dept', title: '责任部门', width: 12, color: 'FFFFC000' },
-    { key: 'pqe', title: 'PQE', width: 10, color: 'FFFFC000' },
-    { key: 'sup', title: '供应商\\nSupplier', width: 12, color: 'FFFFC000' },
-    { key: 'status', title: '调查状态\\nAnalysis Process', width: 15, color: 'FFFFC000' }
+    { key: 'id', title: 'ID', width: 4.875, color: 'FFDDEBF7' },
+    { key: 'model', title: '车型\\nmotorcycle type', width: 6.5, color: 'FFDDEBF7' },
+    { key: 'phase', title: '生产阶段\\nBuild Phase', width: 6, color: 'FFDDEBF7' },
+    { key: 'source', title: '问题来源\\nSource', width: 6, color: 'FFDDEBF7' },
+    { key: 'loc', title: '试验地点\\nTest Place', width: 8.375, color: 'FFDDEBF7' },
+    { key: 'vin', title: 'VIN', width: 23.25, color: 'FFDDEBF7' },
+    { key: 'mil', title: '里程数\\nOdo.', width: 9.125, color: 'FFDDEBF7' },
+    { key: 'finder', title: '发现人\\nFinder', width: 8.875, color: 'FFDDEBF7' },
+    { key: 'approve', title: '问题审批\\nApprove', width: 8.875, color: 'FFDDEBF7' },
+    { key: 'date', title: '问题提出日期\\nIssue Identify Date', width: 8.875, color: 'FFDDEBF7' },
+    { key: 'time', title: '问题提出时间\\nIssue Identify Time', width: 8.875, color: 'FFDDEBF7' },
+    { key: 'smt', title: 'SMT', width: 8.875, color: 'FFDDEBF7', parent: '问题描述\\nVerbatim(Issue Explained)' },
+    { key: 'desc', title: '详细描述', width: 34.5, color: 'FFDDEBF7', parent: '问题描述\\nVerbatim(Issue Explained)' },
+    { key: 'defect', title: '缺陷模式', width: 8.875, color: 'FFDDEBF7', parent: '问题描述\\nVerbatim(Issue Explained)' },
+    { key: 'note', title: '备注', width: 12.375, color: 'FFDDEBF7' },
+    { key: 'rate', title: '问题严重性\\nRate', width: 8.875, color: 'FFDDEBF7' },
+    { key: 'pic', title: '详图\\nPicture', width: 8.875, color: 'FFDDEBF7' },
+    { key: 'freq', title: '频次\\nFrequence', width: 8.875, color: 'FFDDEBF7' },
+    { key: 'dept', title: '责任部门', width: 8.875, color: 'FFFFC000' },
+    { key: 'pqe', title: 'PQE', width: 8.875, color: 'FFFFC000' },
+    { key: 'sup', title: '供应商\\nSupplier', width: 8.875, color: 'FFFFC000' },
+    { key: 'status', title: '调查状态\\nAnalysis Process', width: 8.875, color: 'FFFFC000' }
   ];
 
   wsBugs.columns = bugCols.map(c => ({ key: c.key, width: c.width }));
@@ -551,7 +575,7 @@ function applyCoverAndTocSizing(ws, isCover) {
       defect: '',
       note: '',
       rate: '',
-      pic: '',
+      pic: (bug.media && bug.media.length > 0) ? '见截图页' : '',
       freq: '',
       dept: '',
       pqe: '',
@@ -575,23 +599,92 @@ function applyCoverAndTocSizing(ws, isCover) {
 
   // --- 截图 ---
   const wsScreenshots = workbook.addWorksheet('截图');
-  wsScreenshots.columns = [
-    { header: '功能名称',  key: 'func', width: 30 },
-    { header: '截图序号',  key: 'idx',  width: 12 },
-    { header: '截图地址',  key: 'url',  width: 100 },
-  ];
-  const shotHeader = wsScreenshots.getRow(1);
-  shotHeader.eachCell(c => {
-    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF44546A' } };
-    c.font = { color: { argb: 'FFFFFFFF' }, bold: true };
-    c.alignment = { vertical: 'middle', horizontal: 'center' };
-  });
-  cases.forEach((c, idx) => {
-    const media = (caseResults[idx] || {}).media || [];
-    media.forEach((m, mIdx) => {
-      wsScreenshots.addRow({ func: c.function, idx: mIdx + 1, url: m.url || '' });
-    });
-  });
+  wsScreenshots.getColumn(1).width = 40;
+  wsScreenshots.getColumn(2).width = 80;
+
+  let currentRow = 1;
+
+  // 辅助压缩函数
+  const processImage = async (sourceData, desc) => {
+    wsScreenshots.getCell(`A${currentRow}`).value = desc;
+    wsScreenshots.getCell(`A${currentRow}`).alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+    wsScreenshots.getCell(`A${currentRow}`).font = { name: '微软雅黑', size: 10, bold: true };
+
+    let width = 500;
+    let height = 350;
+    let buffer;
+
+    try {
+      if (sharp) {
+        const img = sharp(sourceData);
+        const metadata = await img.metadata();
+        width = metadata.width || 500;
+        height = metadata.height || 350;
+        if (width > 600 || height > 600) {
+          const ratio = Math.min(600 / width, 600 / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        buffer = await img.resize(width, height).jpeg({ quality: 70 }).toBuffer();
+      } else {
+        buffer = Buffer.isBuffer(sourceData) ? sourceData : fs.readFileSync(sourceData);
+      }
+      
+      const imageId = workbook.addImage({ buffer, extension: 'jpeg' });
+      wsScreenshots.addImage(imageId, {
+        tl: { col: 1, row: currentRow - 1 },
+        ext: { width, height },
+        editAs: 'oneCell'
+      });
+      // exceljs 行高单位为磅，大约等于 px * 0.75
+      wsScreenshots.getRow(currentRow).height = Math.max(80, height * 0.75 + 10);
+    } catch (err) {
+      console.error('[export] 图片处理失败:', err);
+      wsScreenshots.getCell(`B${currentRow}`).value = '图片加载失败';
+      wsScreenshots.getRow(currentRow).height = 80;
+    }
+    currentRow++;
+  };
+
+  const getSourceData = (mUrl) => {
+    if (!mUrl) return null;
+    if (mUrl.startsWith('data:image/')) {
+      const base64Data = mUrl.replace(/^data:image\/\w+;base64,/, '');
+      return Buffer.from(base64Data, 'base64');
+    }
+    const filename = mUrl.split('/').pop();
+    const localPath = path.join(__dirname, '../uploads', filename);
+    if (fs.existsSync(localPath)) return localPath;
+    return null;
+  };
+
+  // 1. 处理测试案例截图
+  for (let i = 0; i < cases.length; i++) {
+    const c = cases[i];
+    const media = (caseResults[i] || {}).media || [];
+    for (let mIdx = 0; mIdx < media.length; mIdx++) {
+      const m = media[mIdx];
+      const sourceData = getSourceData(m.url);
+      if (!sourceData) continue;
+
+      const desc = `【测试用例】\n大类: ${c.category}\n功能: ${c.function}\n描述: ${c.content || c.expected || ''}\n(截图 ${mIdx + 1}/${media.length})`;
+      await processImage(sourceData, desc);
+    }
+  }
+
+  // 2. 处理缺陷截图
+  for (let i = 0; i < bugs.length; i++) {
+    const b = bugs[i];
+    const media = b.media || [];
+    for (let mIdx = 0; mIdx < media.length; mIdx++) {
+      const m = media[mIdx];
+      const sourceData = getSourceData(m.url);
+      if (!sourceData) continue;
+
+      const desc = `【缺陷记录】\n标题: ${b.issue}\n步骤: ${b.steps || ''}\n(截图 ${mIdx + 1}/${media.length})`;
+      await processImage(sourceData, desc);
+    }
+  }
 
   // --- Response ---
   const safeModel = (vehicleModel || 'Report').replace(/[^a-z0-9]/gi, '_');
