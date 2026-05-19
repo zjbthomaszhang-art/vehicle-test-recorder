@@ -42,29 +42,3 @@ export function createEmptyResult() {
     media: [],
   };
 }
-/**
- * Resizes and compresses a dataURL image.
- * @param {string} dataUrl 
- * @param {number} maxWidth 
- * @param {number} quality 
- * @returns {Promise<string>}
- */
-export async function compressImage(dataUrl, maxWidth = 800, quality = 0.4) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.src = dataUrl;
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ratio = img.width / img.height;
-      const width = Math.min(img.width, maxWidth);
-      const height = width / ratio;
-      
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', quality));
-    };
-    img.onerror = () => resolve(dataUrl); // Fallback to original
-  });
-}

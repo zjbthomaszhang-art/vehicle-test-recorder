@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { INITIAL_CASES, API_BASE } from './constants.js';
 import { FIELD_LABELS } from './constants/labels.js';
-import { createEmptyResult, compressImage } from './utils/formatters.js';
+import { createEmptyResult } from './utils/formatters.js';
 import { syncManager } from './utils/syncManager.js';
 import { uploadPhoto } from './utils/photoUpload.js';
 import { assignHierarchicalNumbers } from './utils/caseNumbering.js';
@@ -572,20 +572,20 @@ export default function NDLBRecorder() {
     if (!file) return;
     e.target.value = '';
 
+    setToast({ message: '照片上传中...', type: 'info' });
+    const url = await uploadPhoto(file);
+    if (!url) {
+      setToast({ message: '照片上传失败，请重试', type: 'error' });
+      return;
+    }
+
     if (activePhotoTarget === 'env') {
-      // Upload to server filesystem, get back a URL path
-      const url = await uploadPhoto(file);
-      if (url) setEnvPhotos(prev => [...prev, url]);
-      else setToast({ message: '照片上传失败，请重试', type: 'error' });
+      setEnvPhotos(prev => [...prev, url]);
+      setToast({ message: '车况照片已添加', type: 'success' });
     } else {
-      // Case media: keep base64 for now
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const compressed = await compressImage(reader.result);
-        const id = Date.now();
-        updateCurrentResult({ media: [...(caseResults[currentCaseIndex]?.media || []), { id, url: compressed, type: 'photo' }] });
-      };
-      reader.readAsDataURL(file);
+      const id = Date.now();
+      updateCurrentResult({ media: [...(caseResults[currentCaseIndex]?.media || []), { id, name: file.name, url, type: 'photo' }] });
+      setToast({ message: '测试截图已添加', type: 'success' });
     }
   };
 
