@@ -22,27 +22,29 @@ export default function HistoryView({
     setDisplayedCount(20);
   }, [filterStartDate, filterEndDate, filterCode, filterArch, historySessions]);
 
-  const filteredSessions = historySessions.filter(session => {
-    let match = true;
-    if (filterStartDate || filterEndDate) {
-      const sessionDate = session.timestamp ? new Date(session.timestamp) : null;
-      if (sessionDate && !isNaN(sessionDate)) {
-        if (filterStartDate && sessionDate < new Date(filterStartDate)) match = false;
-        if (filterEndDate && sessionDate > new Date(filterEndDate)) match = false;
+  const filteredSessions = React.useMemo(() => {
+    return historySessions.filter(session => {
+      let match = true;
+      if (filterStartDate || filterEndDate) {
+        const sessionDate = session.timestamp ? new Date(session.timestamp) : null;
+        if (sessionDate && !isNaN(sessionDate)) {
+          if (filterStartDate && sessionDate < new Date(filterStartDate)) match = false;
+          if (filterEndDate && sessionDate > new Date(filterEndDate)) match = false;
+        }
       }
-    }
-    if (filterCode) {
-      const arch = (session.vehicle_architecture || session.architecture || '').toLowerCase();
-      const code = (session.vehicle_model || session.model_year || '').toLowerCase();
-      const q = filterCode.toLowerCase();
-      if (!arch.includes(q) && !code.includes(q)) match = false;
-    }
-    if (filterArch && filterArch !== '全部') {
-       const arch = session.vehicle_architecture || session.architecture || '';
-       if (arch !== filterArch) match = false;
-    }
-    return match;
-  });
+      if (filterCode) {
+        const arch = (session.vehicle_architecture || session.architecture || '').toLowerCase();
+        const code = (session.vehicle_model || session.model_year || '').toLowerCase();
+        const q = filterCode.toLowerCase();
+        if (!arch.includes(q) && !code.includes(q)) match = false;
+      }
+      if (filterArch && filterArch !== '全部') {
+         const arch = session.vehicle_architecture || session.architecture || '';
+         if (arch !== filterArch) match = false;
+      }
+      return match;
+    });
+  }, [historySessions, filterStartDate, filterEndDate, filterCode, filterArch]);
 
   const handleContinueTest = (sess) => onContinueSession(sess);
 

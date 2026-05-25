@@ -13,6 +13,7 @@ const uploadRouter = require('./routes/upload.cjs');
 const metricsRouter = require('./routes/metrics.cjs');
 const vinRulesRouter = require('./routes/vinRules.cjs');
 const caseOrdersRouter = require('./routes/caseOrders.cjs');
+const mediaRouter = require('./routes/media.cjs');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -30,6 +31,7 @@ app.use('/api/upload', uploadRouter);
 app.use('/api/metrics', metricsRouter);
 app.use('/api/vin-rules', vinRulesRouter);
 app.use('/api/case-orders', caseOrdersRouter);
+app.use('/api/media', mediaRouter);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/db-api', dbViewerRouter);
 // /db-viewer redirects to /db-api/viewer for backwards compatibility

@@ -336,8 +336,11 @@ export default function PerformanceMonitorView({ setView }) {
           {/* Right Area - Sidebar */}
           <div className="w-[450px] flex flex-col gap-[16px] shrink-0 h-full">
             {/* IMAGE STORAGE KPI */}
-            <div className="shrink-0 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155]/80 backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[16px] shadow-2xl flex flex-col justify-between h-[96px]">
-              <span className="text-[11px] font-[800] text-[#64748b] uppercase tracking-widest flex items-center gap-2">
+            <div 
+              onClick={() => setView('media')}
+              className="shrink-0 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none backdrop-blur-xl border border-slate-200 dark:border-[#334155] rounded-[1rem] p-[16px] shadow-2xl flex flex-col justify-between h-[96px] cursor-pointer hover:border-teal-500/50 hover:shadow-teal-500/10 transition-all group"
+            >
+              <span className="text-[11px] font-[800] text-[#64748b] group-hover:text-[#14b8a6] transition-colors uppercase tracking-widest flex items-center gap-2">
                 <ImageIcon size={14} /> 图片存储
               </span>
               <div className="text-slate-800 dark:text-slate-200 flex items-baseline leading-none">

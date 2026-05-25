@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, Code, Calendar, Car, User, Gauge, MapPin, Network, Music, Radio, Camera, Save, Trash2, Image as ImageIcon, CameraIcon, Layers, Monitor, FileText } from 'lucide-react';
+import { X, Code, Calendar, Car, User, Gauge, MapPin, Network, Music, Radio, Camera, Save, Trash2, Image as ImageIcon, CameraIcon, Layers, Monitor, FileText, Smartphone } from 'lucide-react';
 import CustomSelect from './CustomSelect.jsx';
 import { ARCHITECTURES, IVI_MODULES, COMM_MODULES } from '../constants.js';
 import { decodeModelYearFromVin, decodeVinFromRules } from '../utils/vinDecoder.js';
@@ -49,6 +49,8 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete, v
     })(),
     tester:       session.tester || '',
     mileage:      session.mileage || '',
+    iosVersion:   session.ios_version || '',
+    androidVersion: session.android_version || '',
     remarks:      session.remarks || ''
   });
 
@@ -204,6 +206,30 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete, v
               type="text"
               value={formData.tester}
               onChange={set('tester')}
+              className={inputCls}
+            />
+          </FieldRow>
+
+          {/* iOS 版本 */}
+          <FieldRow>
+            <FieldLabel icon={Smartphone} label="iOS 版本" />
+            <input
+              type="text"
+              value={formData.iosVersion}
+              onChange={set('iosVersion')}
+              placeholder=""
+              className={inputCls}
+            />
+          </FieldRow>
+
+          {/* Android 版本 */}
+          <FieldRow>
+            <FieldLabel icon={Smartphone} label="Android 版本" />
+            <input
+              type="text"
+              value={formData.androidVersion}
+              onChange={set('androidVersion')}
+              placeholder=""
               className={inputCls}
             />
           </FieldRow>

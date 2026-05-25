@@ -17,8 +17,8 @@ router.post('/', async (req, res) => {
 
         // 1. Insert test_session
         const sessionQuery = `
-            INSERT INTO test_sessions (vehicle_model, model_year, vin, production_stage, address, architecture, ivi_module, comm_module, test_env, env_photo, tester, mileage, remarks, timestamp)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO test_sessions (vehicle_model, model_year, vin, production_stage, address, architecture, ivi_module, comm_module, test_env, env_photo, tester, mileage, remarks, ios_version, android_version, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         const [sessionResult] = await connection.query(sessionQuery, [
             vehicle.vehicleModel,
@@ -36,6 +36,8 @@ router.post('/', async (req, res) => {
             vehicle.tester || '',
             vehicle.mileage || '',
             vehicle.remarks || '',
+            vehicle.iosVersion || '',
+            vehicle.androidVersion || '',
             getBeijingTime()
         ]);
         const sessionId = sessionResult.insertId;
@@ -123,10 +125,11 @@ router.post('/', async (req, res) => {
                     r.car_exec_time ? getBeijingTime(r.car_exec_time) : null,
                     r.app_feedback_time ? getBeijingTime(r.app_feedback_time) : null,
                     r.result,
-                    r.notes
+                    r.notes,
+                    JSON.stringify(r.media || [])
                 ]);
                 await connection.query(
-                    `INSERT INTO test_results (session_id, case_id, session_case_id, start_time, car_exec_time, app_feedback_time, result, notes) VALUES ?`,
+                    `INSERT INTO test_results (session_id, case_id, session_case_id, start_time, car_exec_time, app_feedback_time, result, notes, media) VALUES ?`,
                     [resultValues]
                 );
             }
@@ -154,6 +157,7 @@ router.get('/', async (req, res) => {
         SELECT 
             ts.id, ts.vehicle_model, ts.model_year, ts.vin, ts.production_stage, ts.test_env, ts.address, ts.architecture, 
             ts.ivi_module, ts.comm_module, ts.env_photo, ts.tester, ts.mileage, ts.remarks, ts.timestamp,
+            ts.ios_version, ts.android_version,
             COUNT(tr.id) as total_count,
             SUM(CASE WHEN tr.result IN ('Pass', 'Fail', 'N/A') THEN 1 ELSE 0 END) as case_count,
             SUM(CASE WHEN tr.result = 'Pass' THEN 1 ELSE 0 END) as pass_count,
@@ -224,7 +228,26 @@ router.get('/:id', async (req, res) => {
             results = rows;
         }
 
+        if (results && Array.isArray(results)) {
+            results.forEach(r => {
+                if (typeof r.media === 'string') {
+                    try { r.media = JSON.parse(r.media); } catch(e) { r.media = []; }
+                } else if (!r.media) {
+                    r.media = [];
+                }
+            });
+        }
+
         const [bugs] = await db.query('SELECT * FROM bugs WHERE session_id = ?', [sessionId]);
+        if (bugs && Array.isArray(bugs)) {
+            bugs.forEach(b => {
+                if (typeof b.media === 'string') {
+                    try { b.media = JSON.parse(b.media); } catch(e) { b.media = []; }
+                } else if (!b.media) {
+                    b.media = [];
+                }
+            });
+        }
 
         res.json({ vehicle: session, sessionCases, results, bugs });
     } catch (err) {
@@ -247,7 +270,8 @@ router.put('/:id', async (req, res) => {
         await connection.query(
             `UPDATE test_sessions SET 
                 vehicle_model=?, model_year=?, vin=?, production_stage=?, test_env=?, address=?,
-                architecture=?, ivi_module=?, comm_module=?, env_photo=?, tester=?, mileage=?, remarks=?, timestamp=?
+                architecture=?, ivi_module=?, comm_module=?, env_photo=?, tester=?, mileage=?, remarks=?,
+                ios_version=?, android_version=?, timestamp=?
              WHERE id=?`,
             [
                 vehicle.vehicleModel, vehicle.model_year, vehicle.vin,
@@ -259,6 +283,8 @@ router.put('/:id', async (req, res) => {
                     ? JSON.stringify(vehicle.envPhotos)
                     : (vehicle.envPhoto || null),
                 vehicle.tester || '', vehicle.mileage || '', vehicle.remarks || '',
+                vehicle.iosVersion || vehicle.ios_version || '',
+                vehicle.androidVersion || vehicle.android_version || '',
                 getBeijingTime(), sessionId
             ]
         );
@@ -328,11 +354,12 @@ router.put('/:id', async (req, res) => {
                         r.car_exec_time ? getBeijingTime(r.car_exec_time) : null,
                         r.app_feedback_time ? getBeijingTime(r.app_feedback_time) : null,
                         r.result,
-                        r.notes
+                        r.notes,
+                        JSON.stringify(r.media || [])
                     ];
                 });
                 await connection.query(
-                    `INSERT INTO test_results (session_id, case_id, session_case_id, start_time, car_exec_time, app_feedback_time, result, notes) VALUES ?`,
+                    `INSERT INTO test_results (session_id, case_id, session_case_id, start_time, car_exec_time, app_feedback_time, result, notes, media) VALUES ?`,
                     [resultValues]
                 );
             }
@@ -353,13 +380,18 @@ router.put('/:id', async (req, res) => {
  * DELETE /api/test-sessions/:id
  */
 router.delete('/:id', async (req, res) => {
-    const sessionId = req.params.id;
-    const connection = await pool.promise().getConnection();
+    const { id: sessionId } = req.params;
+    let connection;
     try {
+        connection = await db.getConnection();
         await connection.beginTransaction();
+
+        // Delete dependencies first
         await connection.query('DELETE FROM test_results WHERE session_id = ?', [sessionId]);
         await connection.query('DELETE FROM session_cases WHERE session_id = ?', [sessionId]);
+        await connection.query('DELETE FROM bugs WHERE session_id = ?', [sessionId]);
         await connection.query('DELETE FROM test_sessions WHERE id = ?', [sessionId]);
+
         await connection.commit();
         res.json({ message: 'Session deleted successfully' });
     } catch (err) {

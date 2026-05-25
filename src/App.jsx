@@ -16,6 +16,7 @@ import DashboardView from './views/DashboardView.jsx';
 import PDCAView from './views/PDCAView.jsx';
 import PerformanceMonitorView from './views/PerformanceMonitorView.jsx';
 import AdminView from './views/AdminView.jsx';
+import MediaGalleryView from './views/MediaGalleryView.jsx';
 
 // Shared Components
 import EditSessionModal from './components/EditSessionModal.jsx';
@@ -63,6 +64,8 @@ export default function NDLBRecorder() {
   const [envPhotos, setEnvPhotos] = useState([]);
   const [testEnv, setTestEnv] = useState('');
   const [tester, setTester] = useState('');
+  const [iosVersion, setIosVersion] = useState('');
+  const [androidVersion, setAndroidVersion] = useState('');
 
   // testCases: cases ordered per tester's preference (used in TestView/ReportView)
   // cases: master list sorted by ID (used everywhere else)
@@ -183,16 +186,17 @@ export default function NDLBRecorder() {
 
   // Fetch history sessions and global bugs from server
   function fetchGlobalData() {
+    const timestamp = Date.now();
     Promise.all([
-      fetch(`${API_BASE}/test-sessions`).then(res => {
+      fetch(`${API_BASE}/test-sessions?t=${timestamp}`).then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       }),
-      fetch(`${API_BASE}/bugs`).then(res => {
+      fetch(`${API_BASE}/bugs?t=${timestamp}`).then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       }),
-      fetch(`${API_BASE}/cases/top-fails`).then(res => {
+      fetch(`${API_BASE}/cases/top-fails?t=${timestamp}`).then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
@@ -245,6 +249,7 @@ export default function NDLBRecorder() {
     setProductionStage(''); setTestEnv('');
     setEnvPhotos([]);
     setTester(''); setMileage(''); setRemarks('');
+    setIosVersion(''); setAndroidVersion('');
   };
 
   // --- Global Actions ---
@@ -284,9 +289,13 @@ export default function NDLBRecorder() {
     setTester(sess.tester || '');
     setMileage(sess.mileage || '');
     setRemarks(sess.remarks || '');
-    const raw = sess.env_photo;
-    if (raw) {
-      try { const p = JSON.parse(raw); setEnvPhotos(Array.isArray(p) ? p : []); }
+    setIosVersion(sess.ios_version || '');
+    setAndroidVersion(sess.android_version || '');
+    const rawEnv = sess.envPhotos || sess.env_photo;
+    if (Array.isArray(rawEnv)) {
+      setEnvPhotos(rawEnv);
+    } else if (typeof rawEnv === 'string') {
+      try { const p = JSON.parse(rawEnv); setEnvPhotos(Array.isArray(p) ? p : []); }
       catch { setEnvPhotos([]); }
     } else {
       setEnvPhotos([]);
@@ -326,7 +335,7 @@ export default function NDLBRecorder() {
             appFeedbackTime: r.app_feedback_time ? new Date(r.app_feedback_time).getTime() : null,
             result: r.result || '',
             notes: r.notes || '',
-            media: [],
+            media: r.media || [],
           };
         });
         const restored = casesForSession.map(c => {
@@ -349,7 +358,7 @@ export default function NDLBRecorder() {
       setCurrentCaseIndex(0);
     }
 
-    const sessionBugs = allBugs.filter(b => String(b.session_id) === String(sess.id));
+    const sessionBugs = allBugs.filter(b => String(b.session_id) === String(sess.id)).reverse();
     setBugs(sessionBugs);
     setCurrentSessionId(sess.id);
     setView('test');
@@ -376,7 +385,7 @@ export default function NDLBRecorder() {
     // Prefer session_case_id (snapshot ID) over original case_id
     return {
       sessionId: sessionId || currentSessionId,
-      vehicle: { vehicleModel, model_year: modelYear, vin, production_stage: productionStage, address, architecture, iviModule, commModule, test_env: testEnv, envPhotos, tester, mileage, remarks },
+      vehicle: { vehicleModel, model_year: modelYear, vin, production_stage: productionStage, address, architecture, iviModule, commModule, test_env: testEnv, envPhotos, tester, mileage, remarks, iosVersion, androidVersion },
       results: caseResults.map((res, idx) => {
         const c = activeCases[idx] || cases[idx];
         return {
@@ -561,6 +570,48 @@ export default function NDLBRecorder() {
       .finally(() => setIsSaving(false));
   };
 
+  const deleteBug = async (bugId) => {
+    try {
+      setIsSaving(true);
+      const res = await fetch(`${API_BASE}/bugs/${bugId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+      setBugs(prev => prev.filter(b => b.id !== bugId));
+      setAllBugs(prev => prev.filter(b => b.id !== bugId));
+      setToast({ message: '缺陷已删除', type: 'success' });
+      // Trigger a re-fetch to ensure global state is perfectly synced
+      fetchGlobalData();
+    } catch (err) {
+      setToast({ message: '删除失败：' + err.message, type: 'error' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const updateBug = async (bugId, updates) => {
+    try {
+      setIsSaving(true);
+      const res = await fetch(`${API_BASE}/bugs/${bugId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+      setBugs(prev => prev.map(b => b.id === bugId ? { ...b, ...updates } : b));
+      setAllBugs(prev => prev.map(b => b.id === bugId ? { ...b, ...updates } : b));
+      setToast({ message: '缺陷已更新', type: 'success' });
+    } catch (err) {
+      setToast({ message: '更新失败：' + err.message, type: 'error' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   // --- Home Photo Upload ---
   const handleAddMedia = (target = 'general') => {
     setActivePhotoTarget(target);
@@ -641,7 +692,7 @@ export default function NDLBRecorder() {
     currentCaseIndex, setCurrentCaseIndex,
     vehicleModel, modelYear, vin,
     updateCurrentResult, handleTimeClick,
-    handleAddMedia, convertToBug,
+    handleAddMedia, convertToBug, deleteBug, updateBug,
     nextCase, prevCase, saveTemporarily, autoSave,
     setConfirmDialog, setView, resetAllFields, setToast,
     isOnline, pendingSyncCount
@@ -659,6 +710,8 @@ export default function NDLBRecorder() {
           architecture={architecture} setArchitecture={setArchitecture}
           iviModule={iviModule} setIviModule={setIviModule}
           commModule={commModule} setCommModule={setCommModule}
+          iosVersion={iosVersion} setIosVersion={setIosVersion}
+          androidVersion={androidVersion} setAndroidVersion={setAndroidVersion}
           envPhotos={envPhotos}
           setEnvPhotos={setEnvPhotos}
           testEnv={testEnv} setTestEnv={setTestEnv}
@@ -683,6 +736,7 @@ export default function NDLBRecorder() {
           address={address} architecture={architecture}
           iviModule={iviModule} commModule={commModule}
           tester={tester} mileage={mileage}
+          iosVersion={iosVersion} androidVersion={androidVersion}
           envPhotos={envPhotos}
           setView={setView} handleFullReset={handleFullReset} setToast={setToast}
           setConfirmDialog={setConfirmDialog} resetAllFields={resetAllFields}
@@ -699,6 +753,9 @@ export default function NDLBRecorder() {
       )}
       {view === 'monitor' && (
         <PerformanceMonitorView setView={setView} />
+      )}
+      {view === 'media' && (
+        <MediaGalleryView setView={setView} />
       )}
       {view === 'history' && (
         <HistoryView
@@ -747,7 +804,7 @@ export default function NDLBRecorder() {
 
               // ✅ 保存成功：立即更新本地缓存（乐观更新），消除网络延迟感
               setHistorySessions(prev => 
-                prev.map(s => s.id === editingSession.id ? { ...s, ...updatedVehicle } : s)
+                prev.map(s => s.id === editingSession.id ? { ...s, ...updatedVehicle, ios_version: updatedVehicle.iosVersion, android_version: updatedVehicle.androidVersion } : s)
               );
 
               setIsSaving(false);

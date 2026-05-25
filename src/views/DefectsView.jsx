@@ -65,31 +65,37 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
     setExpandedBugId(null);
   };
 
-  const filteredBugs = bugs.filter(b => {
-    let match = true;
-    if (filterStatus) {
-      if (b.status !== filterStatus && !(filterStatus === 'Plan' && !b.status)) match = false;
-    }
-    if (searchQuery) {
-      const caseDef = casesMap[b.case_id];
-      const text = `${b.description} ${b.function || caseDef?.function || ''} ${b.expected || caseDef?.expected || ''}`.toLowerCase();
-      if (!text.includes(searchQuery.toLowerCase())) match = false;
-    }
-    return match;
-  });
+  const filteredBugs = React.useMemo(() => {
+    return bugs.filter(b => {
+      let match = true;
+      if (filterStatus) {
+        if (b.status !== filterStatus && !(filterStatus === 'Plan' && !b.status)) match = false;
+      }
+      if (searchQuery) {
+        const caseDef = casesMap[b.case_id];
+        const text = `${b.description} ${b.function || caseDef?.function || ''} ${b.expected || caseDef?.expected || ''}`.toLowerCase();
+        if (!text.includes(searchQuery.toLowerCase())) match = false;
+      }
+      return match;
+    });
+  }, [bugs, filterStatus, searchQuery, casesMap]);
 
   // KPI Calculations
-  const totalDefects = bugs.length;
-  let unresolvedCount = 0;
-  let inProgressCount = 0;
-  let resolvedCount = 0;
-
-  bugs.forEach(b => {
-    const s = b.status || 'Plan';
-    if (s === 'Plan') unresolvedCount++;
-    else if (s === 'Do' || s === 'Check') inProgressCount++;
-    else if (s === 'Act') resolvedCount++;
-  });
+  const { totalDefects, unresolvedCount, inProgressCount, resolvedCount } = React.useMemo(() => {
+    let unres = 0, inProg = 0, res = 0;
+    bugs.forEach(b => {
+      const s = b.status || 'Plan';
+      if (s === 'Plan') unres++;
+      else if (s === 'Do' || s === 'Check') inProg++;
+      else if (s === 'Act') res++;
+    });
+    return {
+      totalDefects: bugs.length,
+      unresolvedCount: unres,
+      inProgressCount: inProg,
+      resolvedCount: res
+    };
+  }, [bugs]);
 
   const renderMobile = () => (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0f1523] text-slate-800 dark:text-slate-100 flex flex-col font-sans">
@@ -133,7 +139,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                    <input
                      type="text"
                      placeholder="搜索缺陷..."
-                     className="bg-transparent border-none outline-none text-slate-900 dark:text-white placeholder:text-[12px] w-full text-[16px] font-[700]"
+                     className="bg-transparent border-none outline-none text-slate-900 dark:text-white placeholder:text-[12px] placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal font-sans w-full text-[16px] font-[700]"
                      value={searchQuery}
                      onChange={(e) => setSearchQuery(e.target.value)}
                    />
@@ -175,7 +181,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                     <div className="flex justify-between items-center w-full px-[16px] py-[12px] bg-slate-50 dark:bg-[#1e293b]/30 border-b border-slate-200 dark:border-[#334155] rounded-t-[16px]">
                        <div className="flex items-center gap-[10px]">
                          <Bug size={16} className={currentStatus.color} strokeWidth={2.5} />
-                         <span className="text-[14px] font-[900] text-slate-900 dark:text-white">#{bug.id || `BUG-${idx + 1024}`}</span>
+                         <span className="text-[14px] font-[900] text-slate-900 dark:text-white">BUG-{bug.id ? String(bug.id).padStart(4, '0') : `${idx + 1024}`}</span>
                        </div>
                        <div className="flex items-center gap-[8px]">
                           <span className="text-[10px] font-[600] text-slate-500 dark:text-[#cbd5e1] bg-slate-100 dark:bg-[#334155] px-[8px] py-[4px] rounded-full border border-slate-200 dark:border-[#334155] flex items-center gap-[4px]">
@@ -375,9 +381,9 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
              <div className="flex flex-col min-w-[1400px] w-full flex-1 h-full"> 
                <div 
                  className="grid bg-white dark:bg-[#1e293b] px-[24px] py-[16px] text-slate-500 dark:text-[#cbd5e1] text-[12px] font-[800] border-b border-slate-200 dark:border-[#334155] shrink-0"
-                 style={{ gridTemplateColumns: '60px 100px 120px 150px 80px 80px 140px 100px minmax(150px, 1fr) minmax(200px, 2fr) 110px', gap: '16px' }}
+                 style={{ gridTemplateColumns: '80px 100px 120px 150px 80px 80px 140px 100px minmax(150px, 1fr) minmax(200px, 2fr) 110px', gap: '16px' }}
                >
-                 <div>ID</div>
+                 <div>缺陷编号</div>
                  <div>车型年款</div>
                  <div>测试地址</div>
                  <div>VIN</div>
@@ -405,9 +411,9 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                         <div 
                           key={bug.id || idx} 
                           className="grid px-[24px] py-[14px] items-center hover:bg-slate-100 dark:hover:bg-[#334155] dark:bg-[#1e293b]/50 border-b border-slate-200 dark:border-[#334155] transition-colors"
-                          style={{ gridTemplateColumns: '60px 100px 120px 150px 80px 80px 140px 100px minmax(150px, 1fr) minmax(200px, 2fr) 110px', gap: '16px' }}
+                          style={{ gridTemplateColumns: '80px 100px 120px 150px 80px 80px 140px 100px minmax(150px, 1fr) minmax(200px, 2fr) 110px', gap: '16px' }}
                         >
-                          <div className="text-[12px] font-[800] bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent truncate">#{bug.id || `BUG-${idx + 1024}`}</div>
+                          <div className="text-[12px] font-[800] bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent truncate">BUG-{bug.id ? String(bug.id).padStart(4, '0') : `${idx + 1024}`}</div>
                           <div className="text-[12px] text-slate-700 dark:text-[#cbd5e1] truncate">{session ? `MY${session.model_year} ${session.vehicle_model}` : '-'}</div>
                           <div className="text-[12px] text-slate-700 dark:text-[#cbd5e1] truncate">{session?.address || '-'}</div>
                           <div className="text-[11px] font-mono text-slate-500 dark:text-[#cbd5e1] truncate">{session?.vin || '-'}</div>

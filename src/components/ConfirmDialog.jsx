@@ -26,7 +26,10 @@ export default function ConfirmDialog({ dialog, onClose }) {
               取消
             </button>
             <button
-              onClick={dialog.onConfirm}
+              onClick={() => {
+                if (dialog.onConfirm) dialog.onConfirm();
+                onClose();
+              }}
               className="py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/20"
             >
               确认

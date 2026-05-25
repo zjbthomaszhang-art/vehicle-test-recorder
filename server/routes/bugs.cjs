@@ -66,10 +66,10 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Update a bug (PDCA workflow)
+// Update a bug (PDCA workflow or manual edit)
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
-    const { status, assignee, root_cause, action_notes } = req.body;
+    const { status, assignee, root_cause, action_notes, description, media } = req.body;
     
     try {
         const updates = [];
@@ -79,6 +79,11 @@ router.put('/:id', async (req, res) => {
         if (assignee !== undefined) { updates.push('assignee = ?'); params.push(assignee); }
         if (root_cause !== undefined) { updates.push('root_cause = ?'); params.push(root_cause); }
         if (action_notes !== undefined) { updates.push('action_notes = ?'); params.push(action_notes); }
+        if (description !== undefined) { updates.push('description = ?'); params.push(description); }
+        if (media !== undefined) { 
+            updates.push('media = ?'); 
+            params.push(Array.isArray(media) ? JSON.stringify(media) : null); 
+        }
         
         if (updates.length === 0) return res.status(400).json({ error: 'No fields to update' });
         
@@ -90,6 +95,20 @@ router.put('/:id', async (req, res) => {
             return res.status(404).json({ error: 'Bug not found' });
         }
         res.json({ message: 'Bug updated successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Delete a bug
+router.delete('/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const [result] = await db.query('DELETE FROM bugs WHERE id = ?', [id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Bug not found' });
+        }
+        res.json({ message: 'Bug deleted successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

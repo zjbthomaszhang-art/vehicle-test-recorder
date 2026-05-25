@@ -439,7 +439,7 @@ export default function AdminView({ cases, setCases, setView, setToast, API_BASE
                  { value: 'simple', label: 'Simple' },
                ]}
                placeholder="案例类型"
-               align="left"
+               align="between"
                textColor="text-slate-900 dark:text-white text-[16px] font-[700]"
                className="w-[110px] shrink-0 bg-slate-100 dark:bg-[#0f172a] border border-slate-200 dark:border-[#334155] rounded-[8px] h-[36px] px-[8px]"
              />

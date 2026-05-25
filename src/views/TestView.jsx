@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import {
   Camera, Bug, ChevronLeft, ChevronRight, ChevronDown, Clock, CheckCircle2, XCircle,
   Menu, X, MinusCircle, Info, Database, FileText, Home, FastForward, BadgeCheck,
-  Send, Link, Target
+  Send, Link, Target, Trash2, Edit3
 } from 'lucide-react';
 import { formatTime } from '../utils/formatters.js';
 import { FIELD_LABELS } from '../constants/labels.js';
@@ -14,7 +14,7 @@ export default function TestView({
   currentCaseIndex, setCurrentCaseIndex,
   vehicleModel, modelYear, vin,
   updateCurrentResult, handleTimeClick,
-  handleAddMedia, convertToBug,
+  handleAddMedia, convertToBug, deleteBug, updateBug,
   nextCase, prevCase, saveTemporarily,
   setConfirmDialog, setView, resetAllFields,
   setToast, isOnline, pendingSyncCount,
@@ -545,7 +545,7 @@ export default function TestView({
               ) : (
                 bugs.map((bug, idx) => {
                   const linkedCase = cases.find(c => c.id === bug.case_id);
-                  const bugNum = String(bug.display_id || idx + 1).padStart(4, '0');
+                  const bugNum = String(idx + 1).padStart(4, '0');
                   let timeStr = '';
                   if (bug.timestamp) {
                     const d = new Date(bug.timestamp.replace(' ', 'T'));
@@ -566,19 +566,48 @@ export default function TestView({
                       {/* d1Top: justify-between */}
                       <div className="flex justify-between items-center">
                         <span className="text-[14px] font-[900] text-slate-900 dark:text-[#f1f5f9]">#BUG-{bugNum}</span>
-                        {/* loc1D: near_me icon, #60a5fa, 18px inside #1e293b rounded-16 32x32 */}
-                        <button
-                          onClick={() => {
-                            const targetIndex = cases.findIndex(c => c.id === bug.case_id);
-                            if (targetIndex !== -1) {
-                              setCurrentCaseIndex(targetIndex);
-                              setShowBugList(false);
-                            }
-                          }}
-                          className="w-[32px] h-[32px] rounded-[16px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none flex items-center justify-center active:scale-90 transition-all"
-                        >
-                          <Send size={14} className="text-[#60a5fa]" />
-                        </button>
+                        {/* Actions */}
+                        <div className="flex items-center gap-[8px]">
+                          <button
+                            onClick={() => {
+                              const newDesc = window.prompt('编辑缺陷描述', bug.description);
+                              if (newDesc !== null && newDesc.trim() !== '') {
+                                updateBug(bug.id, { description: newDesc.trim() });
+                              }
+                            }}
+                            className="w-[32px] h-[32px] rounded-[16px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none flex items-center justify-center active:scale-90 transition-all"
+                            title="编辑"
+                          >
+                            <Edit3 size={14} className="text-[#fbbf24]" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setConfirmDialog({
+                                title: '删除缺陷',
+                                message: '确认要删除这条缺陷记录吗？该操作不可恢复。',
+                                type: 'danger',
+                                onConfirm: () => deleteBug(bug.id)
+                              });
+                            }}
+                            className="w-[32px] h-[32px] rounded-[16px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none flex items-center justify-center active:scale-90 transition-all"
+                            title="删除"
+                          >
+                            <Trash2 size={14} className="text-[#ef4444]" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              const targetIndex = cases.findIndex(c => c.id === bug.case_id);
+                              if (targetIndex !== -1) {
+                                setCurrentCaseIndex(targetIndex);
+                                setShowBugList(false);
+                              }
+                            }}
+                            className="w-[32px] h-[32px] rounded-[16px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none flex items-center justify-center active:scale-90 transition-all"
+                            title="定位"
+                          >
+                            <Send size={14} className="text-[#60a5fa]" />
+                          </button>
+                        </div>
                       </div>
                       {/* d1Mid: link icon #64748b + case ref */}
                       <div className="flex items-center gap-[8px]">

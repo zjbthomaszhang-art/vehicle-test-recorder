@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Car, Sun, Moon, Calendar, Info, Layers, Radio, MapPin, ArrowRight, User, Map as MapIcon, Database, Activity, Bug, Code, Gauge, Monitor, Network, Music, ChevronDown, X, Camera, CameraIcon, FileText } from 'lucide-react';
+import { Car, Sun, Moon, Calendar, Info, Layers, Radio, MapPin, ArrowRight, User, Map as MapIcon, Database, Activity, Bug, Code, Gauge, Monitor, Network, Music, ChevronDown, X, Camera, CameraIcon, FileText, Smartphone } from 'lucide-react';
 import { FIELD_LABELS } from '../constants/labels.js';
 import { ARCHITECTURES, IVI_MODULES, COMM_MODULES } from '../constants.js';
 import { decodeModelYearFromVin, decodeVinFromRules } from '../utils/vinDecoder.js';
@@ -21,6 +21,8 @@ export default function HomeView({
   architecture, setArchitecture,
   iviModule, setIviModule,
   commModule, setCommModule,
+  iosVersion, setIosVersion,
+  androidVersion, setAndroidVersion,
   envPhotos, setEnvPhotos,
   handleAddMedia,
   setToast,
@@ -201,6 +203,35 @@ export default function HomeView({
                 type="text"
                 value={tester}
                 onChange={(e) => setTester(e.target.value)}
+                placeholder=""
+                className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[16px] flex-1 min-w-0 ml-1 sm:ml-2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal"
+              />
+            </div>
+          </div>
+          {/* Row 3.5: 测试手机版本 */}
+          <div className="flex gap-[8px] w-full">
+            <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] h-[44px] px-[10px] sm:px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+              <div className="flex items-center gap-[6px] sm:gap-[10px] shrink-0">
+                <Smartphone size={26} className="text-slate-900 dark:text-white p-[2px] shrink-0" strokeWidth={1.5} />
+                <span className="text-[13px] sm:text-[14px] font-[600] text-slate-500 dark:text-[#cbd5e1] whitespace-nowrap">iOS 版本</span>
+              </div>
+              <input
+                type="text"
+                value={iosVersion}
+                onChange={(e) => setIosVersion(e.target.value)}
+                placeholder=""
+                className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[16px] flex-1 min-w-0 ml-1 sm:ml-2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal"
+              />
+            </div>
+            <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] h-[44px] px-[10px] sm:px-[16px] flex items-center justify-between group focus-within:ring-1 focus-within:ring-[#007AFF] transition-all min-w-0">
+              <div className="flex items-center gap-[6px] sm:gap-[10px] shrink-0">
+                <Smartphone size={26} className="text-slate-900 dark:text-white p-[2px] shrink-0" strokeWidth={1.5} />
+                <span className="text-[13px] sm:text-[14px] font-[600] text-slate-500 dark:text-[#cbd5e1] whitespace-nowrap">Android 版本</span>
+              </div>
+              <input
+                type="text"
+                value={androidVersion}
+                onChange={(e) => setAndroidVersion(e.target.value)}
                 placeholder=""
                 className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[16px] flex-1 min-w-0 ml-1 sm:ml-2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal"
               />

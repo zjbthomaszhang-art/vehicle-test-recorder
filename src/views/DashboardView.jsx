@@ -266,20 +266,23 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
              </div>
              <span className="text-[8px] font-[800] text-[#3b82f6]/60 tracking-wider">点击下钻</span>
           </div>
-          <div className="h-[150px] w-full ml-[-20px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={modelData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }} onClick={(e) => e && e.activePayload && handleBarClick(e.activePayload[0].payload)} style={{ outline: 'none' }} className="focus:outline-none">
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
-                <XAxis dataKey="model" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} dx={-10} tickFormatter={(value) => `${value}%`} />
-                <Tooltip
-                  cursor={{ fill: 'rgba(59,130,246,0.08)' }}
-                  contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', color: '#0f172a', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                  labelStyle={{ color: '#64748b', fontWeight: 800 }}
-                />
-                <Bar dataKey="passRate" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20} onClick={(payload) => handleBarClick(payload)} cursor="pointer" />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="flex flex-col gap-[12px] w-full mt-[4px]">
+             {modelData.length > 0 ? modelData.map((m, i) => (
+                 <div key={i} className="flex flex-col gap-[6px] w-full cursor-pointer hover:opacity-80 transition-opacity" onClick={() => handleBarClick({ model: m.model })}>
+                     <div className="flex justify-between items-end">
+                         <span className="text-[11px] font-[800] text-slate-700 dark:text-[#cbd5e1]">{m.model}</span>
+                         <div className="flex gap-[6px] items-center">
+                           <span className="text-[9px] font-[600] text-slate-400 dark:text-slate-500">{m.passed} / {m.total}</span>
+                           <span className="text-[12px] font-[900] text-slate-900 dark:text-white">{m.passRate}%</span>
+                         </div>
+                     </div>
+                     <div className="w-full h-[6px] bg-slate-100 dark:bg-[#0f172a] rounded-full overflow-hidden border border-slate-200/50 dark:border-[#334155]/30">
+                         <div className="h-full bg-gradient-to-r from-[#38bdf8] to-[#3b82f6] rounded-full transition-all duration-1000 ease-out" style={{ width: `${m.passRate}%` }} />
+                     </div>
+                 </div>
+             )) : (
+                 <div className="text-[10px] font-[800] text-slate-500 dark:text-[#cbd5e1] text-center py-4">暂无数据</div>
+             )}
           </div>
         </div>
 
@@ -476,20 +479,23 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
                  </div>
                  <span className="text-[10px] font-[800] text-[#3b82f6]/60 tracking-wider">点击下钻</span>
               </div>
-              <div className="flex-1 w-full ml-[-20px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={modelData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }} onClick={(historySessions) => historySessions && historySessions.activePayload && handleBarClick(historySessions.activePayload[0].payload)} style={{ outline: 'none' }} className="focus:outline-none">
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
-                    <XAxis dataKey="model" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} dx={-10} />
-                    <Tooltip
-                      cursor={{ fill: 'rgba(59,130,246,0.08)' }}
-                      contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', color: '#0f172a', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      labelStyle={{ color: '#64748b', fontWeight: 800 }}
-                    />
-                    <Bar dataKey="passRate" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={24} onClick={(historySessions) => handleBarClick(historySessions)} cursor="pointer" />
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="flex-1 flex flex-col gap-[16px] w-full mt-[8px] overflow-y-auto custom-scrollbar pr-[8px]">
+                 {modelData.length > 0 ? modelData.map((m, i) => (
+                     <div key={i} className="flex flex-col gap-[8px] w-full cursor-pointer group" onClick={() => handleBarClick({ model: m.model })}>
+                         <div className="flex justify-between items-end">
+                             <span className="text-[12px] font-[800] text-slate-700 dark:text-[#cbd5e1] group-hover:text-[#3b82f6] transition-colors">{m.model}</span>
+                             <div className="flex gap-[8px] items-center">
+                               <span className="text-[10px] font-[600] text-slate-400 dark:text-slate-500">{m.passed} / {m.total}</span>
+                               <span className="text-[14px] font-[900] text-slate-900 dark:text-white">{m.passRate}%</span>
+                             </div>
+                         </div>
+                         <div className="w-full h-[8px] bg-slate-100 dark:bg-[#0f172a] rounded-full overflow-hidden border border-slate-200/50 dark:border-[#334155]/30">
+                             <div className="h-full bg-gradient-to-r from-[#38bdf8] to-[#3b82f6] rounded-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(56,189,248,0.4)]" style={{ width: `${m.passRate}%` }} />
+                         </div>
+                     </div>
+                 )) : (
+                     <div className="text-[12px] font-[800] text-slate-500 dark:text-[#cbd5e1] text-center py-8">暂无数据</div>
+                 )}
               </div>
             </div>
 

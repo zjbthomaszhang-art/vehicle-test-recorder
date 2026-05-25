@@ -417,9 +417,12 @@ function applyCoverAndTocSizing(ws, isCover) {
   drawThemeFrame(wsVehicle, 2, 10, vEndRow + 3, arrowId, onstarId, bgId, circleId, undefined, 12, 1, 9, 369093);
 
   // --- 手机APP Sheets ---
-  const addAppSheetWithData = (sheetName, titleSuffix) => {
+  const addAppSheetWithData = (sheetName, titleSuffix, appVersion) => {
     const wsApp = workbook.addWorksheet(sheetName);
-    drawTemplateHeaders(wsApp, `${vehicleModel}车辆手机APP验证测试- ${titleSuffix}`, info, true);
+    
+    // Copy info and inject specific appVersion
+    const sheetInfo = { ...info, appVersion: appVersion || '' };
+    drawTemplateHeaders(wsApp, `${vehicleModel}车辆手机APP验证测试- ${titleSuffix}`, sheetInfo, true);
     
     const appColWidths = [
       5.125, 6.625, 10.625, 14.625, 25.375, 32.375, 17.375, 25.625, 17, 25.625, 13, 6.625, 0.625, 4.625, 12.625
@@ -484,8 +487,8 @@ function applyCoverAndTocSizing(ws, isCover) {
 
   };
 
-  addAppSheetWithData('手机APP-iOS', '手机APP-iOS');
-  addAppSheetWithData('手机APP-Android', '手机APP-Android');
+  addAppSheetWithData('手机APP-iOS', '手机APP-iOS', vehicle.iosVersion || vehicle.ios_version || '');
+  addAppSheetWithData('手机APP-Android', '手机APP-Android', vehicle.androidVersion || vehicle.android_version || '');
 
   // --- SGM 问题清单 ---
   const wsBugs = workbook.addWorksheet('SGM问题清单');
@@ -561,9 +564,9 @@ function applyCoverAndTocSizing(ws, isCover) {
     wsBugs.addRow({
       id: i + 1,
       model: `${modelYear ? 'MY' + modelYear : ''} ${vehicleModel}`.trim() || '557',
-      phase: '',
+      phase: vehicle.productionStage || vehicle.production_stage || '',
       source: '',
-      loc: location,
+      loc: vehicle.address || '',
       vin: vin,
       mil: mileage ? `${mileage}KM` : '',
       finder: tester,
@@ -658,7 +661,28 @@ function applyCoverAndTocSizing(ws, isCover) {
     return null;
   };
 
-  // 1. 处理测试案例截图
+  // 1. 处理现场环境照片 (优先放在第一行)
+  let envPhotos = vehicle.envPhotos || vehicle.env_photo;
+  if (typeof envPhotos === 'string') {
+    try {
+      envPhotos = JSON.parse(envPhotos);
+    } catch (e) {
+      envPhotos = [];
+    }
+  }
+  if (!Array.isArray(envPhotos)) envPhotos = [];
+
+  for (let mIdx = 0; mIdx < envPhotos.length; mIdx++) {
+    const m = envPhotos[mIdx];
+    const url = typeof m === 'string' ? m : (m.url || '');
+    const sourceData = getSourceData(url);
+    if (!sourceData) continue;
+
+    const desc = `【现场环境照片】\n(截图 ${mIdx + 1}/${envPhotos.length})`;
+    await processImage(sourceData, desc);
+  }
+
+  // 2. 处理测试案例截图
   for (let i = 0; i < cases.length; i++) {
     const c = cases[i];
     const media = (caseResults[i] || {}).media || [];
@@ -685,6 +709,8 @@ function applyCoverAndTocSizing(ws, isCover) {
       await processImage(sourceData, desc);
     }
   }
+
+
 
   // --- Response ---
   const safeModel = (vehicleModel || 'Report').replace(/[^a-z0-9]/gi, '_');

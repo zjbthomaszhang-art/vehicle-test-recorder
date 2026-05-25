@@ -92,9 +92,19 @@ async function initializeDatabase() {
                 test_env VARCHAR(100) DEFAULT '',
                 tester VARCHAR(255),
                 mileage VARCHAR(255),
+                ios_version VARCHAR(100) DEFAULT '',
+                android_version VARCHAR(100) DEFAULT '',
                 timestamp DATETIME(3)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         `);
+
+        // Migration: add ios_version and android_version to test_sessions
+        const [sessionCols] = await db.query("SHOW COLUMNS FROM test_sessions LIKE 'ios_version'");
+        if (sessionCols.length === 0) {
+            await db.query("ALTER TABLE test_sessions ADD COLUMN ios_version VARCHAR(100) DEFAULT '' AFTER mileage");
+            await db.query("ALTER TABLE test_sessions ADD COLUMN android_version VARCHAR(100) DEFAULT '' AFTER ios_version");
+            console.log('Added ios_version and android_version to test_sessions');
+        }
 
         // Session Cases Table (snapshot of cases at the time of session creation)
         await db.query(`
@@ -126,6 +136,7 @@ async function initializeDatabase() {
                 app_feedback_time DATETIME(3),
                 result VARCHAR(50),
                 notes TEXT,
+                media LONGTEXT,
                 INDEX (session_id),
                 INDEX (session_case_id),
                 FOREIGN KEY (session_id) REFERENCES test_sessions(id) ON DELETE CASCADE
@@ -137,6 +148,29 @@ async function initializeDatabase() {
         if (trCols.length === 0) {
             await db.query("ALTER TABLE test_results ADD COLUMN session_case_id INT, ADD INDEX (session_case_id)");
             console.log('Added session_case_id to test_results');
+        }
+
+        // Migration: add media to test_results if missing
+        const [trMediaCols] = await db.query("SHOW COLUMNS FROM test_results LIKE 'media'");
+        if (trMediaCols.length === 0) {
+            await db.query("ALTER TABLE test_results ADD COLUMN media LONGTEXT");
+            console.log('Added media to test_results');
+        }
+
+        // Migration: add indexes for case_id and result if missing
+        try {
+            const [indexes] = await db.query("SHOW INDEX FROM test_results");
+            const indexNames = indexes.map(idx => idx.Key_name);
+            if (!indexNames.includes('case_id')) {
+                await db.query("ALTER TABLE test_results ADD INDEX (case_id)");
+                console.log('Added case_id index to test_results');
+            }
+            if (!indexNames.includes('result_case_id')) {
+                await db.query("ALTER TABLE test_results ADD INDEX result_case_id (result, case_id)");
+                console.log('Added result_case_id index to test_results');
+            }
+        } catch (err) {
+            console.error('⚠️ DB Migration missing for test_results indexes:', err);
         }
 
         // Bugs Table
@@ -233,6 +267,8 @@ async function initializeDatabase() {
             await addColumn('env_photo', "LONGTEXT");
             await addColumn('tester', "VARCHAR(255) DEFAULT ''");
             await addColumn('mileage', "VARCHAR(255) DEFAULT ''");
+            await addColumn('ios_version', "VARCHAR(100) DEFAULT ''");
+            await addColumn('android_version', "VARCHAR(100) DEFAULT ''");
         } catch (err) {
             console.error('⚠️ DB Migration missing for test_sessions:', err);
         }

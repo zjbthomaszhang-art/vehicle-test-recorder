@@ -6,7 +6,7 @@ import TargetIcon from '../assets/trophy.png';
 export default function ReportView({
   cases, caseResults, bugs,
   vehicleModel, modelYear, vin, productionStage, address, architecture,
-  iviModule, commModule, testEnv, tester, mileage, envPhotos,
+  iviModule, commModule, testEnv, tester, mileage, iosVersion, androidVersion, envPhotos,
   handleFullReset, setView, setToast, setConfirmDialog, resetAllFields
 }) {
   const reportRef = useRef(null);
@@ -51,7 +51,7 @@ export default function ReportView({
 
       await exportExcelReport({
         cases: sortedCases, caseResults: sortedResults, bugs,
-        vehicle: { vehicleModel, modelYear, vin, productionStage, address, architecture, iviModule, commModule, testEnv, tester, mileage },
+        vehicle: { vehicleModel, modelYear, vin, productionStage, address, architecture, iviModule, commModule, testEnv, tester, mileage, iosVersion, androidVersion, envPhotos },
       });
       setToast?.({ message: '报告导出成功', type: 'success' });
     } catch (err) {
