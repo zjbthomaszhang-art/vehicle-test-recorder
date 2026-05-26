@@ -10,13 +10,24 @@ Write-Host "===============================================" -ForegroundColor Cy
 Write-Host "  Vehicle Test Recorder - Deploy Script" -ForegroundColor Cyan
 Write-Host "===============================================" -ForegroundColor Cyan
 
-Write-Host "`n[1/3] Uploading source files..." -ForegroundColor Yellow
+Write-Host "`n[1/4] Preparing node_modules for Linux x64 locally..." -ForegroundColor Yellow
+if (!(Test-Path "deploy_temp")) { mkdir deploy_temp | Out-Null }
+cp package.json deploy_temp/
+cp package-lock.json deploy_temp/
+Push-Location deploy_temp
+npm install --omit=dev --os=linux --cpu=x64
+tar -czf node_modules.tar.gz node_modules
+Pop-Location
+
+Write-Host "`n[2/4] Uploading source files..." -ForegroundColor Yellow
 
 # Helper: scp a local file to an explicit remote path
 function Upload($localPath, $remotePath) {
     scp -i $SSH_KEY -o StrictHostKeyChecking=no $localPath "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/${remotePath}"
     if ($LASTEXITCODE -ne 0) { throw "scp failed for $localPath" }
 }
+
+Upload "deploy_temp/node_modules.tar.gz"   "node_modules.tar.gz"
 
 # ── src/views ──────────────────────────────────────────────────────
 Upload "src/views/HomeView.jsx"            "src/views/HomeView.jsx"
@@ -89,14 +100,14 @@ scp -i $SSH_KEY -o StrictHostKeyChecking=no -r nginx "${REMOTE_USER}@${REMOTE_HO
 Write-Host "Upload complete." -ForegroundColor DarkGray
 
 
-Write-Host "`n[2/3] Building locally..." -ForegroundColor Yellow
+Write-Host "`n[3/4] Building locally..." -ForegroundColor Yellow
 npm run build
 if ($LASTEXITCODE -ne 0) { throw "Local build failed" }
 
-Write-Host "`n[3/3] Uploading dist and deploying..." -ForegroundColor Yellow
+Write-Host "`n[4/4] Uploading dist and deploying..." -ForegroundColor Yellow
 scp -i $SSH_KEY -o StrictHostKeyChecking=no -r dist "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/"
 
-$remoteScript = "set -e; cd ~/vehicle-test-recorder; echo '>>> Installing dependencies...'; /usr/bin/npm install --omit=dev; echo '>>> Deploying...'; sudo rm -rf /var/www/vehicle-test-recorder/dist; sudo cp -r dist /var/www/vehicle-test-recorder/; sudo chown -R www-data:www-data /var/www/vehicle-test-recorder; /usr/bin/pm2 restart vehicle-recorder || /usr/bin/pm2 start /home/admin/vehicle-test-recorder/server/index.cjs --name vehicle-recorder --cwd /home/admin/vehicle-test-recorder; echo '>>> Done!'"
+$remoteScript = "set -e; cd ~/vehicle-test-recorder; echo '>>> Extracting node_modules...'; tar -xzf node_modules.tar.gz; rm node_modules.tar.gz; echo '>>> Deploying...'; sudo rm -rf /var/www/vehicle-test-recorder/dist; sudo cp -r dist /var/www/vehicle-test-recorder/; sudo chown -R www-data:www-data /var/www/vehicle-test-recorder; /usr/bin/pm2 restart vehicle-recorder || /usr/bin/pm2 start /home/admin/vehicle-test-recorder/server/index.cjs --name vehicle-recorder --cwd /home/admin/vehicle-test-recorder; echo '>>> Done!'"
 
 ssh -i $SSH_KEY -o StrictHostKeyChecking=no "${REMOTE_USER}@${REMOTE_HOST}" $remoteScript
 

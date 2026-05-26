@@ -14,6 +14,28 @@ const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']);
 let imageCache = { count: 0, totalBytes: 0, totalMB: 0, avgKB: 0 };
 let imageLastFetch = 0;
 
+function getMemoryUsage() {
+    let totalMem = os.totalmem();
+    let freeMem = os.freemem();
+    if (os.platform() === 'linux') {
+        try {
+            const meminfo = fs.readFileSync('/proc/meminfo', 'utf8');
+            const totalMatch = meminfo.match(/MemTotal:\s+(\d+) kB/);
+            const availMatch = meminfo.match(/MemAvailable:\s+(\d+) kB/);
+            if (totalMatch && availMatch) {
+                totalMem = parseInt(totalMatch[1], 10) * 1024;
+                freeMem = parseInt(availMatch[1], 10) * 1024;
+            }
+        } catch (e) {
+            // fallback to os.freemem
+        }
+    }
+    return {
+        total: totalMem / (1024 * 1024 * 1024),
+        used: (totalMem - freeMem) / (1024 * 1024 * 1024)
+    };
+}
+
 function fetchImageStorage() {
     if (Date.now() - imageLastFetch < 10000) return Promise.resolve(imageCache);
     return new Promise((resolve) => {
@@ -160,9 +182,9 @@ function fetchDiskUsage() {
 // ============================================
 setInterval(async () => {
     try {
-        const totalMem = os.totalmem() / (1024 * 1024 * 1024);
-        const freeMem = os.freemem() / (1024 * 1024 * 1024);
-        const usedMem = totalMem - freeMem;
+        const mem = getMemoryUsage();
+        const totalMem = mem.total;
+        const usedMem = mem.used;
         
         await db.query(
             "INSERT INTO metrics_history (timestamp, cpu_percent, ram_used_gb, ram_total_gb, rx_kbps, tx_kbps) VALUES (?, ?, ?, ?, ?, ?)",
@@ -253,9 +275,9 @@ router.get('/history', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const totalMem = os.totalmem() / (1024 * 1024 * 1024);
-        const freeMem = os.freemem() / (1024 * 1024 * 1024);
-        const usedMem = totalMem - freeMem;
+        const mem = getMemoryUsage();
+        const totalMem = mem.total;
+        const usedMem = mem.used;
         
         const [disk, imageStorage] = await Promise.all([
             fetchDiskUsage(),
