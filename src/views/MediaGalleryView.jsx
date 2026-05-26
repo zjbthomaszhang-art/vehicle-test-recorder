@@ -266,8 +266,8 @@ export default function MediaGalleryView({ setView, setHistoryTargetId }) {
                 </div>
               ) : (
                 <div className="flex-1 overflow-hidden bg-white dark:bg-[#1e2536] rounded-xl border border-slate-200 dark:border-slate-700/50 flex flex-col">
-                  <table className="w-full text-left text-sm text-slate-300 table-fixed">
-                    <thead className="bg-slate-100 dark:bg-[#151a26] text-slate-400 border-b border-slate-200 dark:border-slate-700/50 shrink-0">
+                  <table className="w-full text-left text-sm text-slate-700 dark:text-slate-300 table-fixed">
+                    <thead className="bg-slate-100 dark:bg-[#151a26] text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700/50 shrink-0">
                       <tr>
                         <th className="px-4 py-3 font-semibold w-5/12">文件名</th>
                         <th className="px-4 py-3 font-semibold w-2/12">分类</th>
@@ -300,7 +300,7 @@ export default function MediaGalleryView({ setView, setHistoryTargetId }) {
                             </td>
                             <td className="px-4 py-3 truncate" title={m.tester}>{m.tester || '-'}</td>
                             <td className="px-4 py-3 font-mono text-xs">{m.size ? (m.size / 1024).toFixed(1) + ' KB' : '-'}</td>
-                            <td className="px-4 py-3 text-slate-400 text-right">{dayjs(m.timestamp).format('YYYY-MM-DD HH:mm')}</td>
+                            <td className="px-4 py-3 text-slate-500 dark:text-slate-400 text-right">{dayjs(m.timestamp).format('YYYY-MM-DD HH:mm')}</td>
                           </tr>
                         )
                       })}
