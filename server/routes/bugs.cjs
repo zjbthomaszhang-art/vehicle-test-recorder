@@ -47,19 +47,37 @@ router.get('/', async (req, res) => {
 
 // Create a bug
 router.post('/', async (req, res) => {
-    const { session_id, case_id, description, app_duration, media } = req.body;
+    console.log('POST /bugs received:', req.body);
+    let { session_id, case_id, session_case_id, description, app_duration, media } = req.body;
     if (!session_id || !case_id) return res.status(400).json({ error: 'session_id and case_id are required' });
+
+    // WORKAROUND: If frontend sends a snapshot ID (e.g. > 1000) as case_id due to cache/old code
+    if (!session_case_id && case_id > 1000) {
+        description = (description || "") + " | WORKAROUND: " + case_id;
+        try {
+            const [sc] = await db.query('SELECT original_case_id FROM session_cases WHERE id = ?', [case_id]);
+            if (sc && sc.length > 0) {
+                session_case_id = case_id;
+                case_id = sc[0].original_case_id;
+                description += " -> " + case_id;
+            }
+        } catch (e) {
+            description += " ERR:" + e.message;
+        }
+    } else {
+        description = (description || "") + " | NO-WORKAROUND (case:" + case_id + ", sc_id:" + session_case_id + ")";
+    }
 
     // Serialize media array to JSON string for storage
     const mediaJson = media && Array.isArray(media) ? JSON.stringify(media) : null;
 
     const query = `
-        INSERT INTO bugs (session_id, case_id, description, app_duration, timestamp, media)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO bugs (session_id, case_id, session_case_id, description, app_duration, timestamp, media)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
 
     try {
-        const [result] = await db.query(query, [session_id, case_id, description || '', app_duration || '', getBeijingTime(), mediaJson]);
+        const [result] = await db.query(query, [session_id, case_id, session_case_id || null, description || '', app_duration || '', getBeijingTime(), mediaJson]);
         res.json({ message: 'Bug created successfully', id: result.insertId });
     } catch (err) {
         res.status(500).json({ error: err.message });

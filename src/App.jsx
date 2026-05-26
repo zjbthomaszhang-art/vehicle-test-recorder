@@ -533,8 +533,9 @@ export default function NDLBRecorder() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         session_id: sessionIdRef.current,
-        case_id: activeCase.id,
-        description: currentData.notes || `[${activeCase.function}] Failed or Abnormal`,
+        case_id: activeCase.original_case_id || activeCase.id,
+        session_case_id: activeCase.original_case_id ? activeCase.id : null,
+        description: currentData.notes + " | ACTIVE_CASE: " + JSON.stringify(activeCase),
         app_duration: appDur,
         media: currentData.media || []   // ← persist photos/evidence to DB
       })
@@ -555,7 +556,8 @@ export default function NDLBRecorder() {
           const bugLocalId = prev.length + 1;
           const updatedBugs = [...prev, {
             session_id: sessionIdRef.current,
-            case_id: activeCase.id,
+            case_id: activeCase.original_case_id || activeCase.id,
+            session_case_id: activeCase.original_case_id ? activeCase.id : null,
             description: currentData.notes || `[${activeCase.function}] Failed or Abnormal`,
             app_duration: appDur,
             id: response.id,
