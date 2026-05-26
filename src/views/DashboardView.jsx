@@ -315,8 +315,8 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
                   contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '10px', fontWeight: 'bold', color: '#0f172a', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   labelStyle={{ color: '#64748b', fontWeight: 800 }}
                 />
-                <Bar dataKey="passed" stackId="a" fill="#3b82f6" barSize={12} radius={[0, 0, 2, 2]} />
-                <Bar dataKey="failed" stackId="a" fill="#f59e0b" barSize={12} radius={[2, 2, 0, 0]} />
+                <Bar dataKey="passed" stackId="a" fill="#3b82f6" barSize={12} radius={[0, 0, 2, 2]} label={{ position: 'center', fill: '#fff', fontSize: 8, fontWeight: 800, formatter: (v) => v > 0 ? v : '' }} />
+                <Bar dataKey="failed" stackId="a" fill="#f59e0b" barSize={12} radius={[2, 2, 0, 0]} label={{ position: 'top', fill: '#64748b', fontSize: 9, fontWeight: 800, formatter: (v) => v > 0 ? v : '' }} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -528,8 +528,8 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
                       contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', color: '#0f172a', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                       labelStyle={{ color: '#64748b', fontWeight: 800 }}
                     />
-                    <Bar dataKey="passed" stackId="a" fill="#3b82f6" barSize={16} radius={[0, 0, 4, 4]} />
-                    <Bar dataKey="failed" stackId="a" fill="#f59e0b" barSize={16} radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="passed" stackId="a" fill="#3b82f6" barSize={16} radius={[0, 0, 4, 4]} label={{ position: 'center', fill: '#fff', fontSize: 10, fontWeight: 800, formatter: (v) => v > 0 ? v : '' }} />
+                    <Bar dataKey="failed" stackId="a" fill="#f59e0b" barSize={16} radius={[4, 4, 0, 0]} label={{ position: 'top', fill: '#64748b', fontSize: 11, fontWeight: 800, formatter: (v) => v > 0 ? v : '' }} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
