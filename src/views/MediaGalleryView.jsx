@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronLeft, Search, Upload, Filter, ArrowUpDown, LayoutGrid, List, X, PlayCircle, Image as ImageIcon, Video, ExternalLink } from 'lucide-react';
 import dayjs from 'dayjs';
+import CustomSelect from '../components/CustomSelect.jsx';
 
 export default function MediaGalleryView({ setView, setHistoryTargetId }) {
   const [media, setMedia] = useState([]);
@@ -160,29 +161,32 @@ export default function MediaGalleryView({ setView, setHistoryTargetId }) {
           {/* Tester Filter */}
           <div className="relative flex items-center bg-white dark:bg-[#1e2536] border border-slate-200 dark:border-slate-700/50 rounded-lg px-3 py-1.5 transition-colors">
             <Filter size={14} className="text-slate-400 mr-2 shrink-0" />
-            <select 
-              value={testerFilter} 
-              onChange={(e) => setTesterFilter(e.target.value)}
-              className="bg-transparent text-slate-700 dark:text-slate-300 text-sm focus:outline-none appearance-none cursor-pointer w-28"
-            >
-              <option value="">全部测试人员</option>
-              {uniqueTesters.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
+            <CustomSelect
+              textColor="text-slate-700 dark:text-slate-300 text-sm"
+              value={testerFilter}
+              onChange={setTesterFilter}
+              options={[{value:'',label:'全部测试人员'}, ...uniqueTesters.map(t=>({value:t,label:t}))]}
+              placeholder="全部测试人员"
+              className="bg-transparent border-none p-0 min-w-[120px]"
+            />
           </div>
           
           {/* Sort Menu */}
-          <div className="relative flex items-center bg-white dark:bg-[#1e2536] border border-slate-200 dark:border-slate-700/50 rounded-lg px-3 py-1.5 transition-colors">
+          <div className="relative flex items-center bg-white dark:bg-[#1e2536] border border-slate-200 dark:border-slate-700/50 rounded-lg px-3 py-1.5 transition-colors ml-2">
             <ArrowUpDown size={14} className="text-slate-400 mr-2 shrink-0" />
-            <select 
-              value={sortOrder} 
-              onChange={(e) => setSortOrder(e.target.value)}
-              className="bg-transparent text-slate-700 dark:text-slate-300 text-sm focus:outline-none appearance-none cursor-pointer w-[130px]"
-            >
-              <option value="time_desc">时间: 从新到旧</option>
-              <option value="time_asc">时间: 从旧到新</option>
-              <option value="size_desc">大小: 从大到小</option>
-              <option value="size_asc">大小: 从小到大</option>
-            </select>
+            <CustomSelect
+              textColor="text-slate-700 dark:text-slate-300 text-sm"
+              value={sortOrder}
+              onChange={setSortOrder}
+              options={[
+                {value:'time_desc',label:'时间: 从新到旧'},
+                {value:'time_asc',label:'时间: 从旧到新'},
+                {value:'size_desc',label:'大小: 从大到小'},
+                {value:'size_asc',label:'大小: 从小到大'}
+              ]}
+              placeholder="排序"
+              className="bg-transparent border-none p-0 min-w-[130px]"
+            />
           </div>
           
           {/* View Toggle */}
