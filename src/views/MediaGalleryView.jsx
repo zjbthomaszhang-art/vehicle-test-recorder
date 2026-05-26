@@ -219,7 +219,7 @@ export default function MediaGalleryView({ setView, setHistoryTargetId }) {
           ) : (
             <>
               {viewMode === 'grid' ? (
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 content-start overflow-hidden">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 content-start overflow-y-auto custom-scrollbar pr-1 pb-4">
                   {currentMedia.map((m, idx) => {
                     const config = getSourceConfig(m.source);
                     const isSelected = selectedMedia === m;
