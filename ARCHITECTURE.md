@@ -51,10 +51,10 @@ graph TD
 ### 3.3 数据层 (Data Layer)
 *   **技术栈**: MySQL 8.0.
 *   **核心表结构**:
-    - `test_sessions`: 存储车辆元数据（VIN, Model Year, Tester, Production Stage, Test Environment 等）。
+    - `test_sessions`: 存储车辆元数据（VIN, Model Year, Tester, Production Stage, Test Environment 等）。引入 `is_deleted` 字段实现逻辑删除。
     - `test_results`: 存储具体的测试条目、判断结果（Pass/Fail）、响应耗时（Timing）及测试证据附件（`media`）。
     - `cases`: 存储预置的 800+ 测试用例库。
-    - `bugs`: 存储测试过程中发现的缺陷（支持生成标准如 BUG-0001 格式的 ID）及媒体附件（`media`），支持与会话表级联删除以确保数据完整性。
+    - `bugs`: 存储测试过程中发现的缺陷（支持生成标准如 BUG-0001 格式的 ID）及媒体附件（`media`），随主会话的逻辑删除机制同步在各端隐藏，确保数据安全可找回。
 
 ---
 
@@ -75,5 +75,5 @@ graph TD
 1. **测试开始**: 用户输入车辆及环境信息，SyncManager 初始化本地 Session。
 2. **离线保存**: 用户点击“Save”并上传测试截图，数据与多媒体（Media）信息写入 IndexedDB，UI 显示“Syncing Assets”胶囊。
 3. **静默同步**: 浏览器检测到网络通畅，SyncManager 逐条执行 API 调用，成功后清理本地队列。
-4. **缺陷追踪**: 测试中提报的 Bug 统一分配专业工单号（如 BUG-0001），包含截图举证，并随对应会话保持生命周期一致（级联删除）。
+4. **缺陷追踪**: 测试中提报的 Bug 统一分配专业工单号（如 BUG-0001），包含截图举证，并随对应会话保持生命周期一致（通过逻辑删除同步隐藏）。
 5. **数据闭环与导出**: 后端接收数据持久化至 MySQL，提供跨平台兼容的高保真测试报告导出（包含特定的“手机APP-iOS/Android”等定制化版式）。
