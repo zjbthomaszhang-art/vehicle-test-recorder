@@ -259,7 +259,7 @@ export default function MediaGalleryView({ setView, setHistoryTargetId }) {
                           
                           <div className="flex items-center justify-between mt-auto">
                             <span className="text-xs text-slate-500 font-mono truncate">{m.tester || '-'}</span>
-                            <div className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${config.bg} ${config.text}`}>
+                            <div className={`px-2 py-0.5 rounded text-xs font-bold shrink-0 ${config.bg} ${config.text}`}>
                               {config.label}
                             </div>
                           </div>
@@ -298,7 +298,7 @@ export default function MediaGalleryView({ setView, setHistoryTargetId }) {
                               <span className="truncate" title={m.vehicle_info || m.name || m.title}>{m.vehicle_info || m.name || m.title || 'media_file'}</span>
                             </td>
                             <td className="px-4 py-3">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${config.bg} ${config.text}`}>
+                              <span className={`px-2 py-0.5 rounded text-xs font-bold ${config.bg} ${config.text}`}>
                                 {config.label}
                               </span>
                             </td>
@@ -315,7 +315,7 @@ export default function MediaGalleryView({ setView, setHistoryTargetId }) {
               
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-200 dark:border-slate-200 dark:border-slate-700/50 shrink-0 pb-2">
+                <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-200 dark:border-slate-700/50 shrink-0 pb-2">
                   <span className="text-xs text-slate-500">
                     Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredMedia.length)} of {filteredMedia.length} assets
                   </span>
@@ -323,7 +323,7 @@ export default function MediaGalleryView({ setView, setHistoryTargetId }) {
                     <button 
                       disabled={currentPage === 1}
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      className="px-3 py-1.5 bg-white dark:bg-white dark:bg-[#1e2536] border border-slate-200 dark:border-slate-200 dark:border-slate-700/50 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-900 dark:text-white transition-colors shadow-sm dark:shadow-none"
+                      className="px-3 py-1.5 bg-white dark:bg-[#1e2536] border border-slate-200 dark:border-slate-700/50 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-white transition-colors shadow-sm dark:shadow-none"
                     >
                       Prev
                     </button>
@@ -333,7 +333,7 @@ export default function MediaGalleryView({ setView, setHistoryTargetId }) {
                     <button 
                       disabled={currentPage === totalPages}
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      className="px-3 py-1.5 bg-white dark:bg-white dark:bg-[#1e2536] border border-slate-200 dark:border-slate-200 dark:border-slate-700/50 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-900 dark:text-white transition-colors shadow-sm dark:shadow-none"
+                      className="px-3 py-1.5 bg-white dark:bg-[#1e2536] border border-slate-200 dark:border-slate-700/50 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-white transition-colors shadow-sm dark:shadow-none"
                     >
                       Next
                     </button>
