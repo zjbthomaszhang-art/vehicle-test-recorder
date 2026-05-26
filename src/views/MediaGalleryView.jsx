@@ -118,7 +118,7 @@ export default function MediaGalleryView({ setView, setHistoryTargetId }) {
           onClick={() => setActiveTab('all')}
           className={`flex items-center gap-2 text-sm font-bold uppercase transition-colors ${activeTab === 'all' ? 'text-slate-900 dark:text-white border-b-2 border-slate-900 dark:border-white pb-3 -mb-[14px]' : 'text-slate-400 hover:text-slate-200'}`}
         >
-          ALL ASSETS 
+          所有媒体 
           <span className="bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] px-2 py-0.5 rounded-full">{media.length}</span>
         </button>
         <button 
