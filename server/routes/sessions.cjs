@@ -165,7 +165,7 @@ router.get('/', async (req, res) => {
             SUM(CASE WHEN tr.result IN ('Pass', 'Fail') THEN 1 ELSE 0 END) as pass_fail_count
         FROM test_sessions ts
         LEFT JOIN test_results tr ON ts.id = tr.session_id
-        WHERE 1=1
+        WHERE ts.is_deleted = 0
     `;
     const params = [];
 
@@ -191,7 +191,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     const sessionId = req.params.id;
     try {
-        const [sessions] = await db.query('SELECT * FROM test_sessions WHERE id = ?', [sessionId]);
+        const [sessions] = await db.query('SELECT * FROM test_sessions WHERE id = ? AND is_deleted = 0', [sessionId]);
         if (sessions.length === 0) return res.status(404).json({ error: 'Session not found' });
         const session = sessions[0];
 
@@ -386,11 +386,8 @@ router.delete('/:id', async (req, res) => {
         connection = await db.getConnection();
         await connection.beginTransaction();
 
-        // Delete dependencies first
-        await connection.query('DELETE FROM test_results WHERE session_id = ?', [sessionId]);
-        await connection.query('DELETE FROM session_cases WHERE session_id = ?', [sessionId]);
-        await connection.query('DELETE FROM bugs WHERE session_id = ?', [sessionId]);
-        await connection.query('DELETE FROM test_sessions WHERE id = ?', [sessionId]);
+        // Logical Delete: Mark the session as deleted
+        await connection.query('UPDATE test_sessions SET is_deleted = 1 WHERE id = ?', [sessionId]);
 
         await connection.commit();
         res.json({ message: 'Session deleted successfully' });

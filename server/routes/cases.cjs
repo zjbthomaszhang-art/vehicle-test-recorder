@@ -147,7 +147,7 @@ router.get('/:id/history', async (req, res) => {
         SELECT tr.*, ts.timestamp, ts.vehicle_model, ts.model_year
         FROM test_results tr
         JOIN test_sessions ts ON tr.session_id = ts.id
-        WHERE tr.case_id = ?
+        WHERE tr.case_id = ? AND ts.is_deleted = 0
         ORDER BY ts.timestamp DESC
         LIMIT 5
     `;
@@ -164,9 +164,10 @@ router.get('/top-fails', async (req, res) => {
     try {
         const query = `
             SELECT case_id, COUNT(*) as fail_count
-            FROM test_results 
-            WHERE result = 'Fail'
-            GROUP BY case_id
+            FROM test_results tr
+            JOIN test_sessions ts ON tr.session_id = ts.id
+            WHERE tr.result = 'Fail' AND ts.is_deleted = 0
+            GROUP BY tr.case_id
             ORDER BY fail_count DESC
             LIMIT 5
         `;

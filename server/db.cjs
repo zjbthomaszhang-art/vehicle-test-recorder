@@ -106,6 +106,13 @@ async function initializeDatabase() {
             console.log('Added ios_version and android_version to test_sessions');
         }
 
+        // Migration: add is_deleted to test_sessions (logical deletion)
+        const [sessionDeletedCols] = await db.query("SHOW COLUMNS FROM test_sessions LIKE 'is_deleted'");
+        if (sessionDeletedCols.length === 0) {
+            await db.query("ALTER TABLE test_sessions ADD COLUMN is_deleted TINYINT DEFAULT 0");
+            console.log('Added is_deleted to test_sessions');
+        }
+
         // Session Cases Table (snapshot of cases at the time of session creation)
         await db.query(`
             CREATE TABLE IF NOT EXISTS session_cases (

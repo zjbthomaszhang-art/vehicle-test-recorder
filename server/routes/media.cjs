@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
         let allMedia = [];
 
         // 1. Fetch from test_sessions (env_photo)
-        const [sessions] = await db.query('SELECT id, env_photo, timestamp, tester, model_year, vehicle_model FROM test_sessions WHERE env_photo IS NOT NULL AND env_photo != ""');
+        const [sessions] = await db.query('SELECT id, env_photo, timestamp, tester, model_year, vehicle_model FROM test_sessions WHERE env_photo IS NOT NULL AND env_photo != "" AND is_deleted = 0');
         for (const session of sessions) {
             try {
                 let parsed = session.env_photo;
@@ -51,7 +51,7 @@ router.get('/', async (req, res) => {
             FROM test_results tr
             LEFT JOIN cases c ON tr.case_id = c.id
             LEFT JOIN test_sessions ts ON tr.session_id = ts.id
-            WHERE tr.media IS NOT NULL AND tr.media != '[]' AND tr.media != ''
+            WHERE tr.media IS NOT NULL AND tr.media != '[]' AND tr.media != '' AND ts.is_deleted = 0
         `);
         for (const result of results) {
             try {
@@ -80,7 +80,7 @@ router.get('/', async (req, res) => {
             SELECT b.id, b.session_id, b.case_id, b.media, b.timestamp, b.description, ts.tester, ts.model_year, ts.vehicle_model
             FROM bugs b
             LEFT JOIN test_sessions ts ON b.session_id = ts.id
-            WHERE b.media IS NOT NULL AND b.media != '[]' AND b.media != ''
+            WHERE b.media IS NOT NULL AND b.media != '[]' AND b.media != '' AND ts.is_deleted = 0
         `);
         for (const bug of bugs) {
             try {

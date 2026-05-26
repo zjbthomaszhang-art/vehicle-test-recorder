@@ -15,7 +15,8 @@ router.get('/', async (req, res) => {
         FROM bugs b
         LEFT JOIN session_cases sc ON b.session_case_id = sc.id
         LEFT JOIN cases c ON b.case_id = c.id
-        WHERE 1=1
+        JOIN test_sessions ts ON b.session_id = ts.id
+        WHERE ts.is_deleted = 0
     `;
     const params = [];
 
