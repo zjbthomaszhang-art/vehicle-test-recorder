@@ -258,7 +258,7 @@ export default function MediaGalleryView({ setView, setHistoryTargetId }) {
                           </div>
                           
                           <div className="flex items-center justify-between mt-auto">
-                            <span className="text-xs text-slate-500 font-mono truncate">{m.tester || '-'}</span>
+                            <span className="text-xs font-bold text-slate-500 font-mono truncate">{m.tester || '-'}</span>
                             <div className={`px-2 py-0.5 rounded text-xs font-bold shrink-0 ${config.bg} ${config.text}`}>
                               {config.label}
                             </div>
