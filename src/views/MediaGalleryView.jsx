@@ -122,21 +122,21 @@ export default function MediaGalleryView({ setView, setHistoryTargetId }) {
         </button>
         <button 
           onClick={() => setActiveTab('env')}
-          className={`flex items-center gap-2 text-sm font-bold transition-colors ${activeTab === 'env' ? \'text-slate-900 dark:text-white\' : \'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200\'}`}
+          className={`flex items-center gap-2 text-sm font-bold transition-colors ${activeTab === 'env' ? 'text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'}`}
         >
           <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
           车况与环境
         </button>
         <button 
           onClick={() => setActiveTab('test_result')}
-          className={`flex items-center gap-2 text-sm font-bold transition-colors ${activeTab === 'test_result' ? \'text-slate-900 dark:text-white\' : \'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200\'}`}
+          className={`flex items-center gap-2 text-sm font-bold transition-colors ${activeTab === 'test_result' ? 'text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'}`}
         >
           <div className="w-2 h-2 rounded-full bg-teal-500"></div>
           测试记录
         </button>
         <button 
           onClick={() => setActiveTab('bug')}
-          className={`flex items-center gap-2 text-sm font-bold transition-colors ${activeTab === 'bug' ? \'text-slate-900 dark:text-white\' : \'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200\'}`}
+          className={`flex items-center gap-2 text-sm font-bold transition-colors ${activeTab === 'bug' ? 'text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'}`}
         >
           <div className="w-2 h-2 rounded-full bg-red-500"></div>
           缺陷附件
@@ -189,13 +189,13 @@ export default function MediaGalleryView({ setView, setHistoryTargetId }) {
           <div className="flex items-center bg-[#1e2536] border border-slate-700/50 rounded-lg p-1 ml-2">
             <button 
               onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded transition-colors ${viewMode === 'grid' ? \'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-white shadow\' : \'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300\'}`}
+              className={`p-1.5 rounded transition-colors ${viewMode === 'grid' ? 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-white shadow' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'}`}
             >
               <LayoutGrid size={16} />
             </button>
             <button 
               onClick={() => setViewMode('list')}
-              className={`p-1.5 rounded transition-colors ${viewMode === 'list' ? \'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-white shadow\' : \'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300\'}`}
+              className={`p-1.5 rounded transition-colors ${viewMode === 'list' ? 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-white shadow' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'}`}
             >
               <List size={16} />
             </button>
@@ -226,7 +226,7 @@ export default function MediaGalleryView({ setView, setHistoryTargetId }) {
                         onClick={() => setSelectedMedia(m)}
                         onDoubleClick={() => { setSelectedMedia(m); setLightboxOpen(true); }}
                         className={`group bg-[#1e2536] rounded-xl overflow-hidden border transition-all cursor-pointer flex flex-col
-                          ${isSelected ? 'border-teal-500 ring-1 ring-teal-500/50' : \'border-slate-200 hover:border-slate-300 dark:border-slate-700/50 dark:hover:border-slate-600\'}
+                          ${isSelected ? 'border-teal-500 ring-1 ring-teal-500/50' : 'border-slate-200 hover:border-slate-300 dark:border-slate-700/50 dark:hover:border-slate-600'}
                         `}
                       >
                         {/* Thumbnail */}
@@ -285,7 +285,7 @@ export default function MediaGalleryView({ setView, setHistoryTargetId }) {
                             key={`${m.url}-${idx}`}
                             onClick={() => setSelectedMedia(m)}
                             onDoubleClick={() => { setSelectedMedia(m); setLightboxOpen(true); }}
-                            className={`cursor-pointer transition-colors block md:table-row ${isSelected ? \'bg-teal-50 dark:bg-teal-500/10\' : \'hover:bg-slate-50 dark:hover:bg-slate-800\'}`}
+                            className={`cursor-pointer transition-colors block md:table-row ${isSelected ? 'bg-teal-50 dark:bg-teal-500/10' : 'hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                           >
                             <td className="px-4 py-3 flex items-center gap-3">
                               <div className="w-8 h-8 rounded overflow-hidden bg-[#0f131d] flex-shrink-0 flex items-center justify-center">
