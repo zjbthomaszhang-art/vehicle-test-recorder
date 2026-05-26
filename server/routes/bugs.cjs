@@ -53,19 +53,15 @@ router.post('/', async (req, res) => {
 
     // WORKAROUND: If frontend sends a snapshot ID (e.g. > 1000) as case_id due to cache/old code
     if (!session_case_id && case_id > 1000) {
-        description = (description || "") + " | WORKAROUND: " + case_id;
         try {
             const [sc] = await db.query('SELECT original_case_id FROM session_cases WHERE id = ?', [case_id]);
             if (sc && sc.length > 0) {
                 session_case_id = case_id;
                 case_id = sc[0].original_case_id;
-                description += " -> " + case_id;
             }
         } catch (e) {
-            description += " ERR:" + e.message;
+            console.error("Error fixing bug payload:", e);
         }
-    } else {
-        description = (description || "") + " | NO-WORKAROUND (case:" + case_id + ", sc_id:" + session_case_id + ")";
     }
 
     // Serialize media array to JSON string for storage
