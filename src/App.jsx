@@ -126,6 +126,7 @@ export default function NDLBRecorder() {
   const [isSaving, setIsSaving] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [pendingSyncCount, setPendingSyncCount] = useState(0);
+  const [historyTargetId, setHistoryTargetId] = useState(null);
 
   // --- Network Status & Sync Logic ---
   useEffect(() => {
@@ -755,7 +756,7 @@ export default function NDLBRecorder() {
         <PerformanceMonitorView setView={setView} />
       )}
       {view === 'media' && (
-        <MediaGalleryView setView={setView} />
+        <MediaGalleryView setView={setView} setHistoryTargetId={setHistoryTargetId} />
       )}
       {view === 'history' && (
         <HistoryView
@@ -764,6 +765,8 @@ export default function NDLBRecorder() {
           setEditingSession={setEditingSession}
           onContinueSession={handleContinueSession}
           setView={setView}
+          targetSessionId={historyTargetId}
+          clearTargetSessionId={() => setHistoryTargetId(null)}
         />
       )}
 

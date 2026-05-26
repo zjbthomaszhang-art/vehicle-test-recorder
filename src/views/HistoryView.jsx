@@ -10,6 +10,8 @@ export default function HistoryView({
   setEditingSession,
   onContinueSession,
   setView,
+  targetSessionId,
+  clearTargetSessionId
 }) {
   const [filterStartDate, setFilterStartDate] = useState('');
   const [filterEndDate, setFilterEndDate] = useState('');
@@ -24,6 +26,7 @@ export default function HistoryView({
 
   const filteredSessions = React.useMemo(() => {
     return historySessions.filter(session => {
+      if (targetSessionId && session.id !== targetSessionId) return false;
       let match = true;
       if (filterStartDate || filterEndDate) {
         const sessionDate = session.timestamp ? new Date(session.timestamp) : null;
@@ -44,7 +47,7 @@ export default function HistoryView({
       }
       return match;
     });
-  }, [historySessions, filterStartDate, filterEndDate, filterCode, filterArch]);
+  }, [historySessions, filterStartDate, filterEndDate, filterCode, filterArch, targetSessionId]);
 
   const handleContinueTest = (sess) => onContinueSession(sess);
 
@@ -73,6 +76,14 @@ export default function HistoryView({
         className="flex-1 overflow-y-auto px-[16px] pt-[16px] pb-[100px] flex flex-col gap-[12px] custom-scrollbar"
         onScroll={handleScroll}
       >
+        {/* Target Session Banner */}
+        {targetSessionId && (
+          <div className="bg-teal-500/10 border border-teal-500/30 rounded-lg p-3 flex justify-between items-center shrink-0">
+             <span className="text-teal-600 dark:text-teal-400 text-[13px] font-bold">正在显示所选媒体的关联测试会话 (ID: #{targetSessionId})</span>
+             <button onClick={clearTargetSessionId} className="text-teal-600 dark:text-teal-400 text-[13px] underline font-semibold cursor-pointer">清除筛选</button>
+          </div>
+        )}
+
         {/* FilterSection */}
         <div className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#334155] rounded-[20px] p-[16px] flex flex-col gap-[12px] shrink-0">
           <span className="text-[12px] font-[900] text-slate-500 dark:text-[#94a3b8]">筛选测试记录</span>

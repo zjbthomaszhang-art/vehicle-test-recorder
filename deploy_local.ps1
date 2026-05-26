@@ -28,6 +28,7 @@ Upload "src/views/TestView.jsx"            "src/views/TestView.jsx"
 Upload "src/views/ReportView.jsx"          "src/views/ReportView.jsx"
 Upload "src/views/PDCAView.jsx"            "src/views/PDCAView.jsx"
 Upload "src/views/PerformanceMonitorView.jsx" "src/views/PerformanceMonitorView.jsx"
+Upload "src/views/MediaGalleryView.jsx"    "src/views/MediaGalleryView.jsx"
 
 # ── src/components ─────────────────────────────────────────────────
 Upload "src/components/EditSessionModal.jsx" "src/components/EditSessionModal.jsx"
@@ -80,6 +81,7 @@ Upload "server/routes/metrics.cjs"    "server/routes/metrics.cjs"
 Upload "server/routes/dbViewer.cjs"   "server/routes/dbViewer.cjs"
 Upload "server/routes/vinRules.cjs"   "server/routes/vinRules.cjs"
 Upload "server/routes/caseOrders.cjs" "server/routes/caseOrders.cjs"
+Upload "server/routes/media.cjs"      "server/routes/media.cjs"
 
 # ── nginx config ───────────────────────────────────────────────────
 scp -i $SSH_KEY -o StrictHostKeyChecking=no -r nginx "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/"

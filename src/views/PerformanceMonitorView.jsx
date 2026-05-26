@@ -208,7 +208,7 @@ export default function PerformanceMonitorView({ setView }) {
                 className={`px-4 py-1.5 rounded-md text-[11px] font-[800] transition-colors ${
                   timeRange === tab.id
                     ? 'bg-[#3b82f6] text-white shadow-md'
-                    : 'text-[#64748b] hover:bg-slate-100 dark:hover:bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none hover:text-slate-800 dark:text-slate-200'
+                    : 'text-[#64748b] hover:bg-slate-100 hover:text-slate-800 shadow-sm dark:bg-[#1e293b] dark:shadow-none dark:text-slate-400 dark:hover:bg-[#334155] dark:hover:text-white'
                 }`}
               >
                 {tab.label}
