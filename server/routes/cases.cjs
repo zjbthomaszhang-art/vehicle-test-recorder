@@ -112,6 +112,12 @@ router.post('/bulk', async (req, res) => {
         // Push all existing cases to the bottom. The ones present in the import will be updated with their exact index.
         await db.query("UPDATE cases SET sort_order = 999999");
         await db.query(query, [values]);
+
+        // Deactivate all cases that are NOT in the imported file
+        const importedIds = values.map(v => v[0]);
+        if (importedIds.length > 0) {
+            await db.query("UPDATE cases SET is_active = 0 WHERE id NOT IN (?)", [importedIds]);
+        }
         res.json({ message: 'Bulk import successful', count: cases.length });
     } catch (err) {
         console.error("Bulk insert error:", err);

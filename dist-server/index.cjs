@@ -183195,6 +183195,13 @@ async function initializeDatabase() {
             console.log('Added ios_version and android_version to test_sessions');
         }
 
+        // Migration: add is_deleted to test_sessions (logical deletion)
+        const [sessionDeletedCols] = await db.query("SHOW COLUMNS FROM test_sessions LIKE 'is_deleted'");
+        if (sessionDeletedCols.length === 0) {
+            await db.query("ALTER TABLE test_sessions ADD COLUMN is_deleted TINYINT DEFAULT 0");
+            console.log('Added is_deleted to test_sessions');
+        }
+
         // Session Cases Table (snapshot of cases at the time of session creation)
         await db.query(`
             CREATE TABLE IF NOT EXISTS session_cases (
@@ -185327,7 +185334,8 @@ router.get('/', async (req, res) => {
         FROM bugs b
         LEFT JOIN session_cases sc ON b.session_case_id = sc.id
         LEFT JOIN cases c ON b.case_id = c.id
-        WHERE 1=1
+        JOIN test_sessions ts ON b.session_id = ts.id
+        WHERE ts.is_deleted = 0
     `;
     const params = [];
 
@@ -185343,14 +185351,21 @@ router.get('/', async (req, res) => {
     try {
         const [rows] = params.length > 0 ? await db.query(query, params) : await db.query(query);
         // Parse media JSON for each bug
-        const result = rows.map(b => ({
-            ...b,
-            media: (() => {
-                if (!b.media) return [];
-                try { const m = JSON.parse(b.media); return Array.isArray(m) ? m : []; }
-                catch { return []; }
-            })()
-        }));
+        const result = rows.map(b => {
+            let desc = b.description || '';
+            if (desc.includes(' | ACTIVE_CASE: ')) {
+                desc = desc.split(' | ACTIVE_CASE: ')[0];
+            }
+            return {
+                ...b,
+                description: desc,
+                media: (() => {
+                    if (!b.media) return [];
+                    try { const m = JSON.parse(b.media); return Array.isArray(m) ? m : []; }
+                    catch { return []; }
+                })()
+            };
+        });
         res.json(result);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -185359,19 +185374,33 @@ router.get('/', async (req, res) => {
 
 // Create a bug
 router.post('/', async (req, res) => {
-    const { session_id, case_id, description, app_duration, media } = req.body;
+    console.log('POST /bugs received:', req.body);
+    let { session_id, case_id, session_case_id, description, app_duration, media } = req.body;
     if (!session_id || !case_id) return res.status(400).json({ error: 'session_id and case_id are required' });
+
+    // WORKAROUND: If frontend sends a snapshot ID (e.g. > 1000) as case_id due to cache/old code
+    if (!session_case_id && case_id > 1000) {
+        try {
+            const [sc] = await db.query('SELECT original_case_id FROM session_cases WHERE id = ?', [case_id]);
+            if (sc && sc.length > 0) {
+                session_case_id = case_id;
+                case_id = sc[0].original_case_id;
+            }
+        } catch (e) {
+            console.error("Error fixing bug payload:", e);
+        }
+    }
 
     // Serialize media array to JSON string for storage
     const mediaJson = media && Array.isArray(media) ? JSON.stringify(media) : null;
 
     const query = `
-        INSERT INTO bugs (session_id, case_id, description, app_duration, timestamp, media)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO bugs (session_id, case_id, session_case_id, description, app_duration, timestamp, media)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
 
     try {
-        const [result] = await db.query(query, [session_id, case_id, description || '', app_duration || '', getBeijingTime(), mediaJson]);
+        const [result] = await db.query(query, [session_id, case_id, session_case_id || null, description || '', app_duration || '', getBeijingTime(), mediaJson]);
         res.json({ message: 'Bug created successfully', id: result.insertId });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -185619,6 +185648,12 @@ router.post('/bulk', async (req, res) => {
         // Push all existing cases to the bottom. The ones present in the import will be updated with their exact index.
         await db.query("UPDATE cases SET sort_order = 999999");
         await db.query(query, [values]);
+
+        // Deactivate all cases that are NOT in the imported file
+        const importedIds = values.map(v => v[0]);
+        if (importedIds.length > 0) {
+            await db.query("UPDATE cases SET is_active = 0 WHERE id NOT IN (?)", [importedIds]);
+        }
         res.json({ message: 'Bulk import successful', count: cases.length });
     } catch (err) {
         console.error("Bulk insert error:", err);
@@ -185654,7 +185689,7 @@ router.get('/:id/history', async (req, res) => {
         SELECT tr.*, ts.timestamp, ts.vehicle_model, ts.model_year
         FROM test_results tr
         JOIN test_sessions ts ON tr.session_id = ts.id
-        WHERE tr.case_id = ?
+        WHERE tr.case_id = ? AND ts.is_deleted = 0
         ORDER BY ts.timestamp DESC
         LIMIT 5
     `;
@@ -185671,9 +185706,10 @@ router.get('/top-fails', async (req, res) => {
     try {
         const query = `
             SELECT case_id, COUNT(*) as fail_count
-            FROM test_results 
-            WHERE result = 'Fail'
-            GROUP BY case_id
+            FROM test_results tr
+            JOIN test_sessions ts ON tr.session_id = ts.id
+            WHERE tr.result = 'Fail' AND ts.is_deleted = 0
+            GROUP BY tr.case_id
             ORDER BY fail_count DESC
             LIMIT 5
         `;
@@ -186026,6 +186062,7 @@ const express = __nccwpck_require__(85152);
 const ExcelJS = __nccwpck_require__(59203);
 const path = __nccwpck_require__(16928);
 const fs = __nccwpck_require__(79896);
+const { db } = __nccwpck_require__(2705);
 
 let sharp;
 try {
@@ -186264,7 +186301,40 @@ function applyDataStyles(sheet, rowNum, colCount) {
 }
 
 async function buildExport(req, res) {
-  const { cases = [], caseResults = [], bugs = [], vehicle = {} } = req.body;
+  const { cases: rawCases = [], caseResults: rawCaseResults = [], bugs = [], vehicle = {} } = req.body;
+
+  // Fetch original sort_order from Case Management (cases table) to ensure consistent order
+  let dbSortOrderMap = new Map();
+  try {
+    const [dbCases] = await db.query("SELECT id, sort_order FROM cases");
+    dbCases.forEach(c => dbSortOrderMap.set(Number(c.id), Number(c.sort_order || 0)));
+  } catch (err) {
+    console.error("Error fetching db cases for sorting:", err);
+  }
+
+  const paired = rawCases.map((c, i) => ({ c, r: rawCaseResults[i] || {} }));
+  paired.sort((a, b) => {
+    const idA = Number(a.c.original_case_id || a.c.id);
+    const idB = Number(b.c.original_case_id || b.c.id);
+    const sortA = dbSortOrderMap.has(idA) ? dbSortOrderMap.get(idA) : Number(a.c.sort_order || 0);
+    const sortB = dbSortOrderMap.has(idB) ? dbSortOrderMap.get(idB) : Number(b.c.sort_order || 0);
+    if (sortA !== sortB) return sortA - sortB;
+    return idA - idB;
+  });
+
+  // De-duplicate paired cases to discard duplicate cases (e.g. historical duplicates with sort_order = 999999)
+  const uniquePaired = [];
+  const seenKeys = new Set();
+  paired.forEach(item => {
+    const key = `${item.c.category}::${item.c.function_category || item.c.functionCategory || ''}::${item.c.function}::${item.c.expected}`;
+    if (!seenKeys.has(key)) {
+      seenKeys.add(key);
+      uniquePaired.push(item);
+    }
+  });
+
+  const cases = uniquePaired.map(p => p.c);
+  const caseResults = uniquePaired.map(p => p.r);
   const { vehicleModel = '', modelYear = '', vin = '', address = '', tester = '', mileage = '' } = vehicle;
   
   // Extract city from address heuristically
@@ -186598,7 +186668,7 @@ function applyCoverAndTocSizing(ws, isCover) {
       date: `${d.getMonth() + 1}月${d.getDate()}日`,
       time: d.toTimeString().slice(0, 5),
       smt: '',
-      desc: bug.description,
+      desc: bug.description ? bug.description.split(' | ACTIVE_CASE: ')[0] : '',
       defect: '',
       note: '',
       rate: '',
@@ -186777,7 +186847,7 @@ router.get('/', async (req, res) => {
         let allMedia = [];
 
         // 1. Fetch from test_sessions (env_photo)
-        const [sessions] = await db.query('SELECT id, env_photo, timestamp, tester, model_year, vehicle_model FROM test_sessions WHERE env_photo IS NOT NULL AND env_photo != ""');
+        const [sessions] = await db.query('SELECT id, env_photo, timestamp, tester, model_year, vehicle_model FROM test_sessions WHERE env_photo IS NOT NULL AND env_photo != "" AND is_deleted = 0');
         for (const session of sessions) {
             try {
                 let parsed = session.env_photo;
@@ -186818,7 +186888,7 @@ router.get('/', async (req, res) => {
             FROM test_results tr
             LEFT JOIN cases c ON tr.case_id = c.id
             LEFT JOIN test_sessions ts ON tr.session_id = ts.id
-            WHERE tr.media IS NOT NULL AND tr.media != '[]' AND tr.media != ''
+            WHERE tr.media IS NOT NULL AND tr.media != '[]' AND tr.media != '' AND ts.is_deleted = 0
         `);
         for (const result of results) {
             try {
@@ -186847,7 +186917,7 @@ router.get('/', async (req, res) => {
             SELECT b.id, b.session_id, b.case_id, b.media, b.timestamp, b.description, ts.tester, ts.model_year, ts.vehicle_model
             FROM bugs b
             LEFT JOIN test_sessions ts ON b.session_id = ts.id
-            WHERE b.media IS NOT NULL AND b.media != '[]' AND b.media != ''
+            WHERE b.media IS NOT NULL AND b.media != '[]' AND b.media != '' AND ts.is_deleted = 0
         `);
         for (const bug of bugs) {
             try {
@@ -186862,7 +186932,7 @@ router.get('/', async (req, res) => {
                             session_id: bug.session_id,
                             bug_id: bug.id,
                             case_id: bug.case_id,
-                            title: `Bug #${bug.id}: ${bug.description || '缺陷附件'}`,
+                            title: `Bug #${bug.id}: ${(bug.description ? bug.description.split(' | ACTIVE_CASE: ')[0] : '') || '缺陷附件'}`,
                             vehicle_info: (bug.model_year || bug.vehicle_model) ? `MY${bug.model_year || ''} ${bug.vehicle_model || ''}`.trim() : '',
                             tester: bug.tester || 'Unknown',
                             timestamp: bug.timestamp
@@ -186924,6 +186994,28 @@ const uploadsDir = path.join(__dirname, '../uploads');
 const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']);
 let imageCache = { count: 0, totalBytes: 0, totalMB: 0, avgKB: 0 };
 let imageLastFetch = 0;
+
+function getMemoryUsage() {
+    let totalMem = os.totalmem();
+    let freeMem = os.freemem();
+    if (os.platform() === 'linux') {
+        try {
+            const meminfo = fs.readFileSync('/proc/meminfo', 'utf8');
+            const totalMatch = meminfo.match(/MemTotal:\s+(\d+) kB/);
+            const availMatch = meminfo.match(/MemAvailable:\s+(\d+) kB/);
+            if (totalMatch && availMatch) {
+                totalMem = parseInt(totalMatch[1], 10) * 1024;
+                freeMem = parseInt(availMatch[1], 10) * 1024;
+            }
+        } catch (e) {
+            // fallback to os.freemem
+        }
+    }
+    return {
+        total: totalMem / (1024 * 1024 * 1024),
+        used: (totalMem - freeMem) / (1024 * 1024 * 1024)
+    };
+}
 
 function fetchImageStorage() {
     if (Date.now() - imageLastFetch < 10000) return Promise.resolve(imageCache);
@@ -187071,9 +187163,9 @@ function fetchDiskUsage() {
 // ============================================
 setInterval(async () => {
     try {
-        const totalMem = os.totalmem() / (1024 * 1024 * 1024);
-        const freeMem = os.freemem() / (1024 * 1024 * 1024);
-        const usedMem = totalMem - freeMem;
+        const mem = getMemoryUsage();
+        const totalMem = mem.total;
+        const usedMem = mem.used;
         
         await db.query(
             "INSERT INTO metrics_history (timestamp, cpu_percent, ram_used_gb, ram_total_gb, rx_kbps, tx_kbps) VALUES (?, ?, ?, ?, ?, ?)",
@@ -187164,9 +187256,9 @@ router.get('/history', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const totalMem = os.totalmem() / (1024 * 1024 * 1024);
-        const freeMem = os.freemem() / (1024 * 1024 * 1024);
-        const usedMem = totalMem - freeMem;
+        const mem = getMemoryUsage();
+        const totalMem = mem.total;
+        const usedMem = mem.used;
         
         const [disk, imageStorage] = await Promise.all([
             fetchDiskUsage(),
@@ -187374,7 +187466,7 @@ router.get('/', async (req, res) => {
             SUM(CASE WHEN tr.result IN ('Pass', 'Fail') THEN 1 ELSE 0 END) as pass_fail_count
         FROM test_sessions ts
         LEFT JOIN test_results tr ON ts.id = tr.session_id
-        WHERE 1=1
+        WHERE ts.is_deleted = 0
     `;
     const params = [];
 
@@ -187400,7 +187492,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     const sessionId = req.params.id;
     try {
-        const [sessions] = await db.query('SELECT * FROM test_sessions WHERE id = ?', [sessionId]);
+        const [sessions] = await db.query('SELECT * FROM test_sessions WHERE id = ? AND is_deleted = 0', [sessionId]);
         if (sessions.length === 0) return res.status(404).json({ error: 'Session not found' });
         const session = sessions[0];
 
@@ -187471,11 +187563,19 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
     const sessionId = req.params.id;
     const { vehicle, results } = req.body;
+    console.log(`[PUT /sessions/${sessionId}] Request body keys:`, Object.keys(req.body || {}));
+    console.log(`[PUT /sessions/${sessionId}] Results array length:`, results ? results.length : 0);
+    
+    console.log(`[PUT /sessions/${sessionId}] Acquiring connection from pool...`);
     const connection = await pool.promise().getConnection();
+    console.log(`[PUT /sessions/${sessionId}] Connection acquired.`);
 
     try {
+        console.log(`[PUT /sessions/${sessionId}] Beginning transaction...`);
         await connection.beginTransaction();
+        console.log(`[PUT /sessions/${sessionId}] Transaction started.`);
 
+        console.log(`[PUT /sessions/${sessionId}] Updating test_sessions table...`);
         await connection.query(
             `UPDATE test_sessions SET 
                 vehicle_model=?, model_year=?, vin=?, production_stage=?, test_env=?, address=?,
@@ -187497,22 +187597,31 @@ router.put('/:id', async (req, res) => {
                 getBeijingTime(), sessionId
             ]
         );
+        console.log(`[PUT /sessions/${sessionId}] test_sessions table updated.`);
 
         // Re-sort session_cases according to tester's custom order (or default)
         const testerName = (vehicle.tester || '').trim();
         let customOrder = null;
         if (testerName !== '') {
+            console.log(`[PUT /sessions/${sessionId}] Querying custom case order for tester: ${testerName}`);
             const [orderRows] = await connection.query('SELECT case_ids FROM tester_case_orders WHERE tester_name = ?', [testerName]);
             if (orderRows.length > 0) {
                 try {
                     const parsed = JSON.parse(orderRows[0].case_ids);
                     if (Array.isArray(parsed) && parsed.length > 0) customOrder = parsed;
-                } catch(e) {}
+                    console.log(`[PUT /sessions/${sessionId}] Found custom case order of length:`, customOrder.length);
+                } catch(e) {
+                    console.error("Error parsing custom case order", e);
+                }
             }
         }
 
+        console.log(`[PUT /sessions/${sessionId}] Querying existing session cases...`);
         const [existingSessionCases] = await connection.query('SELECT * FROM session_cases WHERE session_id = ?', [sessionId]);
+        console.log(`[PUT /sessions/${sessionId}] Found session cases count:`, existingSessionCases.length);
+        
         if (existingSessionCases.length > 0) {
+            console.log(`[PUT /sessions/${sessionId}] Sorting session cases...`);
             if (customOrder) {
                 const orderMap = new Map();
                 customOrder.forEach((id, idx) => orderMap.set(Number(id), idx));
@@ -187526,30 +187635,51 @@ router.put('/:id', async (req, res) => {
                 existingSessionCases.sort((a, b) => (a.original_case_id - b.original_case_id) || (a.id - b.id));
             }
 
+            console.log(`[PUT /sessions/${sessionId}] Assigning case numbers...`);
             const numbered = assignCaseNumbers(existingSessionCases);
-            // Bulk update sort_order and case_number
-            for (let i = 0; i < numbered.length; i++) {
+            console.log(`[PUT /sessions/${sessionId}] Bulk updating session cases sort order...`);
+            // Bulk update sort_order and case_number in a single query using CASE/WHEN
+            if (numbered.length > 0) {
+                const ids = numbered.map((n, i) => n.id);
+                let sortCase = 'CASE id';
+                let numCase = 'CASE id';
+                const params = [];
+                numbered.forEach((n, i) => {
+                    sortCase += ` WHEN ? THEN ?`;
+                    numCase += ` WHEN ? THEN ?`;
+                    params.push(n.id, i);      // for sort_order
+                });
+                sortCase += ' END';
+                numCase += ' END';
+                const numParams = [];
+                numbered.forEach((n, i) => {
+                    numParams.push(n.id, n.case_number);
+                });
                 await connection.query(
-                    'UPDATE session_cases SET sort_order = ?, case_number = ? WHERE id = ?',
-                    [i, numbered[i].case_number, numbered[i].id]
+                    `UPDATE session_cases SET sort_order = ${sortCase}, case_number = ${numCase} WHERE id IN (?)`,
+                    [...params, ...numParams, ids]
                 );
             }
+            console.log(`[PUT /sessions/${sessionId}] Session cases update complete.`);
         }
 
         if (results && Array.isArray(results) && results.length > 0) {
+            console.log(`[PUT /sessions/${sessionId}] Deleting old test results...`);
             await connection.query('DELETE FROM test_results WHERE session_id = ?', [sessionId]);
+            console.log(`[PUT /sessions/${sessionId}] Old test results deleted.`);
 
             // Load session_cases to rebuild caseId map
+            console.log(`[PUT /sessions/${sessionId}] Querying session cases again...`);
             const [sessionCases] = await connection.query(
                 'SELECT id, original_case_id FROM session_cases WHERE session_id = ?',
                 [sessionId]
             );
             const caseIdMap = {};
             sessionCases.forEach(sc => { if (sc.original_case_id) caseIdMap[sc.original_case_id] = sc.id; });
-            // Also support direct session_case_id → session_case_id mapping
             const scIdSet = new Set(sessionCases.map(sc => sc.id));
 
             const validResults = results.filter(r => r.result || (r.notes && r.notes.trim() !== ''));
+            console.log(`[PUT /sessions/${sessionId}] Filtered valid results to insert count:`, validResults.length);
             if (validResults.length > 0) {
                 const resultValues = validResults.map(r => {
                     const scId = r.session_case_id && scIdSet.has(r.session_case_id)
@@ -187567,21 +187697,27 @@ router.put('/:id', async (req, res) => {
                         JSON.stringify(r.media || [])
                     ];
                 });
+                console.log(`[PUT /sessions/${sessionId}] Bulk inserting new test results...`);
                 await connection.query(
                     `INSERT INTO test_results (session_id, case_id, session_case_id, start_time, car_exec_time, app_feedback_time, result, notes, media) VALUES ?`,
                     [resultValues]
                 );
+                console.log(`[PUT /sessions/${sessionId}] Bulk insert complete.`);
             }
         }
 
+        console.log(`[PUT /sessions/${sessionId}] Committing transaction...`);
         await connection.commit();
+        console.log(`[PUT /sessions/${sessionId}] Transaction committed successfully.`);
         res.json({ message: 'Session updated successfully' });
     } catch (err) {
+        console.error(`[PUT /sessions/${sessionId}] Error occurred, rolling back:`, err);
         await connection.rollback();
-        console.error('[PUT /sessions] Error:', err);
         res.status(500).json({ error: err.message });
     } finally {
+        console.log(`[PUT /sessions/${sessionId}] Releasing database connection...`);
         connection.release();
+        console.log(`[PUT /sessions/${sessionId}] Connection released.`);
     }
 });
 
@@ -187595,11 +187731,8 @@ router.delete('/:id', async (req, res) => {
         connection = await db.getConnection();
         await connection.beginTransaction();
 
-        // Delete dependencies first
-        await connection.query('DELETE FROM test_results WHERE session_id = ?', [sessionId]);
-        await connection.query('DELETE FROM session_cases WHERE session_id = ?', [sessionId]);
-        await connection.query('DELETE FROM bugs WHERE session_id = ?', [sessionId]);
-        await connection.query('DELETE FROM test_sessions WHERE id = ?', [sessionId]);
+        // Logical Delete: Mark the session as deleted
+        await connection.query('UPDATE test_sessions SET is_deleted = 1 WHERE id = ?', [sessionId]);
 
         await connection.commit();
         res.json({ message: 'Session deleted successfully' });
@@ -188196,6 +188329,11 @@ const mediaRouter = __nccwpck_require__(1956);
 
 const app = express();
 const port = process.env.PORT || 3001;
+
+app.use((req, res, next) => {
+  console.log(`[REQUEST] ${req.method} ${req.url}`);
+  next();
+});
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));

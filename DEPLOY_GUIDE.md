@@ -47,6 +47,13 @@ sudo cp -r dist /var/www/vehicle-test-recorder/
 pm2 restart vehicle-recorder
 ```
 
+### 2. 本地一键推送脚本 (绕过 GitHub)
+如果 GitHub Actions 故障或者服务器上的 Git 出现冲突，可以在本地开发环境（Windows PowerShell）直接执行部署脚本：
+```powershell
+# 该脚本会自动打包 node_modules，上传所有代码并触发远程 PM2 重启
+.\deploy_local.ps1
+```
+
 ---
 
 ## 🧱 离线同步引擎 (Offline-First)

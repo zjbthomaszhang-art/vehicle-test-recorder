@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Edit3, Car, ChevronDown } from 'lucide-react';
+import { Search, Edit3, Car, ChevronDown, Bug } from 'lucide-react';
 import CustomSelect from '../components/CustomSelect.jsx';
 import MobileNavigator from '../components/MobileNavigator.jsx';
 import { API_BASE, ARCHITECTURES } from '../constants.js';
@@ -11,13 +11,28 @@ export default function HistoryView({
   onContinueSession,
   setView,
   targetSessionId,
-  clearTargetSessionId
+  clearTargetSessionId,
+  setDefectsTargetSessionId
 }) {
   const [filterStartDate, setFilterStartDate] = useState('');
   const [filterEndDate, setFilterEndDate] = useState('');
   const [filterCode, setFilterCode] = useState('');
   const [filterArch, setFilterArch] = useState('');
   const [displayedCount, setDisplayedCount] = useState(20);
+
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      setIsMobile(mobileUA || window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     // Reset displayed count when filters change
@@ -212,15 +227,54 @@ export default function HistoryView({
 
                   {/* Bottom Row */}
                   <div className="flex justify-between items-center w-full">
-                     <div className="flex items-center">
-                        <span className="text-[13px] font-[bold] text-[#64748b]">已执行 {execCount} 条用例，完成进度 {execRate}%</span>
+                     <div className="flex items-center min-w-0 flex-1 pr-2">
+                        {isMobile ? (
+                          <div className="flex flex-col text-[12px] text-[#64748b] font-medium leading-snug">
+                             <span>已执行 <span className="font-[900] text-slate-900 dark:text-white">{execCount}</span> 条用例</span>
+                             <span>完成进度 <span className="font-[900] text-slate-900 dark:text-white">{execRate}%</span></span>
+                          </div>
+                        ) : (
+                          <span className="text-[13px] text-[#64748b] font-medium">
+                             已执行 <span className="font-[900] text-slate-900 dark:text-white">{execCount}</span> 条用例 完成进度 <span className="font-[900] text-slate-900 dark:text-white">{execRate}%</span>
+                          </span>
+                        )}
                      </div>
-                     <button
-                       onClick={() => handleContinueTest(sess)}
-                       className="h-[34px] px-[14px] bg-[#2563eb] hover:bg-[#1d4ed8] active:scale-95 transition-all rounded-[10px] flex items-center justify-center"
-                     >
-                       <span className="text-[12px] font-[900] text-white">继续测试</span>
-                     </button>
+                     <div className="flex gap-[6px] items-center shrink-0">
+                        <button
+                          onClick={() => {
+                            if (setDefectsTargetSessionId) setDefectsTargetSessionId(sess.id);
+                            setView('pdca');
+                          }}
+                          className={`${
+                            isMobile ? 'py-[4px] px-[8px] min-h-[36px]' : 'h-[34px] px-[12px]'
+                          } bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 active:scale-95 transition-all rounded-[10px] flex items-center justify-center gap-[4px] cursor-pointer`}
+                        >
+                          <Bug size={14} className="shrink-0" />
+                          {isMobile ? (
+                            <span className="text-[11px] font-[900] leading-tight text-center flex flex-col">
+                              <span>缺陷</span>
+                              <span>记录</span>
+                            </span>
+                          ) : (
+                            <span className="text-[12px] font-[900]">缺陷记录</span>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleContinueTest(sess)}
+                          className={`${
+                            isMobile ? 'py-[4px] px-[10px] min-h-[36px]' : 'h-[34px] px-[14px]'
+                          } bg-[#2563eb] hover:bg-[#1d4ed8] active:scale-95 transition-all rounded-[10px] flex items-center justify-center cursor-pointer`}
+                        >
+                          {isMobile ? (
+                            <span className="text-[11px] font-[900] leading-tight text-center flex flex-col text-white">
+                              <span>继续</span>
+                              <span>测试</span>
+                            </span>
+                          ) : (
+                            <span className="text-[12px] font-[900] text-white">继续测试</span>
+                          )}
+                        </button>
+                     </div>
                   </div>
                </div>
              );

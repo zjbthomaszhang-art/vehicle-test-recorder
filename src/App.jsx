@@ -23,10 +23,12 @@ import EditSessionModal from './components/EditSessionModal.jsx';
 import ConfirmDialog from './components/ConfirmDialog.jsx';
 import Toast from './components/Toast.jsx';
 import MobileNavigator from './components/MobileNavigator.jsx';
+import QRCodeModal from './components/QRCodeModal.jsx';
 
 export default function NDLBRecorder() {
   // --- View Routing ---
   const [view, setView] = useState('home'); // home | test | report | admin | history
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
   // --- Test Cases ---
   const [cases, setCases] = useState(INITIAL_CASES);
@@ -127,6 +129,7 @@ export default function NDLBRecorder() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [pendingSyncCount, setPendingSyncCount] = useState(0);
   const [historyTargetId, setHistoryTargetId] = useState(null);
+  const [defectsTargetSessionId, setDefectsTargetSessionId] = useState(null);
 
   // --- Network Status & Sync Logic ---
   useEffect(() => {
@@ -236,11 +239,11 @@ export default function NDLBRecorder() {
   }, [toast]);
 
 
-  // Sync caseResults length when cases change (use testCases order if available)
+  // Sync caseResults length on initial case load if results array is uninitialized
   useEffect(() => {
     const activeCases = testCases.length > 0 ? testCases : cases;
-    if (caseResults.length !== activeCases.length) {
-      setCaseResults(activeCases.map((_, i) => caseResults[i] || createEmptyResult()));
+    if (activeCases.length > 0 && caseResults.length === 0) {
+      setCaseResults(activeCases.map(() => createEmptyResult()));
     }
   }, [cases, testCases]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -278,55 +281,63 @@ export default function NDLBRecorder() {
 
   // Continue an existing session from HistoryView — restores all fields + test results from DB
   const handleContinueSession = async (sess) => {
-    setVehicleModel(sess.vehicle_model || '');
-    setModelYear(sess.model_year || '');
-    setVin(sess.vin || '');
-    setProductionStage(sess.production_stage || '');
-    setAddress(sess.address || sess.test_location || '');
-    setArchitecture(sess.architecture || sess.vehicle_architecture || '');
-    setIviModule(sess.ivi_module || '');
-    setCommModule(sess.comm_module || '');
-    setTestEnv(sess.test_env || '');
-    setTester(sess.tester || '');
-    setMileage(sess.mileage || '');
-    setRemarks(sess.remarks || '');
-    setIosVersion(sess.ios_version || '');
-    setAndroidVersion(sess.android_version || '');
-    const rawEnv = sess.envPhotos || sess.env_photo;
-    if (Array.isArray(rawEnv)) {
-      setEnvPhotos(rawEnv);
-    } else if (typeof rawEnv === 'string') {
-      try { const p = JSON.parse(rawEnv); setEnvPhotos(Array.isArray(p) ? p : []); }
-      catch { setEnvPhotos([]); }
-    } else {
-      setEnvPhotos([]);
-    }
+    if (!sess || !sess.id) return;
+    setToast({ message: '正在加载测试会话数据...', type: 'info' });
+    setIsSaving(true);
 
     try {
-      const res = await fetch(`${API_BASE}/test-sessions/${sess.id}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+      setVehicleModel(sess.vehicle_model || '');
+      setModelYear(sess.model_year || '');
+      setVin(sess.vin || '');
+      setProductionStage(sess.production_stage || '');
+      setAddress(sess.address || sess.test_location || '');
+      setArchitecture(sess.architecture || sess.vehicle_architecture || '');
+      setIviModule(sess.ivi_module || '');
+      setCommModule(sess.comm_module || '');
+      setTestEnv(sess.test_env || '');
+      setTester(sess.tester || '');
+      setMileage(sess.mileage || '');
+      setRemarks(sess.remarks || '');
+      setIosVersion(sess.ios_version || '');
+      setAndroidVersion(sess.android_version || '');
+      const rawEnv = sess.envPhotos || sess.env_photo;
+      if (Array.isArray(rawEnv)) {
+        setEnvPhotos(rawEnv);
+      } else if (typeof rawEnv === 'string') {
+        try { const p = JSON.parse(rawEnv); setEnvPhotos(Array.isArray(p) ? p : []); }
+        catch { setEnvPhotos([]); }
+      } else {
+        setEnvPhotos([]);
+      }
 
-      // Use session_cases snapshot as the case list for this session
+      let data = {};
+      try {
+        const res = await fetch(`${API_BASE}/test-sessions/${sess.id}`);
+        if (res.ok) {
+          data = await res.json();
+        }
+      } catch (e) {
+        console.error('Fetch session details error:', e);
+      }
+
+      const masterCasesList = (cases && cases.length > 0) ? cases : INITIAL_CASES;
+
       let casesForSession;
-      if (data.sessionCases && data.sessionCases.length > 0) {
-        // Snapshot exists: use it directly (normalize field names)
+      if (data.sessionCases && Array.isArray(data.sessionCases) && data.sessionCases.length > 0) {
         casesForSession = data.sessionCases.map(sc => ({
           ...sc,
-          functionCategory: sc.function_category,
+          functionCategory: sc.function_category || sc.functionCategory || '',
         }));
         setSessionCases(casesForSession);
       } else {
-        // Old session without snapshot: fall back to current case library + tester order
-        const ordered = await applyTesterOrder(sess.tester || '', cases);
-        casesForSession = ordered;
+        const ordered = await applyTesterOrder(sess.tester || '', masterCasesList);
+        casesForSession = (ordered && ordered.length > 0) ? ordered : masterCasesList;
         setSessionCases([]);
       }
 
       setTestCases(casesForSession);
 
       if (data.results && Array.isArray(data.results)) {
-        // Map results by session_case_id (preferred) or case_id (fallback)
         const resultMap = {};
         data.results.forEach(r => {
           const key = r.session_case_id || r.case_id;
@@ -340,7 +351,6 @@ export default function NDLBRecorder() {
           };
         });
         const restored = casesForSession.map(c => {
-          // Prefer session_case_id lookup, then original_case_id, then id
           return resultMap[c.id] || resultMap[c.original_case_id] || createEmptyResult();
         });
         setCaseResults(restored);
@@ -350,19 +360,19 @@ export default function NDLBRecorder() {
         setCaseResults(casesForSession.map(() => createEmptyResult()));
         setCurrentCaseIndex(0);
       }
-    } catch (err) {
-      console.error('Failed to load session results:', err);
-      const fallback = await applyTesterOrder(sess.tester || '', cases);
-      setTestCases(fallback);
-      setSessionCases([]);
-      setCaseResults(fallback.map(() => createEmptyResult()));
-      setCurrentCaseIndex(0);
-    }
 
-    const sessionBugs = allBugs.filter(b => String(b.session_id) === String(sess.id)).reverse();
-    setBugs(sessionBugs);
-    setCurrentSessionId(sess.id);
-    setView('test');
+      const loadedBugs = (data.bugs && Array.isArray(data.bugs)) ? data.bugs : [];
+      const fallbackBugs = allBugs.filter(b => String(b.session_id) === String(sess.id)).reverse();
+      setBugs(loadedBugs.length > 0 ? loadedBugs : fallbackBugs);
+
+      setCurrentSessionId(sess.id);
+      setView('test');
+    } catch (err) {
+      console.error('handleContinueSession error:', err);
+      setToast({ message: '加载测试会话失败: ' + err.message, type: 'error' });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // --- Test Session Actions ---
@@ -429,13 +439,19 @@ export default function NDLBRecorder() {
         const url = currentId ? `${API_BASE}/test-sessions/${currentId}` : `${API_BASE}/test-sessions`;
         const method = currentId ? 'PUT' : 'POST';
         
+        // Add 30-second timeout to prevent hanging requests
+        const controller = new AbortController();
+        const fetchTimeout = setTimeout(() => controller.abort(), 30000);
+        
         fetch(url, {
           method,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(sessionData)
+          body: JSON.stringify(sessionData),
+          signal: controller.signal
         })
           .then(res => res.json())
           .then(async data => {
+            clearTimeout(fetchTimeout);
             if (data.sessionId && !currentId) {
               setCurrentSessionId(data.sessionId);
               // Update ref immediately so subsequent queued saves use PUT instead of POST
@@ -450,6 +466,7 @@ export default function NDLBRecorder() {
             resolve(data);
           })
           .catch(err => {
+            clearTimeout(fetchTimeout);
             console.error('Sync failed, keeping locally:', err);
             if (!silent) {
               setIsSaving(false);
@@ -467,15 +484,46 @@ export default function NDLBRecorder() {
   };
 
   const nextCase = () => {
-    if (currentCaseIndex < cases.length - 1) {
+    const activeCases = testCasesRef.current.length > 0 ? testCasesRef.current : cases;
+    if (currentCaseIndex < activeCases.length - 1) {
       autoSave(); // auto-save on every next case
       setCurrentCaseIndex(prev => prev + 1);
     } else {
+      // Final save: bypass the saveQueue to avoid being blocked by pending auto-saves
       setIsSaving(true);
-      saveSession()
-        .then(() => setView('report'))
-        .catch(() => setView('report'))
-        .finally(() => setIsSaving(false));
+      const currentId = sessionIdRef.current;
+      const sessionData = buildSessionData(currentId);
+      const url = currentId ? `${API_BASE}/test-sessions/${currentId}` : `${API_BASE}/test-sessions`;
+      const method = currentId ? 'PUT' : 'POST';
+
+      // 15-second safety timeout
+      const safetyTimeout = setTimeout(() => {
+        console.warn('[nextCase] Final save timed out, forcing navigation to report');
+        setIsSaving(false);
+        setView('report');
+      }, 15000);
+
+      fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sessionData)
+      })
+        .then(res => res.json())
+        .then(data => {
+          clearTimeout(safetyTimeout);
+          if (data.sessionId && !currentId) {
+            setCurrentSessionId(data.sessionId);
+            sessionIdRef.current = data.sessionId;
+          }
+          setIsSaving(false);
+          setView('report');
+        })
+        .catch(err => {
+          clearTimeout(safetyTimeout);
+          console.error('Final save failed:', err);
+          setIsSaving(false);
+          setView('report');
+        });
     }
   };
 
@@ -535,7 +583,7 @@ export default function NDLBRecorder() {
         session_id: sessionIdRef.current,
         case_id: activeCase.original_case_id || activeCase.id,
         session_case_id: activeCase.original_case_id ? activeCase.id : null,
-        description: currentData.notes + " | ACTIVE_CASE: " + JSON.stringify(activeCase),
+        description: currentData.notes,
         app_duration: appDur,
         media: currentData.media || []   // ← persist photos/evidence to DB
       })
@@ -563,7 +611,9 @@ export default function NDLBRecorder() {
             id: response.id,
             display_id: bugLocalId,
             timestamp: ts,
-            media: currentData.media || []   // ← capture photos taken during testing
+            media: currentData.media || [],   // ← capture photos taken during testing
+            function: activeCase.function,
+            function_category: activeCase.function_category || activeCase.functionCategory
           }];
           setToast({ message: `缺陷已提报 #${bugLocalId}`, type: 'success' });
           return updatedBugs;
@@ -691,7 +741,7 @@ export default function NDLBRecorder() {
 
   // --- Route to correct view ---
   const commonTestProps = {
-    cases: testCases, caseResults, bugs,
+    cases: (testCases && testCases.length > 0) ? testCases : (cases && cases.length > 0 ? cases : INITIAL_CASES), caseResults, bugs,
     currentCaseIndex, setCurrentCaseIndex,
     vehicleModel, modelYear, vin,
     updateCurrentResult, handleTimeClick,
@@ -728,6 +778,7 @@ export default function NDLBRecorder() {
           resetAllFields={resetAllFields}
           setHistorySessions={setHistorySessions}
           API_BASE={API_BASE}
+          onOpenQrModal={() => setIsQrModalOpen(true)}
         />
       )}
       {view === 'test' && <TestView {...commonTestProps} />}
@@ -741,18 +792,28 @@ export default function NDLBRecorder() {
           tester={tester} mileage={mileage}
           iosVersion={iosVersion} androidVersion={androidVersion}
           envPhotos={envPhotos}
+          setCurrentCaseIndex={setCurrentCaseIndex}
           setView={setView} handleFullReset={handleFullReset} setToast={setToast}
           setConfirmDialog={setConfirmDialog} resetAllFields={resetAllFields}
         />
       )}
       {view === 'admin' && (
-        <AdminView cases={cases} setCases={setCases} setView={setView} setToast={setToast} API_BASE={API_BASE} />
+        <AdminView cases={cases} setCases={setCases} setView={setView} setToast={setToast} API_BASE={API_BASE} onOpenQrModal={() => setIsQrModalOpen(true)} />
       )}
       {view === 'dashboard' && (
-        <DashboardView API_BASE={API_BASE} cases={cases} bugs={allBugs} historySessions={historySessions} topFailed={topFailed} setView={setView} />
+        <DashboardView API_BASE={API_BASE} cases={cases} bugs={allBugs} historySessions={historySessions} topFailed={topFailed} setView={setView} setDefectsTargetSessionId={setDefectsTargetSessionId} onOpenQrModal={() => setIsQrModalOpen(true)} />
       )}
       {view === 'pdca' && (
-        <DefectsView cases={cases} bugs={allBugs} setAllBugs={setAllBugs} historySessions={historySessions} API_BASE={API_BASE} setView={setView} />
+        <DefectsView
+          cases={cases}
+          bugs={allBugs}
+          setAllBugs={setAllBugs}
+          historySessions={historySessions}
+          API_BASE={API_BASE}
+          setView={setView}
+          targetSessionId={defectsTargetSessionId}
+          clearTargetSessionId={() => setDefectsTargetSessionId(null)}
+        />
       )}
       {view === 'monitor' && (
         <PerformanceMonitorView setView={setView} />
@@ -769,11 +830,13 @@ export default function NDLBRecorder() {
           setView={setView}
           targetSessionId={historyTargetId}
           clearTargetSessionId={() => setHistoryTargetId(null)}
+          setDefectsTargetSessionId={setDefectsTargetSessionId}
         />
       )}
 
       {/* Global Overlays */}
       <ConfirmDialog dialog={confirmDialog} onClose={() => setConfirmDialog(null)} />
+      <QRCodeModal isOpen={isQrModalOpen} onClose={() => setIsQrModalOpen(false)} setToast={setToast} />
 
       {isSaving && (
         <div className="fixed inset-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md z-[999] flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">

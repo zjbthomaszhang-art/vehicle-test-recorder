@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Test Recorder - 上海安吉星定制版</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+/* 基础布局 */
+* { box-sizing: border-box; }
+p { margin: 0; margin-bottom: 15px; }
+
+body { background-color: #f1f5f9; display: grid; gap: 30px; grid-template-columns: 1fr; margin: 0; min-height: 100vh; padding: 40px 0; place-items: center; }
+
+.slide-container {
+  align-items: center; background-color: #fff; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; font-family: 'Lato', sans-serif; height: 720px; justify-content: center; overflow: hidden; padding: 60px; position: relative; width: 1280px;
+}
+
+/* 装饰元素：安吉星品牌条 */
+.slide-container::before { content: ''; height: 12px; left: 0; position: absolute; top: 0; width: 100%; background: linear-gradient(90deg, #003399 0%, #00AEEF 100%); z-index: 10; }
+.slide-container>* { position: relative; z-index: 1; }
+
+/* 统一排版 */
+.slide-container h1, .slide-container h2, .slide-container h3 { color: #1e293b; font-weight: 700; font-family: 'Poppins', sans-serif; margin: 0; }
+.slide-container p, .slide-container li { color: #475569; font-family: 'Lato', sans-serif; font-size: 18px; line-height: 1.6; }
+
+.slide-container .slide-title { font-size: 42px; font-weight: 700; margin-bottom: 40px; text-align: left; width: 100%; border-left: 10px solid #003399; padding-left: 20px; color: #0f172a; }
+.content-area { display: flex; flex-direction: column; flex-grow: 1; justify-content: center; width: 100%; }
+
+.title-layout { text-align: center; }
+.title-layout h1 { font-size: 72px; color: #003399; letter-spacing: -1px; margin-bottom: 15px; }
+.title-layout .subtitle { font-size: 26px; color: #64748b; font-weight: 400; }
+.title-layout .brand-logo { margin-top: 50px; font-weight: 700; color: #003399; letter-spacing: 2px; }
+
+.two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; width: 100%; align-items: center; }
+.two-column.tiled > div { background-color: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0; padding: 40px; align-self: start; }
+
+
+/* =============== UI Mockup 核心样式 =============== */
+.browser-mockup {
+    border: 1px solid #cbd5e1; border-radius: 12px; overflow: hidden; box-shadow: 0 15px 35px -5px rgba(0,0,0,0.15); background: #fff; width: 100%; height: auto; display: flex; flex-direction: column;
+}
+.browser-header {
+    background: #f1f5f9; border-bottom: 1px solid #e2e8f0; padding: 12px 15px; display: flex; align-items: center; gap: 8px; z-index: 10; flex-shrink: 0;
+}
+.browser-dot { width: 12px; height: 12px; border-radius: 50%; background: #ef4444; }
+.browser-dot:nth-child(2) { background: #eab308; }
+.browser-dot:nth-child(3) { background: #22c55e; }
+
+.browser-body { flex-grow: 1; background-color: #ffffff; position: relative; display: block; overflow: hidden; font-size: 0; line-height: 0;}
+.browser-body img { width: 100%; height: auto; display: block; position: relative; z-index: 1; margin: 0; }
+
+.phone-mockup {
+    border: 14px solid #1e293b; border-radius: 36px; box-shadow: 0 20px 35px rgba(0,0,0,0.2); 
+    width: 280px; height: auto; margin: 0 auto; position: relative; background-color: #1e293b; 
+    display: flex; flex-direction: column; overflow: hidden;
+}
+.phone-mockup img { width: 100%; height: auto; display: block; position: relative; z-index: 1; background-color: #fff; }
+
+.placeholder-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #64748b; font-weight: 700; text-align: center; z-index: 0; width: 100%; padding: 20px; font-size: 14px; line-height: 1.5; }
+
+/* Bleed Image Layout */
+.slide-container.bleed-image-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; padding: 0; }
+.bleed-image-layout .content-container { padding: 80px 60px; height: 720px; display: flex; flex-direction: column; justify-content: center; }
+.bleed-image-layout .image-container { height: 720px; display: flex; align-items: center; justify-content: center; background-color: #f8fafc; padding: 40px; border-left: 1px solid #e2e8f0; }
+
+/* Chart Styles */
+.chart-container { width: 100%; padding-top: 20px; }
+.bar { display: flex; align-items: center; margin-bottom: 30px; gap: 20px; }
+.bar .label { flex: 0 0 280px; text-align: right; font-weight: 700; color: #475569; font-size: 20px; }
+.bar .bar-inner { background-color: #e2e8f0; border-radius: 10px; flex-grow: 1; height: 50px; overflow: hidden; }
+.bar .bar-fill { height: 100%; background: linear-gradient(90deg, #003399, #00AEEF); display: flex; align-items: center; justify-content: flex-end; padding-right: 20px; color: white; font-weight: 700; font-size: 18px; }
+
+.footer-tag { position: absolute; bottom: 30px; right: 60px; color: #94a3b8; font-size: 14px; font-weight: 700; }
+
+/* =============== 打印转 PDF 的强制分页规则 =============== */
+@media print {
+    @page {
+        size: 1280px 720px; 
+        margin: 0; 
+    }
+    body {
+        background-color: white; 
+        margin: 0; padding: 0; 
+        display: block; 
+    }
+    .slide-container {
+        margin: 0; padding: 60px; 
+        box-shadow: none; 
+        page-break-after: always; 
+        break-after: page;
+        page-break-inside: avoid; 
+        width: 1280px; height: 720px; 
+    }
+    .slide-container:last-child {
+        page-break-after: auto; 
+    }
+}
+    </style>
+</head>
+<body>
+
+<div class="slide-container" id="slide1">
+    <div class="title-layout">
+        <h1>Vehicle Test Recorder</h1>
+        <p class="subtitle">现代化车载外场测试数据采集与管理系统</p>
+        <div class="brand-logo">SHANGHAI ONSTAR | 上海安吉星</div>
+    </div>
+    <div class="footer-tag">PRODUCT INTRODUCTION 2026</div>
+</div>
+
+<div class="slide-container" id="slide2">
+    <h2 class="slide-title">传统外场测试的局限性</h2>
+    <div class="content-area">
+        <div class="two-column tiled">
+            <div>
+                <h3 style="color: #003399;"><i class="fa-solid fa-link-slash" style="margin-right: 8px;"></i>网络环境恶劣</h3>
+                <p>地下车库、隧道等无网/弱网环境导致数据提报中断，测试人员经常处于“盲测”状态，风险极高。</p>
+            </div>
+            <div>
+                <h3 style="color: #003399;"><i class="fa-solid fa-file-excel" style="margin-right: 8px;"></i>数据孤岛与碎片化</h3>
+                <p>手工记录与分散提报导致流程脱节，后期手动合并报表效率极其低下，且难以溯源元数据。</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="slide-container" id="slide3">
+    <h2 class="slide-title">VTR：一站式数字化工作台</h2>
+    <div class="content-area">
+        <div class="two-column" style="grid-template-columns: 1fr 1.5fr;">
+            <div>
+                <p style="font-size: 22px; color: #0f172a; font-weight: 700;">专为高品质车型测试设计</p>
+                <ul style="padding-left: 20px;">
+                    <li style="margin-bottom: 20px;"><strong>现代化 Web 架构：</strong> 访问系统地址即可直接操作，免部署免安装。</li>
+                    <li style="margin-bottom: 20px;"><strong>全局概览：</strong> 任务进度、缺陷统计大盘一目了然。</li>
+                    <li style="margin-bottom: 20px;"><strong>极简交互：</strong> 极大降低一线测试工程师的学习成本。</li>
+                </ul>
+            </div>
+            
+            <div class="browser-mockup">
+                <div class="browser-header">
+                    <div class="browser-dot"></div><div class="browser-dot"></div><div class="browser-dot"></div>
+                </div>
+                <div class="browser-body">
+                    <div class="placeholder-text">[1. 请填入系统主页/大盘截图]</div>
+                    <img src="dashboard.png" onerror="this.style.display='none'">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="slide-container bleed-image-layout" id="slide4">
+    <div class="content-container">
+        <h2 class="slide-title" style="border:none; padding:0; margin-bottom: 30px;">移动端适配与 <span>离线自适应采集</span></h2>
+        <p><strong>移动优先设计：</strong> 专为 Cadillac/Buick 车内狭小空间作业打造的响应式界面，手机触屏流畅执行用例。</p>
+        <p style="margin-top: 20px;"><strong>离线优先 (Offline-First) 架构：</strong><br>当进入地下库等无网环境时，打标数据自动转存本地浏览器缓存 (IndexedDB)。</p>
+        <p style="margin-top: 20px;"><strong>智能同步 (SyncManager)：</strong><br>网络恢复后后台静默推送同步，彻底告别断网数据丢失的焦虑。</p>
+    </div>
+    <div class="image-container">
+        
+        <div class="phone-mockup">
+            <div class="placeholder-text">[2. 请填入窄屏移动端截图]</div>
+            <img src="mobile.png" onerror="this.style.display='none'">
+        </div>
+    </div>
+</div>
+
+<div class="slide-container" id="slide5">
+    <h2 class="slide-title">便捷的缺陷追踪 (Bug Tracker)</h2>
+    <div class="content-area">
+        <div class="two-column" style="grid-template-columns: 1.5fr 1fr;">
+            
+            <div class="browser-mockup">
+                <div class="browser-header">
+                    <div class="browser-dot"></div><div class="browser-dot"></div><div class="browser-dot"></div>
+                </div>
+                <div class="browser-body">
+                    <div class="placeholder-text">[3. 请在此处填入 Bug提报弹窗界面截图]</div>
+                    <img src="defects.png" onerror="this.style.display='none'">
+                </div>
+            </div>
+            <div>
+                <ul style="padding-left: 20px; list-style: none;">
+                    <li style="margin-bottom: 25px;"><i class="fa-solid fa-bug" style="color:#00AEEF; margin-right: 10px;"></i> <strong>实时提报：</strong> 测试发现问题一键唤起表单，自动生成标准化工单。</li>
+                    <li style="margin-bottom: 25px;"><i class="fa-solid fa-camera" style="color:#00AEEF; margin-right: 10px;"></i> <strong>多媒体证据：</strong> 支持照片与截图附件上传，离线环境受本地缓存强力保护。</li>
+                    <li style="margin-bottom: 25px;"><i class="fa-solid fa-link" style="color:#00AEEF; margin-right: 10px;"></i> <strong>深度关联：</strong> 缺陷与当前测试用例、车辆状态自动绑定，确保溯源准确。</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="slide-container bleed-image-layout" id="slide6" style="grid-template-columns: 45% 55%;">
+    <div class="image-container" style="border-left: none; border-right: 1px solid #e2e8f0; padding-right: 20px;">
+        
+        <div class="phone-mockup" style="transform: perspective(1000px) rotateY(5deg); box-shadow: 20px 20px 40px rgba(0,0,0,0.15);">
+            <div class="placeholder-text">[4. 请在此处填入竖向报表截图]</div>
+            <img src="report.png" onerror="this.style.display='none'">
+        </div>
+        
+    </div>
+    <div class="content-container">
+        <h2 class="slide-title" style="border:none; padding:0; margin-bottom: 30px;">测试归档与 <span>自动化报表导出</span></h2>
+        <ul style="padding-left: 20px; margin-bottom: 30px;">
+            <li style="margin-bottom: 10px;"><strong>车辆元数据追溯：</strong> 记录 VIN 码、测试阶段等关键信息。</li>
+            <li style="margin-bottom: 10px;"><strong>全局用例库管理：</strong> 预置并结构化存储所有功能测试模块。</li>
+        </ul>
+        <p style="font-weight: 700; color: #003399; font-size: 20px;">秒级自动化报表排版生成</p>
+        <p>彻底告别测试后繁杂的文档手工整理工作，系统支持一键将海量测试记录及缺陷，直接转化为基于 Shanghai OnStar 业务标准格式的最终交付物（Excel 等格式）。</p>
+    </div>
+</div>
+
+<div class="slide-container" id="slide7">
+    <h2 class="slide-title">业务效率提升对比</h2>
+    <div class="content-area">
+        <div class="chart-container">
+            <div class="bar">
+                <div class="label">传统流程 (手工汇总+提报)</div>
+                <div class="bar-inner"><div class="bar-fill" style="width: 100%;">约 120 分钟 / Session</div></div>
+            </div>
+            <div class="bar">
+                <div class="label">VTR 数字化一键导出</div>
+                <div class="bar-inner"><div class="bar-fill" style="width: 8%; background: #00AEEF;">&lt; 5 分钟</div></div>
+            </div>
+        </div>
+        <p style="text-align: center; font-style: italic; color: #94a3b8; margin-top: 30px;">* 数据基于单次外场测试完整任务预估耗时对比</p>
+    </div>
+</div>
+
+<div class="slide-container" id="slide8">
+    <div class="content-area title-layout">
+        <h2 style="font-size: 70px; color: #003399;">Q&A</h2>
+        <p class="subtitle">感谢聆听，让外场测试体验更智能、更高效</p>
+        
+        <div style="margin-top: 40px; display: inline-block; background-color: #f8fafc; padding: 15px 40px; border-radius: 50px; border: 2px solid #cbd5e1; font-weight: 700; color: #003399; font-size: 24px; letter-spacing: 1px;">
+            <i class="fa-solid fa-link" style="margin-right: 15px; color: #00AEEF;"></i> http://47.103.7.184
+        </div>
+        
+        <div style="margin-top: 50px; font-size: 18px; color: #475569;">
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

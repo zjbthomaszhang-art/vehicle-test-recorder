@@ -13,7 +13,7 @@ const STAGES = [
   { id: 'Act', label: '已解决', color: 'text-[#10b981]', bg: 'bg-[#10b981]/10', border: 'border-[#10b981]/50' }
 ];
 
-export default function DefectsView({ setView, bugs, setAllBugs, cases, historySessions, API_BASE }) {
+export default function DefectsView({ setView, bugs, setAllBugs, cases, historySessions, API_BASE, targetSessionId, clearTargetSessionId }) {
   const { theme, toggleTheme } = useTheme();
   const [casesMap, setCasesMap] = useState({});
   const [sessionsMap, setSessionsMap] = useState({});
@@ -35,7 +35,12 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
 
   useEffect(() => {
     const cMap = {};
-    if (Array.isArray(cases)) cases.forEach(c => cMap[c.id] = c);
+    if (Array.isArray(cases)) {
+      cases.forEach(c => {
+        if (c.id !== undefined && c.id !== null) cMap[c.id] = c;
+        if (c.original_case_id !== undefined && c.original_case_id !== null) cMap[c.original_case_id] = c;
+      });
+    }
     setCasesMap(cMap);
 
     const sMap = {};
@@ -68,34 +73,44 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
   const filteredBugs = React.useMemo(() => {
     return bugs.filter(b => {
       let match = true;
+      if (targetSessionId && String(b.session_id) !== String(targetSessionId)) match = false;
       if (filterStatus) {
         if (b.status !== filterStatus && !(filterStatus === 'Plan' && !b.status)) match = false;
       }
       if (searchQuery) {
-        const caseDef = casesMap[b.case_id];
-        const text = `${b.description} ${b.function || caseDef?.function || ''} ${b.expected || caseDef?.expected || ''}`.toLowerCase();
+        const caseDef = casesMap[b.session_case_id] || casesMap[b.case_id];
+        const carModel = `MY${b.session_model_year || ''} ${b.session_vehicle_model || ''}`;
+        const text = [
+          b.description,
+          b.function || caseDef?.function || '',
+          b.expected || caseDef?.expected || '',
+          b.session_vin || '',
+          carModel,
+          b.session_vehicle_model || '',
+        ].join(' ').toLowerCase();
         if (!text.includes(searchQuery.toLowerCase())) match = false;
       }
       return match;
     });
-  }, [bugs, filterStatus, searchQuery, casesMap]);
+  }, [bugs, targetSessionId, filterStatus, searchQuery, casesMap]);
 
   // KPI Calculations
   const { totalDefects, unresolvedCount, inProgressCount, resolvedCount } = React.useMemo(() => {
     let unres = 0, inProg = 0, res = 0;
-    bugs.forEach(b => {
+    const activeBugs = targetSessionId ? bugs.filter(b => String(b.session_id) === String(targetSessionId)) : bugs;
+    activeBugs.forEach(b => {
       const s = b.status || 'Plan';
       if (s === 'Plan') unres++;
       else if (s === 'Do' || s === 'Check') inProg++;
       else if (s === 'Act') res++;
     });
     return {
-      totalDefects: bugs.length,
+      totalDefects: activeBugs.length,
       unresolvedCount: unres,
       inProgressCount: inProg,
       resolvedCount: res
     };
-  }, [bugs]);
+  }, [bugs, targetSessionId]);
 
   const renderMobile = () => (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0f1523] text-slate-800 dark:text-slate-100 flex flex-col font-sans">
@@ -106,6 +121,24 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
       </header>
 
       <main className="flex-1 overflow-y-auto px-[16px] pt-[16px] pb-[100px] flex flex-col gap-[24px] custom-scrollbar">
+        {/* Target Session Banner */}
+        {targetSessionId && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-[14px] p-[12px] px-[16px] flex justify-between items-center shrink-0 shadow-sm">
+             <div className="flex items-center gap-[8px] min-w-0">
+                <Bug size={16} className="text-red-500 shrink-0" />
+                <span className="text-red-600 dark:text-red-400 text-[13px] font-[800] truncate">
+                   正在显示测试会话 (ID: #{targetSessionId}{sessionsMap[targetSessionId] ? ` - MY${sessionsMap[targetSessionId].model_year || ''} ${sessionsMap[targetSessionId].vehicle_model || ''}` : ''}) 关联缺陷
+                </span>
+             </div>
+             <button 
+                onClick={clearTargetSessionId} 
+                className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-[12px] font-[900] underline shrink-0 cursor-pointer ml-3"
+             >
+                清除筛选
+             </button>
+          </div>
+        )}
+
         {/* KPIs Grid */}
         <div className="flex flex-col gap-[12px]">
           <div className="flex gap-[12px] w-full">
@@ -171,7 +204,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
           ) : (
           <div className="flex flex-col gap-[12px]">
               {filteredBugs.map((bug, idx) => {
-               const caseDef = casesMap[bug.case_id];
+               const caseDef = casesMap[bug.session_case_id] || casesMap[bug.case_id];
                const session = sessionsMap[bug.session_id];
                const currentStatus = STAGES.find(s => s.id === (bug.status || 'Plan')) || STAGES[0];
                
@@ -205,7 +238,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                        <div className="bg-[#ef4444]/5 border border-[#ef4444]/20 rounded-[10px] p-[12px] flex items-start gap-[10px]">
                           <AlertTriangle size={16} className="text-[#ef4444] shrink-0 mt-[2px]" strokeWidth={2} />
                           <span className="text-[13px] font-[600] text-slate-800 dark:text-[#e2e8f0] leading-snug">
-                             {bug.description || '无详细问题描述'}
+                             {bug.description ? bug.description.split(' | ACTIVE_CASE: ')[0] : '无详细问题描述'}
                           </span>
                        </div>
                     </div>
@@ -320,6 +353,24 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
       </header>
 
       <main className="flex-1 overflow-y-auto px-[40px] pb-[40px] flex flex-col gap-[24px] custom-scrollbar">
+        {/* Target Session Banner */}
+        {targetSessionId && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-[14px] p-[12px] px-[20px] flex justify-between items-center shrink-0 shadow-sm">
+             <div className="flex items-center gap-[10px] min-w-0">
+                <Bug size={18} className="text-red-500 shrink-0" />
+                <span className="text-red-600 dark:text-red-400 text-[14px] font-[800] truncate">
+                   正在显示测试会话 (ID: #{targetSessionId}{sessionsMap[targetSessionId] ? ` - MY${sessionsMap[targetSessionId].model_year || ''} ${sessionsMap[targetSessionId].vehicle_model || ''}` : ''}) 关联缺陷
+                </span>
+             </div>
+             <button 
+                onClick={clearTargetSessionId} 
+                className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-[13px] font-[900] underline shrink-0 cursor-pointer ml-4"
+             >
+                清除筛选
+             </button>
+          </div>
+        )}
+
         {/* KPIs Grid */}
         <div className="flex gap-[20px] w-full">
             <div className="flex-1 bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[16px] border border-slate-200 dark:border-[#334155] p-[20px] h-[100px] flex flex-col justify-between">
@@ -404,7 +455,7 @@ export default function DefectsView({ setView, bugs, setAllBugs, cases, historyS
                     </div>
                  ) : (
                     filteredBugs.map((bug, idx) => {
-                      const caseDef = casesMap[bug.case_id];
+                      const caseDef = casesMap[bug.session_case_id] || casesMap[bug.case_id];
                       const session = sessionsMap[bug.session_id];
                       const currentStatus = STAGES.find(s => s.id === (bug.status || 'Plan')) || STAGES[0];
                       return (

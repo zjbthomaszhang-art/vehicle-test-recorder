@@ -23,5 +23,6 @@ export const INITIAL_CASES = [
   { id: 127, category: '手机应用', functionCategory: '手机APP-Android', function: '刷新车况 (点火)', content: '刷新成功', type: 'query', expected: '车辆点火后，点击On-中间车况信息-下拉屏幕刷新车况（下拉后松手，不要短时间内频繁下拉刷新），刷新成功后比对车机仪表盘和app数值' },
   { id: 128, category: '手机应用', functionCategory: '手机APP-Android', function: '刷新车况 (点火)', content: '公里数显示正确', type: 'Simple', expected: '' },
   { id: 139, category: '手机应用', functionCategory: '手机APP-Android', function: '车门上锁', content: '上锁成功', type: 'timing', expected: '车辆熄火，开关车门后，点击On-车门上锁' },
-  { id: 140, category: '手机应用', functionCategory: '手机APP-Android', function: '车门上锁', content: '手机应用反馈正常', type: 'Simple', expected: '' }
+  { id: 140, category: '手机应用', functionCategory: '手机APP-Android', function: '车门上锁', content: '手机应用反馈正常', type: 'Simple', expected: '' },
+  { id: 150, category: '小程序', functionCategory: '登录小程序', function: '登录小程序', content: '登录成功', type: 'Simple', expected: '微信小程序中登录成功' }
 ];

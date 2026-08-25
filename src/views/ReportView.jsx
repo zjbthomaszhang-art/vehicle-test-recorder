@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Crown, Undo2, CheckCircle2, Upload, X, Link, Send } from 'lucide-react';
+import { Undo2, CheckCircle2, Upload, X, Link, Send } from 'lucide-react';
 import { exportExcelReport } from '../utils/exportExcel.js';
 import TargetIcon from '../assets/trophy.png';
 
@@ -7,7 +7,7 @@ export default function ReportView({
   cases, caseResults, bugs,
   vehicleModel, modelYear, vin, productionStage, address, architecture,
   iviModule, commModule, testEnv, tester, mileage, iosVersion, androidVersion, envPhotos,
-  handleFullReset, setView, setToast, setConfirmDialog, resetAllFields
+  setCurrentCaseIndex, handleFullReset, setView, setToast, setConfirmDialog, resetAllFields
 }) {
   const reportRef = useRef(null);
   const [showBugSheet, setShowBugSheet] = useState(false);
@@ -27,7 +27,7 @@ export default function ReportView({
         failed++;
         failedCases.push(c);
       }
-      else if (result === 'N/A') na++;
+      else if (result === 'N/A' || result === 'NA') na++;
     });
 
     const completed = passed + failed + na;
@@ -36,16 +36,14 @@ export default function ReportView({
 
   const stats = calculateStats();
 
-  // Format as YYYY/MM/DD
   const d = new Date();
   const currentDate = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
 
   const handleExportPDF = async () => {
     setIsExporting(true);
     try {
-      // Build a (case, result) pair list, then sort by case ID for consistent Excel output
       const paired = cases.map((c, i) => ({ c, r: caseResults[i] }));
-      paired.sort((a, b) => Number(a.c.id) - Number(b.c.id));
+      paired.sort((a, b) => (Number(a.c.sort_order || 0) - Number(b.c.sort_order || 0)) || (Number(a.c.id) - Number(b.c.id)));
       const sortedCases = paired.map(p => p.c);
       const sortedResults = paired.map(p => p.r);
 
@@ -161,7 +159,7 @@ export default function ReportView({
           </div>
         </div>
 
-        {/* Findings — 失败记录明细：每个 fail case 一张卡 */}
+        {/* Findings — 失败记录明细 */}
         <div className="px-[24px] pb-[32px] w-full flex flex-col gap-[12px]">
           <span className="text-[12px] font-[600] text-slate-500 dark:text-[#cbd5e1]">失败记录明细</span>
 
@@ -172,14 +170,12 @@ export default function ReportView({
           ) : (
             stats.failedCases.map((c, idx) => (
               <div key={c.id || idx} className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#334155] rounded-[14px] px-[14px] py-[12px] flex flex-col gap-[6px]">
-                {/* 标题行 */}
                 <div className="flex justify-between items-center gap-[8px]">
                   <span className="text-[12px] font-[700] text-[#ef4444] truncate">
                     Case {c.case_number || c.id} · {c.function_category || c.functionCategory} // {c.function}
                   </span>
                   <span className="text-[10px] font-[900] text-[#ef4444] shrink-0 bg-[#ef4444]/15 px-[8px] py-[2px] rounded-full">FAIL</span>
                 </div>
-
               </div>
             ))
           )}
@@ -202,7 +198,7 @@ export default function ReportView({
         </button>
       </div>
 
-      {/* Bug Sheet — 缺陷中心弹窗，与 TestView 样式一致 */}
+      {/* Bug Sheet — 缺陷中心弹窗 */}
       {showBugSheet && (
         <div className="fixed inset-0 z-[100]" style={{ background: '#00000099' }}>
           <div
@@ -228,7 +224,19 @@ export default function ReportView({
             {/* Bug list */}
             <div className="flex-1 overflow-y-auto ios-scrollbar flex flex-col gap-[20px] px-[24px] pb-[24px]">
               {bugs.map((bug, idx) => {
-                const linkedCase = cases.find(c => c.id === bug.case_id);
+                const targetIndex = cases.findIndex(c => {
+                  const cidStr = String(c.id);
+                  const origIdStr = c.original_case_id ? String(c.original_case_id) : null;
+                  const bugCaseIdStr = bug.case_id !== undefined && bug.case_id !== null ? String(bug.case_id) : null;
+                  const bugSessCaseIdStr = bug.session_case_id !== undefined && bug.session_case_id !== null ? String(bug.session_case_id) : null;
+
+                  if (bugSessCaseIdStr && cidStr === bugSessCaseIdStr) return true;
+                  if (bugCaseIdStr && cidStr === bugCaseIdStr) return true;
+                  if (bugCaseIdStr && origIdStr && origIdStr === bugCaseIdStr) return true;
+                  if (bugSessCaseIdStr && origIdStr && origIdStr === bugSessCaseIdStr) return true;
+                  return false;
+                });
+                const linkedCase = targetIndex !== -1 ? cases[targetIndex] : null;
                 const bugNum = String(bug.display_id || idx + 1).padStart(4, '0');
                 let timeStr = '';
                 if (bug.timestamp) {
@@ -244,15 +252,29 @@ export default function ReportView({
                   <div key={bug.id || idx} className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#334155] rounded-[20px] flex flex-col" style={{ padding: 20, gap: 16 }}>
                     <div className="flex justify-between items-center">
                       <span className="text-[14px] font-[900] text-slate-900 dark:text-[#f1f5f9]">#BUG-{bugNum}</span>
-                      <div className="w-[32px] h-[32px] rounded-[16px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none flex items-center justify-center">
+                      <button
+                        onClick={() => {
+                          if (targetIndex !== -1 && typeof setCurrentCaseIndex === 'function') {
+                            setCurrentCaseIndex(targetIndex);
+                            setShowBugSheet(false);
+                            setView('test');
+                          }
+                        }}
+                        className="w-[32px] h-[32px] rounded-[16px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none flex items-center justify-center active:scale-90 transition-all cursor-pointer"
+                        title="定位到对应用例"
+                      >
                         <Send size={14} className="text-[#60a5fa]" />
-                      </div>
+                      </button>
                     </div>
                     <div className="flex items-center gap-[8px]">
                       <Link size={16} className="text-[#64748b] shrink-0" />
-                      <span className="text-[12px] font-[600] text-slate-500 dark:text-[#cbd5e1]">关联用例：Case {linkedCase?.case_number || bug.case_id} - {linkedCase?.function || '未知'}</span>
+                      <span className="text-[12px] font-[600] text-slate-500 dark:text-[#cbd5e1]">
+                        关联用例：Case {targetIndex !== -1 ? (targetIndex + 1) : bug.case_id} - {linkedCase?.function || bug.function || '未知'}
+                      </span>
                     </div>
-                    <span className="text-[14px] font-[600] text-slate-700 dark:text-[#cbd5e1] break-words leading-relaxed">{bug.description}</span>
+                    <span className="text-[14px] font-[600] text-slate-700 dark:text-[#cbd5e1] break-words leading-relaxed">
+                      {bug.description ? bug.description.split(' | ACTIVE_CASE: ')[0] : ''}
+                    </span>
                     {bug.media && bug.media.length > 0 && (
                       <div className="flex gap-[8px] flex-wrap">
                         {bug.media.slice(0, 4).map((m, mi) => (

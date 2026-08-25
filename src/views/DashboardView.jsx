@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TerminalSquare, UserCircle as LucideUserCircle, TrendingUp as LucideTrendingUp, CheckCircle2, BadgeCheck, XCircle, Car, BarChart3, AlertTriangle, Bug, ArrowLeft, Gauge, Sun, Moon } from 'lucide-react';
+import { TerminalSquare, UserCircle as LucideUserCircle, TrendingUp as LucideTrendingUp, CheckCircle2, BadgeCheck, XCircle, Car, BarChart3, AlertTriangle, Bug, ArrowLeft, Gauge, Sun, Moon, QrCode } from 'lucide-react';
 import { FIELD_LABELS } from '../constants/labels.js';
 import { useTheme } from '../hooks/useTheme.js';
 import MobileNavigator from '../components/MobileNavigator.jsx';
 
-export default function DashboardView({ API_BASE, cases, bugs, historySessions, topFailed, setView }) {
+export default function DashboardView({ API_BASE, cases, bugs, historySessions, topFailed, setView, setDefectsTargetSessionId, onOpenQrModal }) {
   const { theme, toggleTheme } = useTheme();
   const [casesMap, setCasesMap] = useState({});
 
@@ -155,9 +155,20 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
             const passFailCount = parseInt(session.pass_fail_count) || 0;
             const totalCases = cases ? cases.length : 0;
             const passRate = passFailCount > 0 ? ((passCount / passFailCount) * 100).toFixed(0) : 0;
+            const sessionBugs = Array.isArray(bugs) ? bugs.filter(b => String(b.session_id) === String(session.id)) : [];
+            const bugCount = sessionBugs.length;
+
+            const handleCardClick = () => {
+              if (setDefectsTargetSessionId) setDefectsTargetSessionId(session.id);
+              setView('pdca');
+            };
 
             return (
-              <div key={session.id || idx} className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#334155] rounded-[20px] p-[14px] flex flex-col gap-[10px]">
+              <div 
+                key={session.id || idx} 
+                onClick={handleCardClick}
+                className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200 dark:border-[#334155] rounded-[20px] p-[14px] flex flex-col gap-[10px] cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-all active:scale-[0.99] group"
+              >
                 {/* Top Row */}
                 <div className="flex justify-between items-center w-full">
                    <div className="flex gap-[8px] items-center">
@@ -165,12 +176,12 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
                          {session.timestamp ? String(session.timestamp).substring(0, 16).replace(/-/g, '/') : ''}
                       </span>
                    </div>
-                   <span className="text-[11px] font-[normal] text-[#64748b]">{totalCases} 用例</span>
+                   <span className="text-[11px] font-[normal] text-[#64748b]">{totalCases} 样例</span>
                 </div>
 
                 {/* Title Row */}
                 <div className="flex justify-between items-center w-full">
-                   <span className="text-[22px] font-[900] text-slate-900 dark:text-white italic">
+                   <span className="text-[22px] font-[900] text-slate-900 dark:text-white italic group-hover:text-blue-500 transition-colors">
                       {session.model_year ? `MY${session.model_year}` : ''} {session.vehicle_model || 'Unknown'}
                    </span>
                 </div>
@@ -196,6 +207,16 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
                       </span>
                       <span className="text-[13px] font-[bold] text-[#64748b]">已执行 {execCount} 条用例</span>
                    </div>
+                   <button
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       handleCardClick();
+                     }}
+                     className="h-[32px] px-[12px] bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 rounded-[10px] flex items-center gap-[6px] text-[12px] font-[800] transition-all active:scale-95 cursor-pointer"
+                   >
+                     <Bug size={14} />
+                     <span>缺陷 ({bugCount})</span>
+                   </button>
                 </div>
               </div>
             );
@@ -212,6 +233,13 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
         <div className="flex flex-col gap-[2px]">
           <span className="text-[26px] font-[800] text-slate-900 dark:text-white leading-none tracking-tight">仪表面板</span>
         </div>
+        <button
+          onClick={onOpenQrModal}
+          title="微信扫一扫访问"
+          className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center active:scale-95 transition-transform"
+        >
+          <QrCode size={20} strokeWidth={2} />
+        </button>
       </header>
       
       <main className="flex-1 overflow-y-auto px-[16px] pt-[16px] pb-[100px] flex flex-col gap-[16px] custom-scrollbar">
@@ -397,6 +425,14 @@ export default function DashboardView({ API_BASE, cases, bugs, historySessions, 
           </div>
         </div>
         <div className="flex items-center gap-[16px]">
+          <button 
+            onClick={onOpenQrModal} 
+            title="微信扫一扫访问 / 手机端录入"
+            className="flex items-center gap-2 border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-[8px] px-[14px] py-[10px] text-[12px] font-[800] transition-all shadow-sm active:scale-95"
+          >
+             <QrCode size={15} strokeWidth={2.2} /> 微信扫码
+          </button>
+
           <button 
             onClick={() => setView('home')} 
             className="flex items-center gap-2 border border-slate-200 dark:border-[#334155] rounded-[8px] px-[16px] py-[10px] text-[12px] font-[800] text-[#64748b] hover:text-slate-900 dark:text-white transition-all"

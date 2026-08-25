@@ -19,8 +19,8 @@ export default function TestView({
   setConfirmDialog, setView, resetAllFields,
   setToast, isOnline, pendingSyncCount,
 }) {
-  const activeCase = cases[currentCaseIndex];
-  const currentData = caseResults[currentCaseIndex];
+  const activeCase = (cases && cases[currentCaseIndex]) || (cases && cases[0]) || {};
+  const currentData = (caseResults && caseResults[currentCaseIndex]) || (caseResults && caseResults[0]) || { startTime: null, carExecTime: null, appFeedbackTime: null, result: '', notes: '', media: [] };
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showBugList, setShowBugList] = useState(false);
@@ -28,15 +28,18 @@ export default function TestView({
   
   const allCategories = React.useMemo(() => {
     const cats = new Set();
-    cases.forEach(c => {
-      let cat = c.category || '未分类';
-      const funcCat = c.function_category || c.functionCategory || '';
-      if (cat === '手机应用' || cat === '手机APP') {
-        if (funcCat.match(/iOS/i)) cat = '手机应用-iOS';
-        else if (funcCat.match(/Android|安卓/i)) cat = '手机应用-Android';
-      }
-      cats.add(cat);
-    });
+    if (Array.isArray(cases)) {
+      cases.forEach(c => {
+        if (!c) return;
+        let cat = c.category || '未分类';
+        const funcCat = c.function_category || c.functionCategory || '';
+        if (cat === '手机应用' || cat === '手机APP') {
+          if (funcCat.match(/iOS/i)) cat = 'APP-iOS';
+          else if (funcCat.match(/Android|安卓/i)) cat = 'APP-Android';
+        }
+        cats.add(cat);
+      });
+    }
     return Array.from(cats);
   }, [cases]);
 
@@ -432,7 +435,7 @@ export default function TestView({
             </div>
 
             {/* Filter Tags */}
-            <div className="px-[16px] pt-[16px] pb-[8px] flex gap-[8px] overflow-x-auto shrink-0 scrollbar-hide">
+            <div className="w-full min-w-0 px-[16px] pt-[16px] pb-[8px] flex gap-[8px] overflow-x-auto shrink-0 scrollbar-hide">
               {allCategories.map(cat => {
                 const isActive = !hiddenCategories.has(cat);
                 return (
@@ -455,9 +458,9 @@ export default function TestView({
                 
                 if (cat === '手机应用' || cat === '手机APP') {
                   if (funcCat.match(/iOS/i)) {
-                    cat = '手机应用-iOS';
+                    cat = 'APP-iOS';
                   } else if (funcCat.match(/Android|安卓/i)) {
-                    cat = '手机应用-Android';
+                    cat = 'APP-Android';
                   }
                 }
                 
@@ -480,6 +483,8 @@ export default function TestView({
                   tagBg = 'bg-emerald-500/20'; tagText = 'text-emerald-400';
                 } else if (funcCat.includes('APP') || funcCat.includes('手机')) {
                   tagBg = 'bg-emerald-500/20'; tagText = 'text-emerald-400';
+                } else if (funcCat.includes('微信') || funcCat.includes('小程序')) {
+                  tagBg = 'bg-[#07c160]/15'; tagText = 'text-[#07c160] dark:text-[#26d075]';
                 }
 
                 return (
@@ -501,7 +506,6 @@ export default function TestView({
                       <span className={`text-[13px] font-[900] leading-tight truncate ${i === currentCaseIndex ? 'text-white' : 'text-slate-900 dark:text-[#f8fafc]'}`}>{c.function}</span>
                       <div className="flex items-center gap-[4px]">
                         <span className={`text-[11px] font-[500] truncate leading-none ${i === currentCaseIndex ? 'text-white/70' : 'text-[#64748b]'}`}>{c.content || c.expected || ''}</span>
-                        <span className={`text-[9px] font-[700] shrink-0 ${i === currentCaseIndex ? 'text-white/40' : 'text-slate-300 dark:text-[#475569]'}`}>#{c.id}</span>
                       </div>
                     </div>
                     {caseResults[i]?.result === 'Pass' && <CheckCircle2 size={16} className="text-[#10b981] shrink-0" />}
@@ -544,8 +548,20 @@ export default function TestView({
                 <div className="py-16 text-center text-[12px] font-[600] text-[#64748b]">暂无缺陷记录</div>
               ) : (
                 bugs.map((bug, idx) => {
-                  const linkedCase = cases.find(c => c.id === bug.case_id);
-                  const bugNum = String(idx + 1).padStart(4, '0');
+                  const targetIndex = cases.findIndex(c => {
+                    const cidStr = String(c.id);
+                    const origIdStr = c.original_case_id ? String(c.original_case_id) : null;
+                    const bugCaseIdStr = bug.case_id !== undefined && bug.case_id !== null ? String(bug.case_id) : null;
+                    const bugSessCaseIdStr = bug.session_case_id !== undefined && bug.session_case_id !== null ? String(bug.session_case_id) : null;
+
+                    if (bugSessCaseIdStr && cidStr === bugSessCaseIdStr) return true;
+                    if (bugCaseIdStr && cidStr === bugCaseIdStr) return true;
+                    if (bugCaseIdStr && origIdStr && origIdStr === bugCaseIdStr) return true;
+                    if (bugSessCaseIdStr && origIdStr && origIdStr === bugSessCaseIdStr) return true;
+                    return false;
+                  });
+                  const linkedCase = targetIndex !== -1 ? cases[targetIndex] : null;
+                  const bugNum = String(bug.display_id || idx + 1).padStart(4, '0');
                   let timeStr = '';
                   if (bug.timestamp) {
                     const d = new Date(bug.timestamp.replace(' ', 'T'));
@@ -560,7 +576,7 @@ export default function TestView({
                   return (
                     <div
                       key={bug.id || idx}
-                      className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[20px] border border-slate-200 dark:border-[#334155] flex flex-col"
+                      className="bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none border border-slate-200/60 dark:border-[#334155] rounded-[20px] flex flex-col"
                       style={{padding: 20, gap: 16}}
                     >
                       {/* d1Top: justify-between */}
@@ -596,14 +612,13 @@ export default function TestView({
                           </button>
                           <button
                             onClick={() => {
-                              const targetIndex = cases.findIndex(c => c.id === bug.case_id);
                               if (targetIndex !== -1) {
                                 setCurrentCaseIndex(targetIndex);
                                 setShowBugList(false);
                               }
                             }}
-                            className="w-[32px] h-[32px] rounded-[16px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none flex items-center justify-center active:scale-90 transition-all"
-                            title="定位"
+                            className="w-[32px] h-[32px] rounded-[16px] bg-white dark:bg-[#1e293b] shadow-sm dark:shadow-none flex items-center justify-center active:scale-90 transition-all cursor-pointer"
+                            title="定位到对应用例"
                           >
                             <Send size={14} className="text-[#60a5fa]" />
                           </button>
@@ -612,10 +627,14 @@ export default function TestView({
                       {/* d1Mid: link icon #64748b + case ref */}
                       <div className="flex items-center gap-[8px]">
                         <Link size={16} className="text-[#64748b] shrink-0" />
-                        <span className="text-[12px] font-[600] text-slate-500 dark:text-[#cbd5e1]">关联用例：Case {bug.case_id} - {linkedCase?.function || '未知'}</span>
+                        <span className="text-[12px] font-[600] text-slate-500 dark:text-[#cbd5e1]">
+                          关联用例：Case {targetIndex !== -1 ? (targetIndex + 1) : bug.case_id} - {linkedCase?.function || bug.function || '未知'}
+                        </span>
                       </div>
                       {/* txt: description */}
-                      <span className="text-[14px] font-[600] text-slate-700 dark:text-[#cbd5e1] break-words leading-relaxed">{bug.description}</span>
+                      <span className="text-[14px] font-[600] text-slate-700 dark:text-[#cbd5e1] break-words leading-relaxed">
+                        {bug.description ? bug.description.split(' | ACTIVE_CASE: ')[0] : ''}
+                      </span>
                       {/* pRow: only show when there's media */}
                       {bug.media && bug.media.length > 0 && (
                         <div className="flex gap-[8px] flex-wrap">

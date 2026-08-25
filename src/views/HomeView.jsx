@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Car, Sun, Moon, Calendar, Info, Layers, Radio, MapPin, ArrowRight, User, Map as MapIcon, Database, Activity, Bug, Code, Gauge, Monitor, Network, Music, ChevronDown, X, Camera, CameraIcon, FileText, Smartphone } from 'lucide-react';
+import { Car, Sun, Moon, Calendar, Info, Layers, Radio, MapPin, ArrowRight, User, Map as MapIcon, Database, Activity, Bug, Code, Gauge, Monitor, Network, Music, ChevronDown, X, Camera, CameraIcon, FileText, Smartphone, QrCode } from 'lucide-react';
 import { FIELD_LABELS } from '../constants/labels.js';
 import { ARCHITECTURES, IVI_MODULES, COMM_MODULES } from '../constants.js';
 import { decodeModelYearFromVin, decodeVinFromRules } from '../utils/vinDecoder.js';
@@ -30,6 +30,7 @@ export default function HomeView({
   resetAllFields,
   setHistorySessions,
   API_BASE,
+  onOpenQrModal,
 }) {
   const { theme, toggleTheme } = useTheme();
   const [lightbox, setLightbox] = useState(null);
@@ -61,9 +62,21 @@ export default function HomeView({
             </div>
             <p className="text-[10px] font-bold uppercase tracking-widest mt-0.5 ml-[6px] bg-gradient-to-r from-[#38bdf8] to-[#818cf8] bg-clip-text text-transparent">{FIELD_LABELS.validationTest}</p>
           </div>
-          <button onClick={toggleTheme} className="w-12 h-12 bg-white dark:bg-[#1e293b] rounded-2xl flex items-center justify-center border border-slate-200 dark:border-[#334155] shadow-sm dark:shadow-none transition-colors active:scale-95">
-            {theme === 'dark' ? <Sun className="text-amber-500" size={26} strokeWidth={1.5} /> : <Moon className="text-slate-600" size={26} strokeWidth={1.5} />}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onOpenQrModal}
+              title="微信扫一扫访问 / 手机端录入"
+              className="h-12 px-3.5 bg-white dark:bg-[#1e293b] rounded-2xl flex items-center gap-2 border border-slate-200 dark:border-[#334155] shadow-sm dark:shadow-none hover:border-emerald-500/50 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 text-slate-700 dark:text-slate-200 transition-all active:scale-95 group"
+            >
+              <div className="w-7 h-7 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <QrCode size={18} strokeWidth={2} />
+              </div>
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-200 hidden sm:inline">微信扫码</span>
+            </button>
+            <button onClick={toggleTheme} className="w-12 h-12 bg-white dark:bg-[#1e293b] rounded-2xl flex items-center justify-center border border-slate-200 dark:border-[#334155] shadow-sm dark:shadow-none transition-colors active:scale-95">
+              {theme === 'dark' ? <Sun className="text-amber-500" size={26} strokeWidth={1.5} /> : <Moon className="text-slate-600" size={26} strokeWidth={1.5} />}
+            </button>
+          </div>
         </header>
 
         {/* Scrolling Form Container */}
@@ -156,7 +169,7 @@ export default function HomeView({
                 <CustomSelect
                   value={productionStage}
                   onChange={setProductionStage}
-                  options={['PPV', 'NS', 'VDC', 'S', 'STC']}
+                  options={['APPV', 'PPV', 'NS', 'VDC', 'S', 'STC']}
                   className="w-full h-full"
                   textColor="text-slate-900 dark:text-white font-[700] text-[16px]"
                 />

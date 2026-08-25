@@ -238,13 +238,25 @@ router.get('/:id', async (req, res) => {
             });
         }
 
-        const [bugs] = await db.query('SELECT * FROM bugs WHERE session_id = ?', [sessionId]);
+        const [bugs] = await db.query(`
+            SELECT b.*, 
+                   COALESCE(sc.function_category, c.function_category, sc.category, c.category) as function_category,
+                   COALESCE(sc.\`function\`, c.\`function\`) as \`function\`,
+                   COALESCE(sc.expected, c.expected) as expected
+            FROM bugs b
+            LEFT JOIN session_cases sc ON b.session_case_id = sc.id
+            LEFT JOIN cases c ON b.case_id = c.id
+            WHERE b.session_id = ?
+        `, [sessionId]);
         if (bugs && Array.isArray(bugs)) {
             bugs.forEach(b => {
                 if (typeof b.media === 'string') {
                     try { b.media = JSON.parse(b.media); } catch(e) { b.media = []; }
                 } else if (!b.media) {
                     b.media = [];
+                }
+                if (b.description && b.description.includes(' | ACTIVE_CASE: ')) {
+                    b.description = b.description.split(' | ACTIVE_CASE: ')[0];
                 }
             });
         }
@@ -262,11 +274,19 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
     const sessionId = req.params.id;
     const { vehicle, results } = req.body;
+    console.log(`[PUT /sessions/${sessionId}] Request body keys:`, Object.keys(req.body || {}));
+    console.log(`[PUT /sessions/${sessionId}] Results array length:`, results ? results.length : 0);
+    
+    console.log(`[PUT /sessions/${sessionId}] Acquiring connection from pool...`);
     const connection = await pool.promise().getConnection();
+    console.log(`[PUT /sessions/${sessionId}] Connection acquired.`);
 
     try {
+        console.log(`[PUT /sessions/${sessionId}] Beginning transaction...`);
         await connection.beginTransaction();
+        console.log(`[PUT /sessions/${sessionId}] Transaction started.`);
 
+        console.log(`[PUT /sessions/${sessionId}] Updating test_sessions table...`);
         await connection.query(
             `UPDATE test_sessions SET 
                 vehicle_model=?, model_year=?, vin=?, production_stage=?, test_env=?, address=?,
@@ -288,22 +308,31 @@ router.put('/:id', async (req, res) => {
                 getBeijingTime(), sessionId
             ]
         );
+        console.log(`[PUT /sessions/${sessionId}] test_sessions table updated.`);
 
         // Re-sort session_cases according to tester's custom order (or default)
         const testerName = (vehicle.tester || '').trim();
         let customOrder = null;
         if (testerName !== '') {
+            console.log(`[PUT /sessions/${sessionId}] Querying custom case order for tester: ${testerName}`);
             const [orderRows] = await connection.query('SELECT case_ids FROM tester_case_orders WHERE tester_name = ?', [testerName]);
             if (orderRows.length > 0) {
                 try {
                     const parsed = JSON.parse(orderRows[0].case_ids);
                     if (Array.isArray(parsed) && parsed.length > 0) customOrder = parsed;
-                } catch(e) {}
+                    console.log(`[PUT /sessions/${sessionId}] Found custom case order of length:`, customOrder.length);
+                } catch(e) {
+                    console.error("Error parsing custom case order", e);
+                }
             }
         }
 
+        console.log(`[PUT /sessions/${sessionId}] Querying existing session cases...`);
         const [existingSessionCases] = await connection.query('SELECT * FROM session_cases WHERE session_id = ?', [sessionId]);
+        console.log(`[PUT /sessions/${sessionId}] Found session cases count:`, existingSessionCases.length);
+        
         if (existingSessionCases.length > 0) {
+            console.log(`[PUT /sessions/${sessionId}] Sorting session cases...`);
             if (customOrder) {
                 const orderMap = new Map();
                 customOrder.forEach((id, idx) => orderMap.set(Number(id), idx));
@@ -317,30 +346,51 @@ router.put('/:id', async (req, res) => {
                 existingSessionCases.sort((a, b) => (a.original_case_id - b.original_case_id) || (a.id - b.id));
             }
 
+            console.log(`[PUT /sessions/${sessionId}] Assigning case numbers...`);
             const numbered = assignCaseNumbers(existingSessionCases);
-            // Bulk update sort_order and case_number
-            for (let i = 0; i < numbered.length; i++) {
+            console.log(`[PUT /sessions/${sessionId}] Bulk updating session cases sort order...`);
+            // Bulk update sort_order and case_number in a single query using CASE/WHEN
+            if (numbered.length > 0) {
+                const ids = numbered.map((n, i) => n.id);
+                let sortCase = 'CASE id';
+                let numCase = 'CASE id';
+                const params = [];
+                numbered.forEach((n, i) => {
+                    sortCase += ` WHEN ? THEN ?`;
+                    numCase += ` WHEN ? THEN ?`;
+                    params.push(n.id, i);      // for sort_order
+                });
+                sortCase += ' END';
+                numCase += ' END';
+                const numParams = [];
+                numbered.forEach((n, i) => {
+                    numParams.push(n.id, n.case_number);
+                });
                 await connection.query(
-                    'UPDATE session_cases SET sort_order = ?, case_number = ? WHERE id = ?',
-                    [i, numbered[i].case_number, numbered[i].id]
+                    `UPDATE session_cases SET sort_order = ${sortCase}, case_number = ${numCase} WHERE id IN (?)`,
+                    [...params, ...numParams, ids]
                 );
             }
+            console.log(`[PUT /sessions/${sessionId}] Session cases update complete.`);
         }
 
         if (results && Array.isArray(results) && results.length > 0) {
+            console.log(`[PUT /sessions/${sessionId}] Deleting old test results...`);
             await connection.query('DELETE FROM test_results WHERE session_id = ?', [sessionId]);
+            console.log(`[PUT /sessions/${sessionId}] Old test results deleted.`);
 
             // Load session_cases to rebuild caseId map
+            console.log(`[PUT /sessions/${sessionId}] Querying session cases again...`);
             const [sessionCases] = await connection.query(
                 'SELECT id, original_case_id FROM session_cases WHERE session_id = ?',
                 [sessionId]
             );
             const caseIdMap = {};
             sessionCases.forEach(sc => { if (sc.original_case_id) caseIdMap[sc.original_case_id] = sc.id; });
-            // Also support direct session_case_id → session_case_id mapping
             const scIdSet = new Set(sessionCases.map(sc => sc.id));
 
             const validResults = results.filter(r => r.result || (r.notes && r.notes.trim() !== ''));
+            console.log(`[PUT /sessions/${sessionId}] Filtered valid results to insert count:`, validResults.length);
             if (validResults.length > 0) {
                 const resultValues = validResults.map(r => {
                     const scId = r.session_case_id && scIdSet.has(r.session_case_id)
@@ -358,21 +408,27 @@ router.put('/:id', async (req, res) => {
                         JSON.stringify(r.media || [])
                     ];
                 });
+                console.log(`[PUT /sessions/${sessionId}] Bulk inserting new test results...`);
                 await connection.query(
                     `INSERT INTO test_results (session_id, case_id, session_case_id, start_time, car_exec_time, app_feedback_time, result, notes, media) VALUES ?`,
                     [resultValues]
                 );
+                console.log(`[PUT /sessions/${sessionId}] Bulk insert complete.`);
             }
         }
 
+        console.log(`[PUT /sessions/${sessionId}] Committing transaction...`);
         await connection.commit();
+        console.log(`[PUT /sessions/${sessionId}] Transaction committed successfully.`);
         res.json({ message: 'Session updated successfully' });
     } catch (err) {
+        console.error(`[PUT /sessions/${sessionId}] Error occurred, rolling back:`, err);
         await connection.rollback();
-        console.error('[PUT /sessions] Error:', err);
         res.status(500).json({ error: err.message });
     } finally {
+        console.log(`[PUT /sessions/${sessionId}] Releasing database connection...`);
         connection.release();
+        console.log(`[PUT /sessions/${sessionId}] Connection released.`);
     }
 });
 

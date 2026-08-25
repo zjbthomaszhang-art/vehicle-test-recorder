@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>Vehicle Test Recorder 介绍</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 使用国内极速 CDN 解决加载失败问题 -->
+    <link rel="stylesheet" href="https://cdn.staticfile.net/reveal.js/4.3.1/reset.min.css">
+    <link rel="stylesheet" href="https://cdn.staticfile.net/reveal.js/4.3.1/reveal.min.css">
+    <link rel="stylesheet" href="https://cdn.staticfile.net/reveal.js/4.3.1/theme/night.min.css" id="theme">
+    <style>
+        .reveal h1, .reveal h2, .reveal h3 { font-family: "Microsoft YaHei", sans-serif; text-transform: none; }
+        .reveal p, .reveal li { font-family: "Microsoft YaHei", sans-serif; }
+        .highlight { color: #42b983; font-weight: bold; }
+        
+        /* 纯代码实现的高级品牌标识，永不破图 */
+        .brand-card-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-top: 50px;
+        }
+        .brand-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 25px;
+            transition: all 0.4s ease;
+        }
+        .brand-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
+        .gm-text {
+            font-family: "Arial Black", Arial, sans-serif;
+            font-weight: 900;
+            font-size: 2.2em;
+            color: #ffffff;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+            letter-spacing: -2px;
+            text-shadow: 0 0 15px rgba(255,255,255,0.4);
+        }
+        .onstar-text {
+            font-family: 'Arial Black', sans-serif;
+            font-style: italic;
+            font-size: 1.8em;
+            color: #0072ce;
+            text-shadow: 0 0 12px rgba(0,114,206,0.6);
+        }
+        .buick-text {
+            font-family: 'Times New Roman', serif;
+            font-size: 1.8em;
+            letter-spacing: 3px;
+            color: #e8e8e8;
+        }
+        .cadillac-text {
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            font-size: 1.8em;
+            color: #e8e8e8;
+            letter-spacing: 1px;
+        }
+        .brand-subtitle {
+            margin: 10px 0 0 0 !important;
+            font-size: 0.55em !important;
+            color: #888;
+            letter-spacing: 2px;
+        }
+        .badge {
+            display: inline-block;
+            background: rgba(66, 185, 131, 0.2);
+            color: #42b983;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.5em;
+            margin-bottom: 15px;
+            border: 1px solid #42b983;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            <!-- 封面 -->
+            <section>
+                <div class="badge">Powered by SDC Technology</div>
+                <h1 style="font-size: 2.5em;">Vehicle Test Recorder</h1>
+                <h3>车辆测试记录系统</h3>
+                <p style="color: #888; font-size: 0.8em; margin-top: 30px;">产品架构与功能展示 | 2026</p>
+            </section>
+
+            <!-- 痛点与解决方案 -->
+            <section>
+                <section>
+                    <h2>传统测试的挑战</h2>
+                    <ul style="font-size: 0.9em; line-height: 1.8;">
+                        <li><strong>网络环境恶劣</strong>：地下车库、隧道等无网/弱网环境。</li>
+                        <li><strong>数据同步困难</strong>：网络波动导致数据丢失或重复提交。</li>
+                        <li><strong>终端受限</strong>：只支持固定电脑，无法在车内移动作业。</li>
+                    </ul>
+                    <p style="color:#aaa; font-size:0.6em; margin-top:30px;">(请按 ↓ 键继续)</p>
+                </section>
+                <section>
+                    <h2>我们的解决方案</h2>
+                    <p>专为 <span class="highlight">车辆外场测试</span> 打造的现代化 Web 系统。</p>
+                    <ul style="font-size: 0.9em; margin-top:30px;">
+                        <li>提供稳定、无缝的离线数据采集体验。</li>
+                        <li>一键生成标准化的测试报表。</li>
+                    </ul>
+                </section>
+            </section>
+
+            <!-- 核心功能与品牌融合 -->
+            <section>
+                <section>
+                    <h2>核心功能亮点</h2>
+                    <p style="color:#aaa; font-size:0.6em; margin-top:30px;">(请按 ↓ 键查看各项功能详情)</p>
+                </section>
+                <section>
+                    <div style="font-size: 0.6em; color: #0072ce; font-style: italic; margin-bottom: 10px; text-shadow: 0 0 5px rgba(0,114,206,0.3);">Designed for OnStar Telematics</div>
+                    <h3>1. 离线自适应采集</h3>
+                    <ul style="font-size: 0.85em; line-height: 1.8;">
+                        <li><span class="highlight">安吉星无网级保障</span>：处于无网地下车库时，系统自动将数据加密暂存至本地。</li>
+                        <li><span class="highlight">智能同步</span>：网络恢复后在后台静默将数据推送到服务器。</li>
+                    </ul>
+                </section>
+                <section>
+                    <h3>2. 自动化报表引擎</h3>
+                    <ul style="font-size: 0.85em; line-height: 1.8;">
+                        <li>一键将海量数据库结果转换为 <span class="highlight">标准 Excel 报表</span>。</li>
+                        <li>内置适配多种业务场景与标准的交付模板，解放双手。</li>
+                    </ul>
+                </section>
+            </section>
+
+            <!-- 业务支持专属板块：高级卡片布局 -->
+            <section>
+                <h2>全面赋能生态品牌</h2>
+                <p style="font-size: 0.8em; margin-bottom: 10px; color: #ccc;">基于现代化技术底座，深度支持上汽通用全矩阵品牌</p>
+                
+                <div class="brand-card-grid" style="display: flex; justify-content: center;">
+                    <div class="brand-card fragment fade-up" style="width: 50%;">
+                        <div class="onstar-text">OnStar</div>
+                        <p class="brand-subtitle">上海安吉星 · 车联服务</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 结尾 -->
+            <section>
+                <h2>Vehicle Test Recorder</h2>
+                <p>您的外场车辆测试最佳搭档！</p>
+                <p style="color: #888; font-size: 0.8em; margin-top: 50px;">感谢观看</p>
+            </section>
+        </div>
+    </div>
+
+    <script src="https://cdn.staticfile.net/reveal.js/4.3.1/reveal.min.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            transition: 'convex',
+            center: true,
+            slideNumber: 'c/t'
+        });
+    </script>
+</body>
+</html>

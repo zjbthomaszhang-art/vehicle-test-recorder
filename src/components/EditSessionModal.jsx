@@ -164,7 +164,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete, v
             <CustomSelect
               value={formData.productionStage}
               onChange={(val) => setFormData(prev => ({ ...prev, productionStage: val }))}
-              options={['PPV', 'NS', 'VDC', 'S', 'STC']}
+              options={['APPV', 'PPV', 'NS', 'VDC', 'S', 'STC']}
               placeholder=""
               align="right"
               className="w-1/2"

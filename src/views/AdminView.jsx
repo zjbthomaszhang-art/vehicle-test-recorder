@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { FolderOpen, Edit3, X, Eye, EyeOff, FileSpreadsheet, ListOrdered, GripVertical, RotateCcw, Check, ChevronDown, CheckSquare, Square, PlusCircle, Save } from 'lucide-react';
+import { FolderOpen, Edit3, X, Eye, EyeOff, FileSpreadsheet, ListOrdered, GripVertical, RotateCcw, Check, ChevronDown, CheckSquare, Square, PlusCircle, Save, QrCode } from 'lucide-react';
 import CustomSelect from '../components/CustomSelect.jsx';
 import MobileNavigator from '../components/MobileNavigator.jsx';
 import { assignHierarchicalNumbers } from '../utils/caseNumbering.js';
 
-export default function AdminView({ cases, setCases, setView, setToast, API_BASE }) {
+export default function AdminView({ cases, setCases, setView, setToast, API_BASE, onOpenQrModal }) {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCat, setFilterCat] = useState('');
@@ -383,19 +383,28 @@ export default function AdminView({ cases, setCases, setView, setToast, API_BASE
     <div className="min-h-screen bg-slate-50 dark:bg-[#0f1523] text-slate-800 dark:text-slate-100 flex flex-col font-sans">
       <header className="px-[16px] pt-[44px] pb-[8px] w-full z-10 shrink-0 flex items-end justify-between">
         <h1 className="text-[26px] font-[800] text-slate-900 dark:text-white leading-none tracking-tight">案例管理</h1>
-        {/* VIN 解析表导入- PC only */}
-        <div className="hidden sm:flex items-center gap-[8px]">
-          {vinRuleCount !== null && (
-            <span className="text-[11px] font-[700] text-slate-400 dark:text-[#64748b]">{vinRuleCount} 条VIN 规则</span>
-          )}
-          <input type="file" accept=".xlsx,.xls" ref={vinFileRef} onChange={handleVinImport} className="hidden" />
+        <div className="flex items-center gap-[8px]">
           <button
-            onClick={() => vinFileRef.current?.click()}
-            className="flex items-center gap-[5px] bg-[#7c3aed]/10 border border-[#7c3aed]/30 hover:bg-[#7c3aed]/20 transition-colors rounded-[12px] px-[10px] py-[5px]"
+            onClick={onOpenQrModal}
+            className="flex items-center gap-[5px] bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 transition-colors rounded-[12px] px-[10px] py-[5px]"
           >
-            <FileSpreadsheet size={13} className="text-[#a78bfa]" />
-            <span className="text-[11px] font-[700] text-[#a78bfa]">VIN 解析表</span>
+            <QrCode size={13} />
+            <span className="text-[11px] font-[700]">微信扫码</span>
           </button>
+          {/* VIN 解析表导入- PC only */}
+          <div className="hidden sm:flex items-center gap-[8px]">
+            {vinRuleCount !== null && (
+              <span className="text-[11px] font-[700] text-slate-400 dark:text-[#64748b]">{vinRuleCount} 条VIN 规则</span>
+            )}
+            <input type="file" accept=".xlsx,.xls" ref={vinFileRef} onChange={handleVinImport} className="hidden" />
+            <button
+              onClick={() => vinFileRef.current?.click()}
+              className="flex items-center gap-[5px] bg-[#7c3aed]/10 border border-[#7c3aed]/30 hover:bg-[#7c3aed]/20 transition-colors rounded-[12px] px-[10px] py-[5px]"
+            >
+              <FileSpreadsheet size={13} className="text-[#a78bfa]" />
+              <span className="text-[11px] font-[700] text-[#a78bfa]">VIN 解析表</span>
+            </button>
+          </div>
         </div>
       </header>
 

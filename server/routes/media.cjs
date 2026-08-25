@@ -95,7 +95,7 @@ router.get('/', async (req, res) => {
                             session_id: bug.session_id,
                             bug_id: bug.id,
                             case_id: bug.case_id,
-                            title: `Bug #${bug.id}: ${bug.description || '缺陷附件'}`,
+                            title: `Bug #${bug.id}: ${(bug.description ? bug.description.split(' | ACTIVE_CASE: ')[0] : '') || '缺陷附件'}`,
                             vehicle_info: (bug.model_year || bug.vehicle_model) ? `MY${bug.model_year || ''} ${bug.vehicle_model || ''}`.trim() : '',
                             tester: bug.tester || 'Unknown',
                             timestamp: bug.timestamp

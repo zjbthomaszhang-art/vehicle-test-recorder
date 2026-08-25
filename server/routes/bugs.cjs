@@ -11,7 +11,10 @@ router.get('/', async (req, res) => {
         SELECT b.*, 
                COALESCE(sc.function_category, c.function_category, sc.category, c.category) as function_category,
                COALESCE(sc.\`function\`, c.\`function\`) as \`function\`,
-               COALESCE(sc.expected, c.expected) as expected
+               COALESCE(sc.expected, c.expected) as expected,
+               ts.vin as session_vin,
+               ts.vehicle_model as session_vehicle_model,
+               ts.model_year as session_model_year
         FROM bugs b
         LEFT JOIN session_cases sc ON b.session_case_id = sc.id
         LEFT JOIN cases c ON b.case_id = c.id
@@ -32,14 +35,21 @@ router.get('/', async (req, res) => {
     try {
         const [rows] = params.length > 0 ? await db.query(query, params) : await db.query(query);
         // Parse media JSON for each bug
-        const result = rows.map(b => ({
-            ...b,
-            media: (() => {
-                if (!b.media) return [];
-                try { const m = JSON.parse(b.media); return Array.isArray(m) ? m : []; }
-                catch { return []; }
-            })()
-        }));
+        const result = rows.map(b => {
+            let desc = b.description || '';
+            if (desc.includes(' | ACTIVE_CASE: ')) {
+                desc = desc.split(' | ACTIVE_CASE: ')[0];
+            }
+            return {
+                ...b,
+                description: desc,
+                media: (() => {
+                    if (!b.media) return [];
+                    try { const m = JSON.parse(b.media); return Array.isArray(m) ? m : []; }
+                    catch { return []; }
+                })()
+            };
+        });
         res.json(result);
     } catch (err) {
         res.status(500).json({ error: err.message });

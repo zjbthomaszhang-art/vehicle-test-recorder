@@ -2,6 +2,7 @@ const express = require('express');
 const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
+const { db } = require('../db.cjs');
 
 let sharp;
 try {
@@ -240,7 +241,40 @@ function applyDataStyles(sheet, rowNum, colCount) {
 }
 
 async function buildExport(req, res) {
-  const { cases = [], caseResults = [], bugs = [], vehicle = {} } = req.body;
+  const { cases: rawCases = [], caseResults: rawCaseResults = [], bugs = [], vehicle = {} } = req.body;
+
+  // Fetch original sort_order from Case Management (cases table) to ensure consistent order
+  let dbSortOrderMap = new Map();
+  try {
+    const [dbCases] = await db.query("SELECT id, sort_order FROM cases");
+    dbCases.forEach(c => dbSortOrderMap.set(Number(c.id), Number(c.sort_order || 0)));
+  } catch (err) {
+    console.error("Error fetching db cases for sorting:", err);
+  }
+
+  const paired = rawCases.map((c, i) => ({ c, r: rawCaseResults[i] || {} }));
+  paired.sort((a, b) => {
+    const idA = Number(a.c.original_case_id || a.c.id);
+    const idB = Number(b.c.original_case_id || b.c.id);
+    const sortA = dbSortOrderMap.has(idA) ? dbSortOrderMap.get(idA) : Number(a.c.sort_order || 0);
+    const sortB = dbSortOrderMap.has(idB) ? dbSortOrderMap.get(idB) : Number(b.c.sort_order || 0);
+    if (sortA !== sortB) return sortA - sortB;
+    return idA - idB;
+  });
+
+  // De-duplicate paired cases to discard duplicate cases (e.g. historical duplicates with sort_order = 999999)
+  const uniquePaired = [];
+  const seenKeys = new Set();
+  paired.forEach(item => {
+    const key = `${item.c.category}::${item.c.function_category || item.c.functionCategory || ''}::${item.c.function}::${item.c.expected}`;
+    if (!seenKeys.has(key)) {
+      seenKeys.add(key);
+      uniquePaired.push(item);
+    }
+  });
+
+  const cases = uniquePaired.map(p => p.c);
+  const caseResults = uniquePaired.map(p => p.r);
   const { vehicleModel = '', modelYear = '', vin = '', address = '', tester = '', mileage = '' } = vehicle;
   
   // Extract city from address heuristically
@@ -574,7 +608,7 @@ function applyCoverAndTocSizing(ws, isCover) {
       date: `${d.getMonth() + 1}月${d.getDate()}日`,
       time: d.toTimeString().slice(0, 5),
       smt: '',
-      desc: bug.description,
+      desc: bug.description ? bug.description.split(' | ACTIVE_CASE: ')[0] : '',
       defect: '',
       note: '',
       rate: '',
