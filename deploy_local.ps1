@@ -41,6 +41,7 @@ Upload "src/components/ConfirmDialog.jsx"    "src/components/ConfirmDialog.jsx"
 Upload "src/components/Toast.jsx"            "src/components/Toast.jsx"
 Upload "src/components/MobileNavigator.jsx"  "src/components/MobileNavigator.jsx"
 Upload "src/components/ImageLightbox.jsx"    "src/components/ImageLightbox.jsx"
+Upload "src/components/QRCodeModal.jsx"      "src/components/QRCodeModal.jsx"
 
 # ── src/utils ──────────────────────────────────────────────────────
 Upload "src/utils/vinDecoder.js"    "src/utils/vinDecoder.js"
@@ -86,6 +87,7 @@ Upload "server/routes/dbViewer.cjs"   "server/routes/dbViewer.cjs"
 Upload "server/routes/vinRules.cjs"   "server/routes/vinRules.cjs"
 Upload "server/routes/caseOrders.cjs" "server/routes/caseOrders.cjs"
 Upload "server/routes/media.cjs"      "server/routes/media.cjs"
+Upload "server/routes/system.cjs"     "server/routes/system.cjs"
 
 # ── nginx config ───────────────────────────────────────────────────
 scp -i $SSH_KEY -o StrictHostKeyChecking=no -r nginx "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/"

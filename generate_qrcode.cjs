@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 async function generateServerQRCode() {
-  const serverUrl = 'http://47.103.7.184:3001';
+  const serverUrl = 'http://47.103.7.184';
   const outputDir = path.resolve(__dirname);
 
   const qrOptions = {
@@ -32,7 +32,7 @@ async function generateServerQRCode() {
     }
   }
 
-  console.log('\n✅ qrcode_server.png (http://47.103.7.184:3001) 已成功就绪！');
+  console.log('\n✅ qrcode_server.png (http://47.103.7.184) 已成功就绪！');
 }
 
 generateServerQRCode().catch(err => {

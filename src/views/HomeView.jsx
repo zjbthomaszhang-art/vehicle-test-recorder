@@ -129,10 +129,10 @@ export default function HomeView({
               </div>
               <input
                 type="text"
-                inputMode="numeric"
+                inputMode="decimal"
                 value={modelYear}
-                onChange={(e) => setModelYear(e.target.value.replace(/\D/g, ''))}
-                maxLength={2}
+                onChange={(e) => setModelYear(e.target.value.replace(/[。．]/g, '.').replace(/[^0-9.]/g, ''))}
+                maxLength={10}
                 placeholder=""
                 className="bg-transparent text-right outline-none text-slate-900 dark:text-white font-[700] text-[16px] flex-1 min-w-0 ml-1 sm:ml-2 placeholder:text-slate-400 dark:placeholder:text-slate-600 placeholder:font-normal"
               />

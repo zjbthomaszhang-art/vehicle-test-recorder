@@ -3,7 +3,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { X, QrCode, Copy, Download, ExternalLink, Wifi, Globe, Smartphone, Check, RefreshCw } from 'lucide-react';
 import { API_BASE } from '../constants.js';
 
-const DEFAULT_SERVER_URL = 'http://47.103.7.184:3001';
+const DEFAULT_SERVER_URL = 'http://47.103.7.184';
 
 export default function QRCodeModal({ isOpen, onClose, setToast }) {
   const [networkInfo, setNetworkInfo] = useState(null);
@@ -46,17 +46,17 @@ export default function QRCodeModal({ isOpen, onClose, setToast }) {
   // Compute final QR code URL based on selection
   let finalUrl = DEFAULT_SERVER_URL;
   if (selectedAddressType === 'server') {
-    finalUrl = DEFAULT_SERVER_URL;
+    finalUrl = isLocalhost ? DEFAULT_SERVER_URL : currentOrigin;
   } else if (selectedAddressType === 'custom' && customUrl.trim()) {
     finalUrl = customUrl.trim().startsWith('http') ? customUrl.trim() : `${protocol}//${customUrl.trim()}`;
   } else if (selectedAddressType === 'lan') {
     if (selectedIp) {
-      finalUrl = `${protocol}//${selectedIp}${browserPort || ':3001'}`;
+      finalUrl = `${protocol}//${selectedIp}${browserPort || (isLocalhost ? ':5173' : '')}`;
     } else {
       finalUrl = currentOrigin;
     }
   } else if (selectedAddressType === 'auto') {
-    finalUrl = isLocalhost ? (selectedIp ? `${protocol}//${selectedIp}${browserPort}` : DEFAULT_SERVER_URL) : currentOrigin;
+    finalUrl = isLocalhost ? (selectedIp ? `${protocol}//${selectedIp}${browserPort || ':5173'}` : DEFAULT_SERVER_URL) : currentOrigin;
   }
 
   // Copy to clipboard handler

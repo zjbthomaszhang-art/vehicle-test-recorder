@@ -33,7 +33,7 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete, v
   const [lightbox, setLightbox] = useState(null);
   const [formData, setFormData] = useState({
     vehicleModel: session.vehicle_model || '',
-    model_year:   session.model_year ? String(session.model_year).slice(-2) : '',
+    model_year:   session.model_year ? String(session.model_year) : '',
     vin:          session.vin || '',
     productionStage: session.production_stage || '',
     testEnv:      session.test_env || '',
@@ -89,15 +89,15 @@ export default function EditSessionModal({ session, onClose, onSave, onDelete, v
         {/* Scrollable Fields */}
         <div className="flex-1 overflow-y-auto px-[16px] pt-[8px] pb-[16px] flex flex-col gap-[8px] edit-modal-scroll">
 
-          {/* 生产年份 — digits only */}
+          {/* 生产年份 */}
           <FieldRow>
             <FieldLabel icon={Calendar} label="生产年份" />
             <input
               type="text"
-              inputMode="numeric"
+              inputMode="decimal"
               value={formData.model_year}
-              onChange={set('model_year', v => v.replace(/\D/g, ''))}
-              maxLength={2}
+              onChange={set('model_year', v => v.replace(/[。．]/g, '.').replace(/[^0-9.]/g, ''))}
+              maxLength={10}
               className={inputCls}
             />
           </FieldRow>
