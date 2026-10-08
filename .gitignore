@@ -33,3 +33,4 @@ server.zip
 deploy_temp/
 .secrets/
 .tools/
+backup/

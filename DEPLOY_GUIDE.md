@@ -112,3 +112,14 @@ gzip -t "$(ls -1t *.sql.gz | head -n 1)"
 ```bash
 gunzip -c <backup.sql.gz> | mysql -h 127.0.0.1 -u <database-user> -p <database-name>
 ```
+
+### 本地工作日增量同步
+
+本地计划任务在每个工作日的 `12:00`、`13:00`、`14:00` 运行。当天首次成功后，后续运行会自动跳过；如果三次均失败，则等到下一个工作日。
+
+- 本地数据库备份：`F:\vehicle-test-recorder\backup\database\`
+- 本地测试附件：`F:\vehicle-test-recorder\backup\uploads\`
+- 同步日志：`F:\vehicle-test-recorder\backup\logs\sync.log`
+- 执行脚本：`scripts\sync_server_backup.ps1`
+
+脚本只下载服务器上新增或大小发生变化的文件，并校验数据库备份的 SHA-256 值。
