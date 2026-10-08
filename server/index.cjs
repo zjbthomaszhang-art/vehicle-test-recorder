@@ -40,9 +40,10 @@ app.use('/api/case-orders', caseOrdersRouter);
 app.use('/api/media', mediaRouter);
 app.use('/api/system', systemRouter);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/db-api', dbViewerRouter);
-// /db-viewer redirects to /db-api/viewer for backwards compatibility
-app.get('/db-viewer', (req, res) => res.redirect('/db-api/viewer'));
+if (process.env.ENABLE_DB_VIEWER === 'true') {
+    app.use('/db-api', dbViewerRouter);
+    app.get('/db-viewer', (req, res) => res.redirect('/db-api/viewer'));
+}
 
 // SPA fallback: send index.html for all non-API routes (supports client-side routing)
 app.get('*', (req, res) => {
@@ -51,7 +52,7 @@ app.get('*', (req, res) => {
 
 // Initialize DB and start server
 initializeDatabase().then(() => {
-    app.listen(port, () => {
+    app.listen(port, '127.0.0.1', () => {
         console.log(`Backend server running at http://localhost:${port}`);
         console.log(`DB Viewer available at http://localhost:${port}/db-viewer`);
     });

@@ -61,7 +61,8 @@ export default function AdminView({ cases, setCases, setView, setToast, API_BASE
 
   // Load a tester's saved order
   const loadTesterOrder = useCallback(async (name) => {
-    if (!name) { setOrderList([...cases].sort((a, b) => Number(a.id) - Number(b.id))); return; }
+    const defaultSort = (a, b) => Number(a.sort_order) - Number(b.sort_order) || Number(a.id) - Number(b.id);
+    if (!name) { setOrderList([...cases].sort(defaultSort)); return; }
     setOrderLoading(true);
     try {
       const res = await fetch(`${API_BASE}/case-orders/${encodeURIComponent(name)}`);
@@ -71,13 +72,13 @@ export default function AdminView({ cases, setCases, setView, setToast, API_BASE
         const idMap = new Map(cases.map(c => [String(c.id), c]));
         const ordered = ids.map(id => idMap.get(String(id))).filter(Boolean);
         const listed = new Set(ids.map(String));
-        const remaining = cases.filter(c => !listed.has(String(c.id))).sort((a,b) => Number(a.id)-Number(b.id));
+        const remaining = cases.filter(c => !listed.has(String(c.id))).sort(defaultSort);
         setOrderList([...ordered, ...remaining]);
       } else {
-        setOrderList([...cases].sort((a, b) => Number(a.id) - Number(b.id)));
+        setOrderList([...cases].sort(defaultSort));
       }
       setSelectedOrderIds([]);
-    } catch { setOrderList([...cases].sort((a, b) => Number(a.id) - Number(b.id))); setSelectedOrderIds([]); }
+    } catch { setOrderList([...cases].sort(defaultSort)); setSelectedOrderIds([]); }
     finally { setOrderLoading(false); }
   }, [cases, API_BASE]);
 
@@ -161,10 +162,10 @@ export default function AdminView({ cases, setCases, setView, setToast, API_BASE
 
   const resetOrder = async () => {
     if (!orderTester.trim()) return;
-    if (!window.confirm(`确认清除测试人员${orderTester}的自定义排序，恢复默认ID顺序？`)) return;
+    if (!window.confirm(`确认清除测试人员${orderTester}的自定义排序，恢复默认业务顺序？`)) return;
     try {
       await fetch(`${API_BASE}/case-orders/${encodeURIComponent(orderTester.trim())}`, { method: 'DELETE' });
-      setOrderList([...cases].sort((a, b) => Number(a.id) - Number(b.id)));
+      setOrderList([...cases].sort((a, b) => Number(a.sort_order) - Number(b.sort_order) || Number(a.id) - Number(b.id)));
       setSelectedOrderIds([]);
       if (typeof setToast === 'function') setToast({ message: `${orderTester}的案例排序已恢复默认`, type: 'success' });
       const updated = await fetch(`${API_BASE}/case-orders`).then(r=>r.json()).catch(()=>[]);

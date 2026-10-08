@@ -70,7 +70,7 @@ pm2 restart vehicle-recorder
 - **自检**：执行 `sudo chown -R www-data:www-data /var/www/vehicle-test-recorder`。
 
 ### 2. 数据库连不上 / 历史记录消失
-- **确认配置**：检查 `.env` 文件中的密码是否为 `REDACTED`，地址是否为 `127.0.0.1`。
+- **确认配置**：检查服务器 `.env` 与 GitHub Actions Secrets 中的数据库账号、密码和地址是否一致；不要在文档或仓库中记录真实密码。
 
 ### 3. 查看实时报错
 - **快速查看**：

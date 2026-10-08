@@ -338,13 +338,21 @@ export default function NDLBRecorder() {
       setTestCases(casesForSession);
 
       if (data.results && Array.isArray(data.results)) {
+        const parseTime = (t) => {
+          if (!t) return null;
+          if (typeof t === 'number') return isNaN(t) ? null : t;
+          // Safari / WebKit on iOS strictly requires ISO-8601 with 'T' instead of space
+          const s = String(t).trim().replace(' ', 'T');
+          const parsed = new Date(s).getTime();
+          return isNaN(parsed) ? null : parsed;
+        };
         const resultMap = {};
         data.results.forEach(r => {
           const key = r.session_case_id || r.case_id;
           if (key) resultMap[key] = {
-            startTime: r.start_time ? new Date(r.start_time).getTime() : null,
-            carExecTime: r.car_exec_time ? new Date(r.car_exec_time).getTime() : null,
-            appFeedbackTime: r.app_feedback_time ? new Date(r.app_feedback_time).getTime() : null,
+            startTime: parseTime(r.start_time),
+            carExecTime: parseTime(r.car_exec_time),
+            appFeedbackTime: parseTime(r.app_feedback_time),
             result: r.result || '',
             notes: r.notes || '',
             media: r.media || [],
@@ -402,9 +410,9 @@ export default function NDLBRecorder() {
         return {
           case_id: c?.original_case_id || c?.id,          // original case library ID
           session_case_id: c?.original_case_id ? c.id : null, // snapshot ID (only set if using sessionCases)
-          start_time: res.startTime,
-          car_exec_time: res.carExecTime,
-          app_feedback_time: res.appFeedbackTime,
+          start_time: (res.startTime && !isNaN(res.startTime)) ? res.startTime : null,
+          car_exec_time: (res.carExecTime && !isNaN(res.carExecTime)) ? res.carExecTime : null,
+          app_feedback_time: (res.appFeedbackTime && !isNaN(res.appFeedbackTime)) ? res.appFeedbackTime : null,
           result: res.result,
           notes: res.notes,
           media: res.media

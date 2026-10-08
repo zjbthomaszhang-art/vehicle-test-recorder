@@ -2,7 +2,7 @@ $ErrorActionPreference = "Stop"
 
 $REMOTE_HOST = "47.103.7.184"
 $REMOTE_USER = "admin"
-$SSH_KEY     = ".\github_actions_key"
+$SSH_KEY     = ".\.secrets\aliyun_deploy_ed25519_final"
 $REMOTE_DIR  = "~/vehicle-test-recorder"
 $DEST        = "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/"
 
@@ -88,6 +88,7 @@ Upload "server/routes/vinRules.cjs"   "server/routes/vinRules.cjs"
 Upload "server/routes/caseOrders.cjs" "server/routes/caseOrders.cjs"
 Upload "server/routes/media.cjs"      "server/routes/media.cjs"
 Upload "server/routes/system.cjs"     "server/routes/system.cjs"
+Upload "fix_session_order.cjs"        "fix_session_order.cjs"
 
 # ── nginx config ───────────────────────────────────────────────────
 scp -i $SSH_KEY -o StrictHostKeyChecking=no -r nginx "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/"
@@ -106,7 +107,7 @@ Write-Host "`n[4/4] Uploading dist and deploying..." -ForegroundColor Yellow
 ssh -i $SSH_KEY -o StrictHostKeyChecking=no "${REMOTE_USER}@${REMOTE_HOST}" "rm -rf ~/vehicle-test-recorder/dist"
 scp -i $SSH_KEY -o StrictHostKeyChecking=no -r dist "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/"
 
-$remoteScript = "set -e; cd ~/vehicle-test-recorder; echo '>>> Deploying...'; sudo rm -rf /var/www/vehicle-test-recorder/dist; sudo mkdir -p /var/www/vehicle-test-recorder/dist; sudo cp -r dist/* /var/www/vehicle-test-recorder/dist/; sudo chown -R www-data:www-data /var/www/vehicle-test-recorder; /usr/bin/pm2 restart vehicle-recorder || /usr/bin/pm2 start /home/admin/vehicle-test-recorder/server/index.cjs --name vehicle-recorder --cwd /home/admin/vehicle-test-recorder; sudo systemctl reload nginx; echo '>>> Done!'"
+$remoteScript = "set -e; cd ~/vehicle-test-recorder; echo '>>> Deploying...'; sudo rm -rf /var/www/vehicle-test-recorder/dist; sudo mkdir -p /var/www/vehicle-test-recorder/dist; sudo cp -r dist/* /var/www/vehicle-test-recorder/dist/; sudo chown -R www-data:www-data /var/www/vehicle-test-recorder; sudo cp nginx/vehicle-recorder.conf /etc/nginx/sites-available/vehicle-recorder.conf; sudo cp nginx/vehicle-recorder.conf /etc/nginx/sites-enabled/vehicle-recorder.conf; sudo nginx -t; node fix_session_order.cjs || true; /usr/bin/pm2 restart vehicle-recorder || /usr/bin/pm2 start /home/admin/vehicle-test-recorder/server/index.cjs --name vehicle-recorder --cwd /home/admin/vehicle-test-recorder; sudo systemctl reload nginx; echo '>>> Done!'"
 
 ssh -i $SSH_KEY -o StrictHostKeyChecking=no "${REMOTE_USER}@${REMOTE_HOST}" $remoteScript
 

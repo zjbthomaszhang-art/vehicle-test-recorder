@@ -79,7 +79,7 @@ router.post('/', async (req, res) => {
             // Build hierarchical case numbers (same logic as caseNumbering.js)
             const numbered = assignCaseNumbers(activeCases);
 
-            const scValues = numbered.map(c => [
+            const scValues = numbered.map((c, idx) => [
                 sessionId,
                 c.id,
                 c.category || '',
@@ -89,7 +89,7 @@ router.post('/', async (req, res) => {
                 c.type || 'simple',
                 c.hint || '',
                 c.case_number || '',
-                c.sort_order || 0
+                idx
             ]);
 
             const [scResult] = await connection.query(
@@ -287,25 +287,51 @@ router.put('/:id', async (req, res) => {
         console.log(`[PUT /sessions/${sessionId}] Transaction started.`);
 
         console.log(`[PUT /sessions/${sessionId}] Updating test_sessions table...`);
+        const [currSess] = await connection.query('SELECT * FROM test_sessions WHERE id = ?', [sessionId]);
+        const existing = currSess[0] || {};
+
+        const vModel = vehicle && vehicle.vehicleModel !== undefined ? vehicle.vehicleModel : existing.vehicle_model;
+        const vYear = vehicle && vehicle.model_year !== undefined ? vehicle.model_year : existing.model_year;
+        const vVin = vehicle && vehicle.vin !== undefined ? vehicle.vin : existing.vin;
+        const vStage = vehicle && (vehicle.productionStage || vehicle.production_stage) !== undefined
+            ? (vehicle.productionStage || vehicle.production_stage) : existing.production_stage;
+        const vEnv = vehicle && (vehicle.testEnv || vehicle.test_env) !== undefined
+            ? (vehicle.testEnv || vehicle.test_env) : existing.test_env;
+        const vAddr = vehicle && vehicle.address !== undefined ? vehicle.address : existing.address;
+        const vArch = vehicle && vehicle.architecture !== undefined ? vehicle.architecture : existing.architecture;
+        const vIvi = vehicle && vehicle.iviModule !== undefined ? vehicle.iviModule : existing.ivi_module;
+        const vComm = vehicle && vehicle.commModule !== undefined ? vehicle.commModule : existing.comm_module;
+        let vEnvPhoto = existing.env_photo;
+        if (vehicle && Array.isArray(vehicle.envPhotos) && vehicle.envPhotos.length > 0) {
+            vEnvPhoto = JSON.stringify(vehicle.envPhotos);
+        } else if (vehicle && vehicle.envPhoto !== undefined && vehicle.envPhoto !== null) {
+            vEnvPhoto = vehicle.envPhoto;
+        }
+        const vTester = vehicle && vehicle.tester !== undefined ? vehicle.tester : existing.tester;
+        const vMileage = vehicle && vehicle.mileage !== undefined ? vehicle.mileage : existing.mileage;
+        const vRemarks = vehicle && vehicle.remarks !== undefined ? vehicle.remarks : existing.remarks;
+        const vIos = vehicle && (vehicle.iosVersion || vehicle.ios_version) !== undefined
+            ? (vehicle.iosVersion || vehicle.ios_version) : existing.ios_version;
+        const vAndroid = vehicle && (vehicle.androidVersion || vehicle.android_version) !== undefined
+            ? (vehicle.androidVersion || vehicle.android_version) : existing.android_version;
+
         await connection.query(
             `UPDATE test_sessions SET 
                 vehicle_model=?, model_year=?, vin=?, production_stage=?, test_env=?, address=?,
                 architecture=?, ivi_module=?, comm_module=?, env_photo=?, tester=?, mileage=?, remarks=?,
-                ios_version=?, android_version=?, timestamp=?
+                ios_version=?, android_version=?
              WHERE id=?`,
             [
-                vehicle.vehicleModel, vehicle.model_year, vehicle.vin,
-                vehicle.productionStage || vehicle.production_stage || '',
-                vehicle.testEnv || vehicle.test_env || '',
-                vehicle.address || '', vehicle.architecture,
-                vehicle.iviModule, vehicle.commModule,
-                (Array.isArray(vehicle.envPhotos) && vehicle.envPhotos.length > 0)
-                    ? JSON.stringify(vehicle.envPhotos)
-                    : (vehicle.envPhoto || null),
-                vehicle.tester || '', vehicle.mileage || '', vehicle.remarks || '',
-                vehicle.iosVersion || vehicle.ios_version || '',
-                vehicle.androidVersion || vehicle.android_version || '',
-                getBeijingTime(), sessionId
+                vModel, vYear, vVin,
+                vStage || '',
+                vEnv || '',
+                vAddr || '', vArch,
+                vIvi, vComm,
+                vEnvPhoto,
+                vTester || '', vMileage || '', vRemarks || '',
+                vIos || '',
+                vAndroid || '',
+                sessionId
             ]
         );
         console.log(`[PUT /sessions/${sessionId}] test_sessions table updated.`);
@@ -333,17 +359,40 @@ router.put('/:id', async (req, res) => {
         
         if (existingSessionCases.length > 0) {
             console.log(`[PUT /sessions/${sessionId}] Sorting session cases...`);
+            // Fetch master cases sort_order to maintain consistent order with AdminView / cases table
+            const [masterCases] = await connection.query('SELECT id, sort_order FROM cases');
+            const masterSortMap = new Map();
+            masterCases.forEach(mc => masterSortMap.set(Number(mc.id), Number(mc.sort_order || 0)));
+
+            const getMasterSortOrder = (item) => {
+                const origId = Number(item.original_case_id || item.id);
+                if (masterSortMap.has(origId)) return masterSortMap.get(origId);
+                return Number(item.sort_order || 0);
+            };
+
             if (customOrder) {
                 const orderMap = new Map();
                 customOrder.forEach((id, idx) => orderMap.set(Number(id), idx));
                 existingSessionCases.sort((a, b) => {
-                    const idxA = orderMap.has(Number(a.original_case_id)) ? orderMap.get(Number(a.original_case_id)) : 999999;
-                    const idxB = orderMap.has(Number(b.original_case_id)) ? orderMap.get(Number(b.original_case_id)) : 999999;
+                    const origIdA = Number(a.original_case_id || a.id);
+                    const origIdB = Number(b.original_case_id || b.id);
+                    const idxA = orderMap.has(origIdA) ? orderMap.get(origIdA) : 999999;
+                    const idxB = orderMap.has(origIdB) ? orderMap.get(origIdB) : 999999;
                     if (idxA !== idxB) return idxA - idxB;
-                    return (a.original_case_id - b.original_case_id) || (a.id - b.id);
+                    const sortA = getMasterSortOrder(a);
+                    const sortB = getMasterSortOrder(b);
+                    if (sortA !== sortB) return sortA - sortB;
+                    return (origIdA - origIdB) || (a.id - b.id);
                 });
             } else {
-                existingSessionCases.sort((a, b) => (a.original_case_id - b.original_case_id) || (a.id - b.id));
+                existingSessionCases.sort((a, b) => {
+                    const sortA = getMasterSortOrder(a);
+                    const sortB = getMasterSortOrder(b);
+                    if (sortA !== sortB) return sortA - sortB;
+                    const origIdA = Number(a.original_case_id || a.id);
+                    const origIdB = Number(b.original_case_id || b.id);
+                    return (origIdA - origIdB) || (a.id - b.id);
+                });
             }
 
             console.log(`[PUT /sessions/${sessionId}] Assigning case numbers...`);
@@ -375,6 +424,17 @@ router.put('/:id', async (req, res) => {
         }
 
         if (results && Array.isArray(results) && results.length > 0) {
+            console.log(`[PUT /sessions/${sessionId}] Querying existing test results to preserve timestamps and media...`);
+            const [existingRows] = await connection.query(
+                'SELECT session_case_id, case_id, start_time, car_exec_time, app_feedback_time, media FROM test_results WHERE session_id = ?',
+                [sessionId]
+            );
+            const existingMap = new Map();
+            existingRows.forEach(er => {
+                if (er.session_case_id) existingMap.set(`sc_${er.session_case_id}`, er);
+                if (er.case_id) existingMap.set(`c_${er.case_id}`, er);
+            });
+
             console.log(`[PUT /sessions/${sessionId}] Deleting old test results...`);
             await connection.query('DELETE FROM test_results WHERE session_id = ?', [sessionId]);
             console.log(`[PUT /sessions/${sessionId}] Old test results deleted.`);
@@ -396,16 +456,36 @@ router.put('/:id', async (req, res) => {
                     const scId = r.session_case_id && scIdSet.has(r.session_case_id)
                         ? r.session_case_id
                         : (caseIdMap[r.case_id] || null);
+
+                    const prev = existingMap.get(`sc_${scId}`) || existingMap.get(`c_${r.case_id}`) || {};
+
+                    const parsedStart = r.start_time ? getBeijingTime(r.start_time) : null;
+                    const finalStart = parsedStart || prev.start_time || null;
+
+                    const parsedCar = r.car_exec_time ? getBeijingTime(r.car_exec_time) : null;
+                    const finalCar = parsedCar || prev.car_exec_time || null;
+
+                    const parsedApp = r.app_feedback_time ? getBeijingTime(r.app_feedback_time) : null;
+                    const finalApp = parsedApp || prev.app_feedback_time || null;
+
+                    let mediaArr = r.media;
+                    if ((!mediaArr || (Array.isArray(mediaArr) && mediaArr.length === 0)) && prev.media) {
+                        try {
+                            const p = typeof prev.media === 'string' ? JSON.parse(prev.media) : prev.media;
+                            if (Array.isArray(p) && p.length > 0) mediaArr = p;
+                        } catch(e) {}
+                    }
+
                     return [
                         sessionId,
                         r.case_id || null,
                         scId,
-                        r.start_time ? getBeijingTime(r.start_time) : null,
-                        r.car_exec_time ? getBeijingTime(r.car_exec_time) : null,
-                        r.app_feedback_time ? getBeijingTime(r.app_feedback_time) : null,
+                        finalStart,
+                        finalCar,
+                        finalApp,
                         r.result,
                         r.notes,
-                        JSON.stringify(r.media || [])
+                        JSON.stringify(mediaArr || [])
                     ];
                 });
                 console.log(`[PUT /sessions/${sessionId}] Bulk inserting new test results...`);
