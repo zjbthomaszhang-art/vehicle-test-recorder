@@ -19,7 +19,7 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "server/,src/,public/,package.json,package-lock.json,vite.config.js,index.html,ecosystem.config.cjs,.github/workflows/deploy.yml,nginx/vehicle-recorder.conf"
+          source: "server/,src/,public/,scripts/,package.json,package-lock.json,vite.config.js,index.html,ecosystem.config.cjs,.github/workflows/deploy.yml,nginx/vehicle-recorder.conf"
           target: "~/vehicle-test-recorder"
           strip_components: 0
           overwrite: true
@@ -46,6 +46,10 @@ jobs:
             echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
             echo "NODE_ENV=production" >> .env
             chmod 600 .env
+
+            # Install the daily database backup job for the deployment user.
+            chmod 700 scripts/backup_database.sh scripts/install_backup_cron.sh
+            scripts/install_backup_cron.sh
             
             # 3. NGINX SETUP: Install and Link Config
             echo "Configuring Nginx..."

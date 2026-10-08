@@ -87,3 +87,28 @@ pm2 restart vehicle-recorder
 git checkout v1.0.0-stable-deploy
 pm2 restart vehicle-recorder
 ```
+
+---
+
+## 💾 数据库自动备份
+
+- 服务器每天北京时间 **02:30** 自动备份业务数据库。
+- 备份目录：`/home/admin/backups/vehicle-test-recorder/mysql/`
+- 保留时间：默认 **14 天**，每个压缩备份同时生成 SHA-256 校验文件。
+- 运行日志：`/home/admin/vehicle-test-recorder/logs/database-backup.log`
+
+手动创建并校验一份备份：
+
+```bash
+cd ~/vehicle-test-recorder
+scripts/backup_database.sh
+cd /home/admin/backups/vehicle-test-recorder/mysql
+sha256sum -c "$(ls -1t *.sha256 | head -n 1)"
+gzip -t "$(ls -1t *.sql.gz | head -n 1)"
+```
+
+恢复操作会覆盖目标数据库，执行前先停止应用并再次确认备份文件。示例：
+
+```bash
+gunzip -c <backup.sql.gz> | mysql -h 127.0.0.1 -u <database-user> -p <database-name>
+```

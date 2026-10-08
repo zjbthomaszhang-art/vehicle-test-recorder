@@ -29,7 +29,7 @@ function assignHierarchicalNumbers(cases) {
     const funcNode = fCatNode.children[func];
 
     funcNode.counter++;
-    const caseNumber = `${catNode.number}.${fCatNode.number}.${funcNode.number}.${funcNode.counter}`;
+    const caseNumber = `T${catNode.number}-${fCatNode.number}-${funcNode.number}-${funcNode.counter}`;
     return { ...c, case_number: caseNumber };
   });
 }

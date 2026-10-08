@@ -175,6 +175,9 @@ export default function NDLBRecorder() {
         });
         if (res.ok) {
           await syncManager.remove(item.localId);
+        } else {
+          const errorBody = await res.json().catch(() => ({}));
+          console.error('Queued sync rejected by server:', errorBody.error || `HTTP ${res.status}`);
         }
       } catch (err) {
         console.error('Individual sync failed:', err);
@@ -415,7 +418,7 @@ export default function NDLBRecorder() {
           app_feedback_time: (res.appFeedbackTime && !isNaN(res.appFeedbackTime)) ? res.appFeedbackTime : null,
           result: res.result,
           notes: res.notes,
-          media: res.media
+          media: Array.isArray(res.media) ? res.media : []
         };
       })
     };
@@ -439,7 +442,7 @@ export default function NDLBRecorder() {
 
       if (!isOnline) {
         if (!silent) setToast({ message: '💾 已保存至本地。网络恢复后将自动同步。', type: 'info' });
-        return { sessionId: 'offline-' + localId };
+        return { sessionId: 'offline-' + localId, queued: true };
       }
 
       if (!silent) setIsSaving(true);
@@ -457,7 +460,13 @@ export default function NDLBRecorder() {
           body: JSON.stringify(sessionData),
           signal: controller.signal
         })
-          .then(res => res.json())
+          .then(async res => {
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+              throw new Error(data.error || data.message || `HTTP ${res.status}`);
+            }
+            return data;
+          })
           .then(async data => {
             clearTimeout(fetchTimeout);
             if (data.sessionId && !currentId) {
@@ -480,7 +489,7 @@ export default function NDLBRecorder() {
               setIsSaving(false);
               setToast({ message: '📡 同步失败。数据已安全保存至本地。', type: 'info' });
             }
-            resolve({ sessionId: 'offline-' + localId });
+            resolve({ sessionId: 'offline-' + localId, queued: true });
           });
       });
     }).catch(err => {
@@ -497,41 +506,8 @@ export default function NDLBRecorder() {
       autoSave(); // auto-save on every next case
       setCurrentCaseIndex(prev => prev + 1);
     } else {
-      // Final save: bypass the saveQueue to avoid being blocked by pending auto-saves
-      setIsSaving(true);
-      const currentId = sessionIdRef.current;
-      const sessionData = buildSessionData(currentId);
-      const url = currentId ? `${API_BASE}/test-sessions/${currentId}` : `${API_BASE}/test-sessions`;
-      const method = currentId ? 'PUT' : 'POST';
-
-      // 15-second safety timeout
-      const safetyTimeout = setTimeout(() => {
-        console.warn('[nextCase] Final save timed out, forcing navigation to report');
-        setIsSaving(false);
-        setView('report');
-      }, 15000);
-
-      fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sessionData)
-      })
-        .then(res => res.json())
-        .then(data => {
-          clearTimeout(safetyTimeout);
-          if (data.sessionId && !currentId) {
-            setCurrentSessionId(data.sessionId);
-            sessionIdRef.current = data.sessionId;
-          }
-          setIsSaving(false);
-          setView('report');
-        })
-        .catch(err => {
-          clearTimeout(safetyTimeout);
-          console.error('Final save failed:', err);
-          setIsSaving(false);
-          setView('report');
-        });
+      // Use the same durable queue as regular saves so a failed final request is retained locally.
+      saveSession(false).finally(() => setView('report'));
     }
   };
 
@@ -543,7 +519,14 @@ export default function NDLBRecorder() {
 
   const saveTemporarily = () => {
     saveSession()
-      .then(() => setToast({ message: '进度已临时保存', type: 'success' }))
+      .then(result => {
+        if (result?.error) throw result.error;
+        if (result?.queued) {
+          setToast({ message: '数据已保存到本地，网络恢复后将自动同步。', type: 'info' });
+        } else {
+          setToast({ message: '进度已临时保存', type: 'success' });
+        }
+      })
       .catch(err => setToast({ message: '保存失败: ' + err.message, type: 'error' }));
   };
 

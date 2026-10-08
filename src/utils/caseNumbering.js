@@ -1,5 +1,5 @@
 /**
- * Dynamically generates hierarchical case numbers (e.g., 1.1.1.1) based on the sorted order of cases.
+ * Dynamically generates hierarchical case numbers (e.g., T1-1-1-1) based on the sorted order of cases.
  * The cases array MUST be pre-sorted (e.g., by sort_order) before passing to this function.
  * 
  * @param {Array} cases - Array of case objects
@@ -43,7 +43,7 @@ export function assignHierarchicalNumbers(cases) {
 
         // Case Content
         funcNode.counter++;
-        const caseNumber = `${catNode.number}.${fCatNode.number}.${funcNode.number}.${funcNode.counter}`;
+        const caseNumber = `T${catNode.number}-${fCatNode.number}-${funcNode.number}-${funcNode.counter}`;
 
         return {
             ...c,

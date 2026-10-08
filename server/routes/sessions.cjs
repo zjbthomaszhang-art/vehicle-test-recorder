@@ -4,6 +4,19 @@ const { getBeijingTime } = require('../utils.cjs');
 
 const router = express.Router();
 
+function hasResultData(result) {
+    return Boolean(
+        result && (
+            result.result ||
+            (typeof result.notes === 'string' && result.notes.trim() !== '') ||
+            result.start_time ||
+            result.car_exec_time ||
+            result.app_feedback_time ||
+            (Array.isArray(result.media) && result.media.length > 0)
+        )
+    );
+}
+
 /**
  * POST /api/test-sessions
  * Create a new session + snapshot all active cases into session_cases
@@ -115,7 +128,7 @@ router.post('/', async (req, res) => {
                 if (sc.original_case_id) caseIdMap[sc.original_case_id] = sc.id;
             });
 
-            const validResults = results.filter(r => r.result || (r.notes && r.notes.trim() !== ''));
+            const validResults = results.filter(hasResultData);
             if (validResults.length > 0) {
                 const resultValues = validResults.map(r => [
                     sessionId,
@@ -302,7 +315,7 @@ router.put('/:id', async (req, res) => {
         const vIvi = vehicle && vehicle.iviModule !== undefined ? vehicle.iviModule : existing.ivi_module;
         const vComm = vehicle && vehicle.commModule !== undefined ? vehicle.commModule : existing.comm_module;
         let vEnvPhoto = existing.env_photo;
-        if (vehicle && Array.isArray(vehicle.envPhotos) && vehicle.envPhotos.length > 0) {
+        if (vehicle && Array.isArray(vehicle.envPhotos)) {
             vEnvPhoto = JSON.stringify(vehicle.envPhotos);
         } else if (vehicle && vehicle.envPhoto !== undefined && vehicle.envPhoto !== null) {
             vEnvPhoto = vehicle.envPhoto;
@@ -346,7 +359,7 @@ router.put('/:id', async (req, res) => {
                 try {
                     const parsed = JSON.parse(orderRows[0].case_ids);
                     if (Array.isArray(parsed) && parsed.length > 0) customOrder = parsed;
-                    console.log(`[PUT /sessions/${sessionId}] Found custom case order of length:`, customOrder.length);
+                    console.log(`[PUT /sessions/${sessionId}] Found custom case order of length:`, customOrder?.length || 0);
                 } catch(e) {
                     console.error("Error parsing custom case order", e);
                 }
@@ -449,7 +462,7 @@ router.put('/:id', async (req, res) => {
             sessionCases.forEach(sc => { if (sc.original_case_id) caseIdMap[sc.original_case_id] = sc.id; });
             const scIdSet = new Set(sessionCases.map(sc => sc.id));
 
-            const validResults = results.filter(r => r.result || (r.notes && r.notes.trim() !== ''));
+            const validResults = results.filter(hasResultData);
             console.log(`[PUT /sessions/${sessionId}] Filtered valid results to insert count:`, validResults.length);
             if (validResults.length > 0) {
                 const resultValues = validResults.map(r => {
@@ -469,7 +482,8 @@ router.put('/:id', async (req, res) => {
                     const finalApp = parsedApp || prev.app_feedback_time || null;
 
                     let mediaArr = r.media;
-                    if ((!mediaArr || (Array.isArray(mediaArr) && mediaArr.length === 0)) && prev.media) {
+                    // Missing media means an older client omitted the field; an explicit [] means delete all.
+                    if (mediaArr === undefined && prev.media) {
                         try {
                             const p = typeof prev.media === 'string' ? JSON.parse(prev.media) : prev.media;
                             if (Array.isArray(p) && p.length > 0) mediaArr = p;
