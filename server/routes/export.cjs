@@ -74,7 +74,7 @@ function drawTemplateHeaders(sheet, title, info, isApp) {
   sheet.getCell('E11').value = info.city;
   
   if (isApp) {
-    sheet.getCell('G11').value = '手机版本：';
+    sheet.getCell('G11').value = info.versionLabel || '手机版本：';
     sheet.getCell('H11').value = info.appVersion;
   } else {
     sheet.getCell('G11').value = '测试地点：';
@@ -392,8 +392,9 @@ function applyCoverAndTocSizing(ws, isCover) {
     { row: 14, text: '车辆服务', target: "'车辆服务'!A1" },
     { row: 15, text: '手机APP-iOS', target: "'手机APP-iOS'!A1" },
     { row: 16, text: '手机APP-Android', target: "'手机APP-Android'!A1" },
-    { row: 17, text: 'SGM问题清单', target: "'SGM问题清单'!A1" },
-    { row: 18, text: '截图', target: "'截图'!A1" }
+    { row: 17, text: '微信小程序', target: "'微信小程序'!A1" },
+    { row: 18, text: 'SGM问题清单', target: "'SGM问题清单'!A1" },
+    { row: 19, text: '截图', target: "'截图'!A1" }
   ];
 
   tocLinks.forEach((link) => {
@@ -451,11 +452,11 @@ function applyCoverAndTocSizing(ws, isCover) {
   drawThemeFrame(wsVehicle, 2, 10, vEndRow + 3, arrowId, onstarId, bgId, circleId, undefined, 12, 1, 9, 369093);
 
   // --- 手机APP Sheets ---
-  const addAppSheetWithData = (sheetName, titleSuffix, appVersion) => {
+  const addAppSheetWithData = (sheetName, titleSuffix, appVersion, caseFilter, versionLabel = '手机版本：') => {
     const wsApp = workbook.addWorksheet(sheetName);
     
     // Copy info and inject specific appVersion
-    const sheetInfo = { ...info, appVersion: appVersion || '' };
+    const sheetInfo = { ...info, appVersion: appVersion || '', versionLabel };
     drawTemplateHeaders(wsApp, `${vehicleModel}车辆手机APP验证测试- ${titleSuffix}`, sheetInfo, true);
     
     const appColWidths = [
@@ -485,7 +486,9 @@ function applyCoverAndTocSizing(ws, isCover) {
       cell.alignment = align;
     });
 
-    const appRows = cases.map((c, i) => ({ c, r: caseResults[i] || {} })).filter(({ c }) => c.category === '手机应用' && (c.function_category || c.functionCategory) === sheetName);
+    const appRows = cases
+      .map((c, i) => ({ c, r: caseResults[i] || {} }))
+      .filter(({ c }) => caseFilter(c));
     appRows.forEach(({ c, r }, idx) => {
       const rNum = 16 + idx;
       const row = wsApp.getRow(rNum);
@@ -521,8 +524,25 @@ function applyCoverAndTocSizing(ws, isCover) {
 
   };
 
-  addAppSheetWithData('手机APP-iOS', '手机APP-iOS', vehicle.iosVersion || vehicle.ios_version || '');
-  addAppSheetWithData('手机APP-Android', '手机APP-Android', vehicle.androidVersion || vehicle.android_version || '');
+  addAppSheetWithData(
+    '手机APP-iOS',
+    '手机APP-iOS',
+    vehicle.iosVersion || vehicle.ios_version || '',
+    c => c.category === '手机应用' && (c.function_category || c.functionCategory) === '手机APP-iOS'
+  );
+  addAppSheetWithData(
+    '手机APP-Android',
+    '手机APP-Android',
+    vehicle.androidVersion || vehicle.android_version || '',
+    c => c.category === '手机应用' && (c.function_category || c.functionCategory) === '手机APP-Android'
+  );
+  addAppSheetWithData(
+    '微信小程序',
+    '微信小程序',
+    vehicle.wechatVersion || vehicle.wechat_version || '',
+    c => c.category === '小程序' || c.category === '微信小程序',
+    '小程序版本：'
+  );
 
   // --- SGM 问题清单 ---
   const wsBugs = workbook.addWorksheet('SGM问题清单');
