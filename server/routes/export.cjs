@@ -452,12 +452,15 @@ function applyCoverAndTocSizing(ws, isCover) {
   drawThemeFrame(wsVehicle, 2, 10, vEndRow + 3, arrowId, onstarId, bgId, circleId, undefined, 12, 1, 9, 369093);
 
   // --- 手机APP Sheets ---
-  const addAppSheetWithData = (sheetName, titleSuffix, appVersion, caseFilter, versionLabel = '手机版本：') => {
+  const addAppSheetWithData = (sheetName, titleSuffix, appVersion, caseFilter, options = {}) => {
     const wsApp = workbook.addWorksheet(sheetName);
+    const versionLabel = options.versionLabel || '手机版本：';
+    const reportTitle = options.reportTitle || `${vehicleModel}车辆手机APP验证测试- ${titleSuffix}`;
+    const feedbackLabel = options.feedbackLabel || 'APP反馈时长/秒';
     
     // Copy info and inject specific appVersion
     const sheetInfo = { ...info, appVersion: appVersion || '', versionLabel };
-    drawTemplateHeaders(wsApp, `${vehicleModel}车辆手机APP验证测试- ${titleSuffix}`, sheetInfo, true);
+    drawTemplateHeaders(wsApp, reportTitle, sheetInfo, true);
     
     const appColWidths = [
       5.125, 6.625, 10.625, 14.625, 25.375, 32.375, 17.375, 25.625, 17, 25.625, 13, 6.625, 0.625, 4.625, 12.625
@@ -466,7 +469,7 @@ function applyCoverAndTocSizing(ws, isCover) {
       wsApp.getColumn(i + 1).width = w;
     });
 
-    const aHeaders = ["No.", "功能大类", "功能", "测试内容", "测试开始时间        ", "车辆执行时长/秒", "APP反馈时长/秒", "最终结果:\\nPass/Fail", "备注"];
+    const aHeaders = ["No.", "功能大类", "功能", "测试内容", "测试开始时间        ", "车辆执行时长/秒", feedbackLabel, "最终结果:\\nPass/Fail", "备注"];
     const aRow15 = wsApp.getRow(15);
     aRow15.height = 45.95;
     aHeaders.forEach((h, idx) => {
@@ -541,7 +544,11 @@ function applyCoverAndTocSizing(ws, isCover) {
     '微信小程序',
     vehicle.wechatVersion || vehicle.wechat_version || '',
     c => c.category === '小程序' || c.category === '微信小程序',
-    '小程序版本：'
+    {
+      versionLabel: '小程序版本：',
+      reportTitle: `${vehicleModel}车辆微信小程序验证测试`,
+      feedbackLabel: '小程序反馈时长/秒'
+    }
   );
 
   // --- SGM 问题清单 ---
